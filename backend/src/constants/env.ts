@@ -9,3 +9,6 @@ const getEnv = (key: string, defaultValue?: string): string => {
 };
 
 export const MONGO_URI = getEnv("MONGO_URI");
+
+export const MAILTRAP_TOKEN = getEnv("MAILTRAP_TOKEN");
+export const JWT_SECRET = getEnv("JWT_SECRET");
