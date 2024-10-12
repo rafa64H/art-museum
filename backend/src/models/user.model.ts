@@ -9,10 +9,10 @@ export interface UserDocument extends mongoose.Document {
   lastLogin: Date;
   createdAt: Date;
   lastUpdated: Date;
-  resetPasswordToken: String;
-  resetPasswordExpiresAt: Date;
-  verificationToken: String;
-  verificationTokenExpiresAt: Date;
+  resetPasswordToken: String | undefined;
+  resetPasswordExpiresAt: Date | undefined;
+  verificationToken: String | undefined;
+  verificationTokenExpiresAt: Date | undefined;
 }
 
 const UserSchema = new mongoose.Schema<UserDocument>(
@@ -51,10 +51,10 @@ const UserSchema = new mongoose.Schema<UserDocument>(
       type: Boolean,
       default: false,
     },
-    resetPasswordToken: String,
-    resetPasswordExpiresAt: Date,
-    verificationToken: String,
-    verificationTokenExpiresAt: Date,
+    resetPasswordToken: String || undefined,
+    resetPasswordExpiresAt: Date || undefined,
+    verificationToken: String || undefined,
+    verificationTokenExpiresAt: Date || undefined,
   },
   { timestamps: true }
 );
