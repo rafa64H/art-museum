@@ -18,7 +18,7 @@ app.get("/", async (req, res): Promise<void> => {
   res.send("hellow world");
 });
 
-app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
 
 app.listen(port, async () => {
   console.log("listening on port", port);
