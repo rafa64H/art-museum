@@ -6,6 +6,7 @@ export interface UserDocument extends mongoose.Document {
   username: string;
   password: string;
   verified: boolean;
+  role: "user" | "admin";
   lastLogin: Date;
   createdAt: Date;
   lastUpdated: Date;
@@ -34,6 +35,11 @@ const UserSchema = new mongoose.Schema<UserDocument>(
     password: {
       type: String,
       required: true,
+    },
+    role: {
+      type: String,
+      required: true,
+      default: "user",
     },
     lastLogin: {
       type: Date,

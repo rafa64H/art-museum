@@ -2,11 +2,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { UserModel } from "../models/user.model";
 import { Request, Response } from "express";
-import {
-  generateJWTTokensAndSetCookies,
-  RefreshTokenPayload,
-  verifyToken,
-} from "../utils/jwtFunctions";
+import { RefreshTokenPayload, verifyToken } from "../utils/jwtFunctions";
 import {
   sendPasswordResetEmail,
   sendResetSuccessEmail,
@@ -15,9 +11,9 @@ import {
 } from "../services/mailtrap/mailtrap";
 import { ObjectId } from "mongodb";
 import ErrorReturn from "../constants/ErrorReturn";
-import SessionModel from "../models/session.model";
-import { JWT_SECRET } from "../constants/env";
+import { JWT_SECRET_ACCESS, JWT_SECRET_REFRESH } from "../constants/env";
 import { thirtyDaysFromNow } from "../utils/date";
+import jwt from "jsonwebtoken";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
@@ -47,11 +43,13 @@ export const signUpHandler = async (req: Request, res: Response) => {
       100000 + Math.random() * 900000
     ).toString();
 
+    const role = "user";
     const user = new UserModel({
       email,
       password: hashedPassword,
       name,
       username,
+      role,
       verificationToken,
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
     });
@@ -60,15 +58,21 @@ export const signUpHandler = async (req: Request, res: Response) => {
 
     const userId = user._id as ObjectId;
 
-    const session = new SessionModel({
-      userId,
-      userAgent: req.headers["user-agent"],
+    // jwt
+    const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
+      expiresIn: "15m",
     });
 
-    const sessionId = session._id as ObjectId;
+    const refreshToken = jwt.sign({ userId, role }, JWT_SECRET_REFRESH, {
+      expiresIn: "30d",
+    });
 
-    // jwt
-    const tokens = generateJWTTokensAndSetCookies(res, userId, sessionId);
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
     await sendVerificationEmail(user.email, verificationToken);
 
@@ -77,10 +81,9 @@ export const signUpHandler = async (req: Request, res: Response) => {
       message: "User created successfully",
       user: {
         ...user.toObject(),
-        session,
-        tokens,
         password: undefined,
       },
+      accessToken,
     });
   } catch (error) {
     const isErrorReturn = error instanceof ErrorReturn;
@@ -153,16 +156,23 @@ export const loginHandler = async (req: Request, res: Response) => {
     }
 
     const userId = user._id as ObjectId;
-
-    const session = new SessionModel({
-      userId,
-      userAgent: req.headers["user-agent"],
-    });
-
-    const sessionId = session._id as ObjectId;
+    const role = user.role;
 
     // jwt
-    const tokens = generateJWTTokensAndSetCookies(res, userId, sessionId);
+    const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
+      expiresIn: "15m",
+    });
+
+    const refreshToken = jwt.sign({ userId, role }, JWT_SECRET_REFRESH, {
+      expiresIn: "30d",
+    });
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
     user.lastLogin = new Date();
     await user.save();
@@ -174,6 +184,7 @@ export const loginHandler = async (req: Request, res: Response) => {
         ...user.toObject(),
         password: undefined,
       },
+      accessToken,
     });
   } catch (error) {
     const isErrorReturn = error instanceof ErrorReturn;
@@ -277,48 +288,31 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
 
 export const refreshHandler = async (req: Request, res: Response) => {
   try {
-    const refreshToken = req.cookies.refreshToken as string | undefined;
-
-    if (!refreshToken) {
-      throw new ErrorReturn(401, "No refresh Token available");
+    const cookies = req.cookies;
+    if (!cookies.jwt) {
+      throw new ErrorReturn(401, "Unauthorized");
     }
 
-    const { payload } = verifyToken<RefreshTokenPayload>(refreshToken, {
-      secret: JWT_SECRET,
+    const refreshToken = cookies.jwt;
+
+    const decodedJwt = jwt.verify(refreshToken, JWT_SECRET_REFRESH);
+    if (typeof decodedJwt !== "object")
+      throw new ErrorReturn(401, "Unauthorized");
+
+    const foundUser = await UserModel.findOne(decodedJwt.userId);
+
+    if (!foundUser) throw new ErrorReturn(401, "Unauthorized");
+
+    const user = foundUser;
+
+    const userId = user._id as ObjectId;
+    const role = user.role;
+
+    const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
+      expiresIn: "15m",
     });
 
-    if (!payload) {
-      console.log(payload);
-      throw new ErrorReturn(401, "Invalid refresh token");
-    }
-
-    const now = Date.now();
-
-    const session = await SessionModel.findById(payload.sessionId);
-
-    if (!session || session.expiresAt.getTime() > now) {
-      throw new ErrorReturn(401, "Session expired");
-    }
-
-    const tenDaysInMS = 10 * 24 * 60 * 60 * 1000;
-
-    const sessionNeedsRefresh =
-      session.expiresAt.getTime() - now <= tenDaysInMS;
-
-    if (sessionNeedsRefresh) {
-      session.expiresAt = thirtyDaysFromNow();
-      await session.save();
-
-      const userId = session._id as ObjectId;
-      const sessionId = session._id as ObjectId;
-
-      const newTokens = generateJWTTokensAndSetCookies(res, userId, sessionId);
-
-      res.status(200).json({
-        success: true,
-        message: "Refresh token refreshed successfully",
-      });
-    }
+    res.json({ accessToken });
   } catch (error) {
     const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);

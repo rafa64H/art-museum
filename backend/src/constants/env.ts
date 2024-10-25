@@ -11,5 +11,6 @@ const getEnv = (key: string, defaultValue?: string): string => {
 export const MONGO_URI = getEnv("MONGO_URI");
 
 export const MAILTRAP_TOKEN = getEnv("MAILTRAP_TOKEN");
-export const JWT_SECRET = getEnv("JWT_SECRET");
+export const JWT_SECRET_ACCESS = getEnv("JWT_SECRET_ACCESS");
+export const JWT_SECRET_REFRESH = getEnv("JWT_SECRET_REFRESH");
 export const NODE_ENV = getEnv("NODE_ENV");
