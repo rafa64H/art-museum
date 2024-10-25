@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { urlencoded } from "express";
 import { connectDB } from "./db/connectDB";
 import authRoutes from "./routes/auth.routes";
+import testRoutes from "./routes/test.route";
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
@@ -21,6 +22,8 @@ app.use(
 );
 
 app.use("/auth", authRoutes);
+
+app.use("/api/test", testRoutes);
 
 app.listen(port, async () => {
   console.log("listening on port", port);
