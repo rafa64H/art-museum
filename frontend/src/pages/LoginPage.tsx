@@ -1,12 +1,10 @@
 import React from "react";
-import NavBar from "../components/NavBar";
-import LoginForm from "../components/LoginForm";
+import Header from "../components/Header";
 
 function LoginPage() {
   return (
     <>
-      <NavBar></NavBar>
-      <LoginForm></LoginForm>
+      <Header></Header>
     </>
   );
 }

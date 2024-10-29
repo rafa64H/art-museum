@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { TokenExpiredError } from "jsonwebtoken";
 import ErrorReturn from "../constants/ErrorReturn";
 import { JWT_SECRET_ACCESS } from "../constants/env";
 import { verifyToken } from "../utils/jwtFunctions";
 import { ObjectId } from "mongodb";
+import { refreshHandler } from "../controllers/auth.controller";
 
 export interface middlewareAuthRequest extends Request {
   userId: ObjectId;

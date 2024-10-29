@@ -160,7 +160,7 @@ export const loginHandler = async (req: Request, res: Response) => {
 
     // jwt
     const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
-      expiresIn: "15m",
+      expiresIn: "1m",
     });
 
     const refreshToken = jwt.sign({ userId, role }, JWT_SECRET_REFRESH, {
