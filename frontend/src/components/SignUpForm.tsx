@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import TextInput from "./ui/TextInput";
+import { Link } from "react-router-dom";
 
 function SignUpForm() {
   const emailRef = useRef<HTMLInputElement>(null);
@@ -11,7 +12,7 @@ function SignUpForm() {
 
   return (
     <form
-      className="p-2 border-2 border-solid border-purple-500"
+      className="p-4"
       onSubmit={async (e) => {
         e.preventDefault();
         try {
@@ -75,9 +76,18 @@ function SignUpForm() {
         refProp={passwordRef}
       ></TextInput>
 
-      <button type="submit" className="bg-green-700 p-3 text-white">
+      <button
+        type="submit"
+        className="bg-firstBrown hover:bg-firstGreen mt-2 p-3 font-semibold text-white duration-150"
+      >
         Sign up
       </button>
+
+      <p className="mt-4">
+        <Link className="hover:underline" to="/login">
+          Already have account? Click here
+        </Link>
+      </p>
     </form>
   );
 }

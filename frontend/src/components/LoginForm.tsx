@@ -7,7 +7,7 @@ function LoginForm() {
 
   return (
     <form
-      className="p-2 border-2 border-solid border-purple-500"
+      className="border-2 border-solid border-purple-500 p-2"
       onSubmit={(e) => {
         e.preventDefault();
       }}
@@ -27,7 +27,10 @@ function LoginForm() {
         refProp={passwordRef}
       ></TextInput>
 
-      <button type="submit" className="bg-green-700 p-3 text-white">
+      <button
+        type="submit"
+        className="bg-firstBrown hover:bg-firstGreen mt-2 p-3 font-semibold text-white duration-150"
+      >
         Login
       </button>
     </form>

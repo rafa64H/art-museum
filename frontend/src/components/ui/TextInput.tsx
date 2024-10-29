@@ -9,12 +9,12 @@ type Props = {
 };
 function TextInput({ idFor, label, type, placeholder, refProp }: Props) {
   return (
-    <div className="grid grid-cols-2 w-[min(30rem,50%)]">
-      <label className="" htmlFor={idFor}>
+    <div className="flex w-[min(50rem,60%)] flex-col lg:grid lg:grid-cols-2">
+      <label className="lg:ml-auto" htmlFor={idFor}>
         {label}:
       </label>
       <input
-        className="p-2 border-2 border-black"
+        className="border-2 border-black p-2"
         id={idFor}
         type={type}
         placeholder={placeholder}

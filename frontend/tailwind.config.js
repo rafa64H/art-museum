@@ -8,6 +8,7 @@ export default {
         firstBrown: "#865200",
         firstGreen: "#00728b",
         FirstDarkBlue: "#00023d",
+        mainBg: "#333775",
       },
     },
   },
