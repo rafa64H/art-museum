@@ -14,7 +14,7 @@ function TextInput({ idFor, label, type, placeholder, refProp }: Props) {
         {label}:
       </label>
       <input
-        className="border-2 border-black p-2"
+        className="border-2 border-black p-2 text-black"
         id={idFor}
         type={type}
         placeholder={placeholder}

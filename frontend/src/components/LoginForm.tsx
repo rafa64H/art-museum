@@ -1,5 +1,7 @@
 import React, { useRef } from "react";
 import TextInput from "./ui/TextInput";
+import { Link } from "react-router-dom";
+import ButtonComponent from "./ui/ButtonComponent";
 
 function LoginForm() {
   const emailRef = useRef<HTMLInputElement>(null);
@@ -27,12 +29,13 @@ function LoginForm() {
         refProp={passwordRef}
       ></TextInput>
 
-      <button
-        type="submit"
-        className="bg-firstBrown hover:bg-firstGreen mt-2 p-3 font-semibold text-white duration-150"
-      >
-        Login
-      </button>
+      <ButtonComponent textBtn="Login" typeButton="submit"></ButtonComponent>
+
+      <p className="mt-4">
+        <Link className="hover:underline" to="/sign-up">
+          Don not have account? Click here to register
+        </Link>
+      </p>
     </form>
   );
 }

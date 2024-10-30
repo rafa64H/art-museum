@@ -40,7 +40,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
 
     const role = "user";
@@ -56,7 +56,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
 
     await user.save();
 
-    const userId = user._id as ObjectId;
+    const userId = (user._id as ObjectId).toString();
 
     // jwt
     const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
@@ -96,7 +96,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
 };
 
 export const verifyEmailHandler = async (req: Request, res: Response) => {
-  const { code, userId } = req.body as { code: string; userId: ObjectId };
+  const { code, userId } = req.body as { code: string; userId: string };
   try {
     const user = await UserModel.findOne({
       _id: userId,
@@ -155,7 +155,7 @@ export const loginHandler = async (req: Request, res: Response) => {
       throw new ErrorReturn(400, "Invalid credentials");
     }
 
-    const userId = user._id as ObjectId;
+    const userId = (user._id as ObjectId).toString();
     const role = user.role;
 
     // jwt
@@ -299,20 +299,19 @@ export const refreshHandler = async (req: Request, res: Response) => {
     if (typeof decodedJwt !== "object")
       throw new ErrorReturn(401, "Unauthorized");
 
-    const foundUser = await UserModel.findOne(decodedJwt.userId);
+    const userId = decodedJwt.userId as string;
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
 
     if (!foundUser) throw new ErrorReturn(401, "Unauthorized");
 
-    const user = foundUser;
-
-    const userId = user._id as ObjectId;
-    const role = user.role;
+    const role = foundUser.role;
 
     const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
       expiresIn: "15m",
     });
 
-    res.json({ accessToken });
+    res.status(200).json({ accessToken });
   } catch (error) {
     const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
