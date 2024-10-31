@@ -28,8 +28,10 @@ export const signUpHandler = async (req: Request, res: Response) => {
       throw new ErrorReturn(400, "Some fields are empty");
     }
 
+    const usernameWithAt = `@${username}`;
+
     const alreadyUsedEmail = await UserModel.findOne({ email });
-    const alreadyUsedUsername = await UserModel.findOne({ username });
+    const alreadyUsedUsername = await UserModel.findOne({ usernameWithAt });
 
     if (alreadyUsedEmail) {
       throw new ErrorReturn(400, "Email already in use");
@@ -141,10 +143,10 @@ export const loginHandler = async (req: Request, res: Response) => {
 
   try {
     let user = null;
-    if (emailOrUsername.startsWith("@")) {
-      user = await UserModel.findOne({ username: emailOrUsername });
-    } else {
-      user = await UserModel.findOne({ email: emailOrUsername });
+    user = await UserModel.findOne({ email: emailOrUsername });
+    if (!user) {
+      const usernameWithAt = `@${emailOrUsername}`;
+      user = await UserModel.findOne({ username: usernameWithAt });
     }
 
     if (!user) {

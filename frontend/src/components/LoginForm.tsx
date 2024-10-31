@@ -1,25 +1,127 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import TextInput from "./ui/TextInput";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "./ui/ButtonComponent";
+import { BACKEND_URL } from "../constants";
+import {
+  setUser,
+  UserReduxToolkit,
+} from "../services/redux-toolkit/auth/authSlice";
+import { useDispatch } from "react-redux";
 
-function LoginForm() {
-  const emailRef = useRef<HTMLInputElement>(null);
+function SignUpForm() {
+  const [alertMessage, setAlertMessage] = useState("");
+
+  const emailOrUsernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+
+  const dispatch = useDispatch();
+
+  const navigate = useNavigate();
 
   return (
     <form
-      className="border-2 border-solid border-purple-500 p-2"
-      onSubmit={(e) => {
+      className="p-4"
+      onSubmit={async (e) => {
         e.preventDefault();
+        try {
+          const emailOrUsername = emailOrUsernameRef.current?.value;
+          const password = passwordRef.current?.value;
+
+          const allRefsCurrent = [
+            emailOrUsernameRef.current,
+            passwordRef.current,
+          ];
+
+          const arrayEmptyStringInputs = allRefsCurrent.filter(
+            (refCurrent) => refCurrent!.value === "",
+          );
+
+          if (arrayEmptyStringInputs.length) {
+            const emptyInputsForAlertMessage: string[] = [];
+
+            arrayEmptyStringInputs.map((refCurrent) => {
+              emptyInputsForAlertMessage.push(
+                ` ${refCurrent!.id.replace(/([a-z])([A-Z])/g, "$1 $2").toLocaleLowerCase()}`,
+              ); //Make the id of the ref.current from camelCase to spaces
+              refCurrent!.setAttribute("data-error-input", "true");
+            });
+
+            setAlertMessage(
+              `Please fill in all fields: ${[...emptyInputsForAlertMessage]}`,
+            );
+            return;
+          }
+
+          const url = `${BACKEND_URL}/auth/login`;
+          const data = {
+            emailOrUsername,
+            password,
+          };
+          const response = await fetch(url, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (response.status !== 200 && !(response.status === 400)) {
+            setAlertMessage("Internal server error, try again later");
+            return;
+          }
+          if (response.status === 400) {
+            setAlertMessage("Invalid email/username or password");
+            emailOrUsernameRef.current!.setAttribute(
+              "data-error-input",
+              "true",
+            );
+            passwordRef.current!.setAttribute("data-error-input", "true");
+            return;
+          }
+          if (response.status === 200) {
+            const responseData = await response.json();
+
+            const userData: UserReduxToolkit = {
+              id: responseData._id as string,
+              username: responseData.username as string,
+              name: responseData.name as string,
+              email: responseData.email as string,
+              role: responseData.role as "user" | "admin",
+              lastLogin: responseData.lastLogin as Date,
+              verified: responseData.verified as boolean,
+              accessToken: responseData.accessToken as string,
+            };
+
+            dispatch(setUser(userData));
+            navigate("/");
+          }
+        } catch (error) {
+          setAlertMessage("Internal server error, try again later");
+
+          console.error(error);
+        }
       }}
     >
+      <span
+        className="text-xl font-bold text-red-400"
+        role="alert"
+        aria-live="assertive"
+      >
+        {alertMessage}
+      </span>
+
       <TextInput
-        idFor="email"
-        label="Email"
-        type="email"
-        placeholder="Enter your email"
-        refProp={emailRef}
+        idFor="emailOrUsername"
+        label="Email or username"
+        type="text"
+        placeholder="Enter your email or username"
+        refProp={emailOrUsernameRef}
+        additionalFunction={() => {
+          setAlertMessage("");
+        }}
       ></TextInput>
       <TextInput
         idFor="password"
@@ -27,17 +129,20 @@ function LoginForm() {
         type="password"
         placeholder="Enter your password"
         refProp={passwordRef}
+        additionalFunction={() => {
+          setAlertMessage("");
+        }}
       ></TextInput>
 
       <ButtonComponent textBtn="Login" typeButton="submit"></ButtonComponent>
 
       <p className="mt-4">
         <Link className="hover:underline" to="/sign-up">
-          Don not have account? Click here to register
+          Do not have account? Click here to register
         </Link>
       </p>
     </form>
   );
 }
 
-export default LoginForm;
+export default SignUpForm;

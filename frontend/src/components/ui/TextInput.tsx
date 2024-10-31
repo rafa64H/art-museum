@@ -27,7 +27,7 @@ function TextInput({
         type={type}
         placeholder={placeholder}
         ref={refProp}
-        onClick={(e) => {
+        onFocus={(e) => {
           const target = e.target as HTMLInputElement;
 
           target.setAttribute("data-error-input", "false");
