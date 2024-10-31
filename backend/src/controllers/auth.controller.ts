@@ -50,7 +50,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
       email,
       password: hashedPassword,
       name,
-      username,
+      username: usernameWithAt,
       role,
       verificationToken,
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
