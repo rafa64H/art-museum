@@ -313,7 +313,9 @@ export const refreshHandler = async (req: Request, res: Response) => {
       expiresIn: "15m",
     });
 
-    res.status(200).json({ accessToken });
+    res
+      .status(200)
+      .json({ user: { ...foundUser, password: undefined }, accessToken });
   } catch (error) {
     const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);

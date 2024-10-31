@@ -8,6 +8,7 @@ import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import { store } from "./services/redux-toolkit/store";
 import { Provider } from "react-redux";
+import ProtectLoginRoutes from "./components/ProtectLoginRoutes";
 
 const router = createBrowserRouter([
   {
@@ -16,11 +17,19 @@ const router = createBrowserRouter([
   },
   {
     path: "/login",
-    element: <LoginPage></LoginPage>,
+    element: (
+      <ProtectLoginRoutes>
+        <LoginPage></LoginPage>
+      </ProtectLoginRoutes>
+    ),
   },
   {
     path: "/sign-up",
-    element: <SignUpPage></SignUpPage>,
+    element: (
+      <ProtectLoginRoutes>
+        <SignUpPage></SignUpPage>
+      </ProtectLoginRoutes>
+    ),
   },
 ]);
 
