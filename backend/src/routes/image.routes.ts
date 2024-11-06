@@ -1,96 +1,72 @@
-import multer from "multer";
-const methodOverride = require("method-override");
-import { GridFsStorage } from "multer-gridfs-storage";
 import { MONGO_URI } from "../constants/env";
 import crypto from "crypto";
 import path from "path";
 import mongoose from "mongoose";
-import { connect } from "http2";
-import { GridFSBucket } from "mongodb";
 import express from "express";
 import Router from "express";
 import { Request, Response, NextFunction } from "express";
 import { ImageModel } from "../models/image.model";
+import multer from "multer";
+import ErrorReturn from "../constants/ErrorReturn";
+import { bucket } from "../db/connectDB";
 
-const imageRoutes = express.Router();
-
-const connection = mongoose.createConnection(MONGO_URI);
-
-let gfs: GridFSBucket;
-
-connection.once("open", () => {
-  gfs = new mongoose.mongo.GridFSBucket(connection.db!, {
-    bucketName: "images",
-  });
-  console.log("GridFS Bucket is ready");
-});
-
-const storage = new GridFsStorage({
-  url: MONGO_URI,
-  file: (req: Request, file) => {
-    return new Promise((resolve, reject) => {
-      crypto.randomBytes(16, (err, buf) => {
-        if (err) return reject(err);
-
-        const filename = buf.toString("hex") + path.extname(file.originalname);
-        const fileInfo = {
-          filename: filename,
-          bucketName: "images",
-        };
-        resolve(fileInfo);
-      });
-    });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 1024 * 1024 * 5,
   },
 });
 
-const upload = multer({ storage });
+const imagesRoutes = express.Router();
 
-imageRoutes.post(
-  "/",
+imagesRoutes.post(
+  "/profilePictures",
   upload.single("file"),
   async (req: Request, res: Response) => {
-    console.log(req.body);
     try {
-      const caption: string = req.body.caption;
-      const filename: string = req.body.file.filename;
-      const fileId: string = req.body.file.id;
-      if (!caption) throw new Error("No caption");
+      console.log(req.file);
+      const userId = "1234567user";
+      const file = req.file;
 
-      const foundImage = await ImageModel.findOne({
-        caption: req.body.caption,
+      if (!file) {
+        throw new ErrorReturn(400, "no file provided");
+      }
+
+      const filename = file.originalname;
+      const fileRef = bucket.file(`usersProfilePicture/${userId}/${filename}`);
+      const stream = fileRef.createWriteStream({
+        metadata: {
+          contentType: file.mimetype, // Set the content type for the image
+        },
       });
-      if (foundImage) throw new Error("Image already exists");
 
-      let newImage = new ImageModel({
-        caption: caption,
-        filename: filename,
-        fileId: fileId,
+      // Pipe the uploaded file to the write stream
+
+      stream.on("error", (err) => {
+        console.error("Error uploading file:", err);
+
+        res.status(500).send("Error uploading file");
       });
 
-      await newImage.save();
+      stream.on("finish", () => {
+        // File uploaded successfully
+
+        console.log(`File uploaded successfully: ${fileRef.name}`);
+
+        res.status(200).send("File uploaded successfully");
+      });
+
+      stream.end(file.buffer); // Write the file buffer to the stream
     } catch (error) {
-      res.json(error);
+      const isErrorReturn = error instanceof ErrorReturn;
+      console.log(error);
+
+      res.status(isErrorReturn ? error.status : 500).json({
+        success: false,
+        message: isErrorReturn ? error.message : error,
+      });
     }
   }
 );
 
-imageRoutes.get("/", async (req: Request, res: Response) => {
-  try {
-    const array = await gfs.find().toArray();
-
-    if (!array || array.length === 0) {
-      throw new Error("No files available");
-    }
-
-    gfs.openDownloadStream(array[0]._id).pipe(res);
-
-    res.status(200).json({
-      success: true,
-      files: array,
-    });
-  } catch (error) {
-    res.status(500).json(error);
-  }
-});
-
-export default imageRoutes;
+export default imagesRoutes;

@@ -3,7 +3,7 @@ import express, { urlencoded } from "express";
 import { connectDB } from "./db/connectDB";
 import authRoutes from "./routes/auth.routes";
 import testRoutes from "./routes/test.route";
-import imageRoutes from "./routes/image.routes";
+import imagesRoutes from "./routes/image.routes";
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
@@ -25,7 +25,7 @@ app.use(
 
 app.use("/auth", authRoutes);
 
-app.use("/api/image", imageRoutes);
+app.use("/api/images", imagesRoutes);
 
 app.use("/api/test", testRoutes);
 
