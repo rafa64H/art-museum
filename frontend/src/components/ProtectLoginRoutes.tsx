@@ -16,17 +16,21 @@ function ProtectLoginRoutes({ children }: ProtectedRouteProps) {
     const checkAuth = async () => {
       try {
         const response = await requestAccessTokenRefresh();
+        if (response.status === 401) {
+          return;
+        }
         const responseData = await response.json();
 
+        console.log(responseData);
         if (response.status === 200) {
           const userData: UserReduxToolkit = {
-            id: responseData._id as string,
-            username: responseData.username as string,
-            name: responseData.name as string,
-            email: responseData.email as string,
-            role: responseData.role as "user" | "admin",
-            lastLogin: responseData.lastLogin as Date,
-            verified: responseData.verified as boolean,
+            id: responseData.user._doc._id as string,
+            username: responseData.user._doc.username as string,
+            name: responseData.user._doc.name as string,
+            email: responseData.user._doc.email as string,
+            role: responseData.user._doc.role as "user" | "admin",
+            lastLogin: responseData.user._doc.lastLogin as Date,
+            verified: responseData.user._doc.verified as boolean,
             accessToken: responseData.accessToken as string,
           };
 

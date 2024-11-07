@@ -3,7 +3,7 @@ import express, { urlencoded } from "express";
 import { connectDB } from "./db/connectDB";
 import authRoutes from "./routes/auth.routes";
 import testRoutes from "./routes/test.route";
-import imagesRoutes from "./routes/image.routes";
+import imagesRoutes from "./routes/images.routes";
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 

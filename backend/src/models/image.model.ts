@@ -1,23 +1,34 @@
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 const Schema = mongoose.Schema;
 
 interface ImageDocument extends mongoose.Document {
-  caption: string;
+  uploaderId: ObjectId;
+  postId?: ObjectId;
   filename: string;
-  fileId: string;
+  imageURL: string;
+  fileRefFirebaseStorage: string;
   createdAt: Date;
 }
 
 const ImageSchema = new Schema<ImageDocument>({
-  caption: {
-    required: true,
-    type: String,
-  },
   filename: {
     required: true,
     type: String,
   },
-  fileId: {
+  uploaderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  postId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  imageURL: {
+    required: true,
+    type: String,
+  },
+  fileRefFirebaseStorage: {
     required: true,
     type: String,
   },

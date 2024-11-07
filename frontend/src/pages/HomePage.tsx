@@ -31,6 +31,9 @@ function HomePage() {
           method: "POST",
           mode: "cors",
           credentials: "include",
+          headers: {
+            authorization: `Bearer ${user?.accessToken}`,
+          },
           body: formData,
         });
 

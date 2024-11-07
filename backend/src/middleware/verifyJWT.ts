@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
 import ErrorReturn from "../constants/ErrorReturn";
 import { JWT_SECRET_ACCESS } from "../constants/env";
@@ -6,13 +6,13 @@ import { verifyToken } from "../utils/jwtFunctions";
 import { ObjectId } from "mongodb";
 import { refreshHandler } from "../controllers/auth.controller";
 
-export interface middlewareAuthRequest extends Request {
-  userId: ObjectId;
-  role: "user" | "admin";
+export interface AuthMiddlewareRequest extends Request {
+  userId?: string;
+  role?: string;
 }
 
 const verifyJWT = async (
-  req: middlewareAuthRequest,
+  req: AuthMiddlewareRequest,
   res: Response,
   next: NextFunction
 ) => {
@@ -20,6 +20,7 @@ const verifyJWT = async (
     const authHeader =
       req.headers.authorization || (req.headers.Authorization as string);
 
+    if (!authHeader) throw new ErrorReturn(401, "Unauthorized");
     if (!authHeader?.startsWith("Bearer "))
       throw new ErrorReturn(401, "Unauthorized");
 
@@ -35,6 +36,11 @@ const verifyJWT = async (
   } catch (error) {
     const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
+
+    if (error instanceof jwt.TokenExpiredError) {
+      await refreshHandler(req, res);
+      next();
+    }
 
     res
       .status(isErrorReturn ? error.status : 500)
