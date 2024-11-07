@@ -3,8 +3,8 @@ import ErrorReturn from "../constants/ErrorReturn";
 import { bucket } from "../db/connectDB";
 import { Request, Response } from "express";
 import { UserModel } from "../models/user.model";
-import { ImageModel } from "../models/image.model";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
+import { ProfilePictureModel } from "../models/profilePicture.model";
 
 export async function uploadImageHandler(
   req: AuthMiddlewareRequest,
@@ -45,14 +45,17 @@ export async function uploadImageHandler(
         expires: "10-12-5000",
       });
 
-      const newImage = new ImageModel({
+      const newProfilePicture = new ProfilePictureModel({
         uploaderId: userIdObjectId,
         filename: fileName,
         imageURL: downloadURL[0],
         fileRefFirebaseStorage: fileRef,
       });
 
-      await newImage.save();
+      await newProfilePicture.save();
+
+      foundUser.profilePictureURL = downloadURL[0];
+      await foundUser.save();
 
       res.status(200).json({ success: true, message: "Upload completed" });
     });

@@ -6,6 +6,7 @@ export interface UserDocument extends mongoose.Document {
   username: string;
   password: string;
   verified: boolean;
+  profilePictureURL: string;
   role: "user" | "admin";
   lastLogin: Date;
   createdAt: Date;
@@ -22,6 +23,12 @@ const UserSchema = new mongoose.Schema<UserDocument>(
       type: String,
       required: true,
       unique: true,
+    },
+    profilePictureURL: {
+      default:
+        "https://firebasestorage.googleapis.com/v0/b/crisp-ecommerce-developm-4e4a7.appspot.com/o/usersProfilePictures%2FnoProfilePicture%2Fno-image.webp?alt=media&token=be573938-4699-4dc9-8946-de509efb42a2",
+      type: String,
+      required: true,
     },
     username: {
       type: String,
