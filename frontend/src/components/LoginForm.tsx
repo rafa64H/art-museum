@@ -34,7 +34,7 @@ function SignUpForm() {
           ];
 
           const arrayEmptyStringInputs = allRefsCurrent.filter(
-            (refCurrent) => refCurrent!.value === "",
+            (refCurrent) => refCurrent!.value === ""
           );
 
           if (arrayEmptyStringInputs.length) {
@@ -42,13 +42,15 @@ function SignUpForm() {
 
             arrayEmptyStringInputs.map((refCurrent) => {
               emptyInputsForAlertMessage.push(
-                ` ${refCurrent!.id.replace(/([a-z])([A-Z])/g, "$1 $2").toLocaleLowerCase()}`,
+                ` ${refCurrent!.id
+                  .replace(/([a-z])([A-Z])/g, "$1 $2")
+                  .toLocaleLowerCase()}`
               ); //Make the id of the ref.current from camelCase to spaces
               refCurrent!.setAttribute("data-error-input", "true");
             });
 
             setAlertMessage(
-              `Please fill in all fields: ${[...emptyInputsForAlertMessage]}`,
+              `Please fill in all fields: ${[...emptyInputsForAlertMessage]}`
             );
             return;
           }
@@ -76,7 +78,7 @@ function SignUpForm() {
             setAlertMessage("Invalid email/username or password");
             emailOrUsernameRef.current!.setAttribute(
               "data-error-input",
-              "true",
+              "true"
             );
             passwordRef.current!.setAttribute("data-error-input", "true");
             return;
@@ -88,6 +90,7 @@ function SignUpForm() {
               id: responseData._id as string,
               username: responseData.username as string,
               name: responseData.name as string,
+              profilePictureURL: responseData.profilePictureURL as string,
               email: responseData.email as string,
               role: responseData.role as "user" | "admin",
               lastLogin: responseData.lastLogin as Date,

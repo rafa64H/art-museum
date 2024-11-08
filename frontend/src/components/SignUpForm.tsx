@@ -50,7 +50,7 @@ function SignUpForm() {
           const regexNameAndUsername = /^(?=.*\S.*\S.*\S)(?!\s*$).*/;
 
           const arrayEmptyStringInputs = allRefsCurrent.filter(
-            (refCurrent) => refCurrent!.value === "",
+            (refCurrent) => refCurrent!.value === ""
           );
 
           if (arrayEmptyStringInputs.length) {
@@ -58,13 +58,15 @@ function SignUpForm() {
 
             arrayEmptyStringInputs.map((refCurrent) => {
               emptyInputsForAlertMessage.push(
-                ` ${refCurrent!.id.replace(/([a-z])([A-Z])/g, "$1 $2").toLocaleLowerCase()}`,
+                ` ${refCurrent!.id
+                  .replace(/([a-z])([A-Z])/g, "$1 $2")
+                  .toLocaleLowerCase()}`
               ); //Make the id of the ref.current from camelCase to spaces
               refCurrent!.setAttribute("data-error-input", "true");
             });
 
             setAlertMessage(
-              `Please fill in all fields: ${[...emptyInputsForAlertMessage]}`,
+              `Please fill in all fields: ${[...emptyInputsForAlertMessage]}`
             );
             return;
           }
@@ -73,7 +75,7 @@ function SignUpForm() {
             passwordRef.current!.setAttribute("data-error-input", "true");
             confirmPasswordRef.current!.setAttribute(
               "data-error-input",
-              "true",
+              "true"
             );
             setAlertMessage("Passwords do not match");
             return;
@@ -82,7 +84,7 @@ function SignUpForm() {
             passwordRef.current!.setAttribute("data-error-input", "true");
 
             setAlertMessage(
-              "Password is not valid: Needs 6 characters, at least symbol and at least a number",
+              "Password is not valid: Needs 6 characters, at least symbol and at least a number"
             );
             return;
           }
@@ -126,6 +128,7 @@ function SignUpForm() {
               id: responseData._id as string,
               username: responseData.username as string,
               name: responseData.name as string,
+              profilePictureURL: responseData.profilePictureURL as string,
               email: responseData.email as string,
               role: responseData.role as "user" | "admin",
               lastLogin: responseData.lastLogin as Date,

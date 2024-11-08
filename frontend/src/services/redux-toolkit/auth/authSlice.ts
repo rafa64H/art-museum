@@ -6,6 +6,7 @@ export type UserReduxToolkit = {
   name: string;
   email: string;
   role: "user" | "admin";
+  profilePictureURL: string;
   verified: boolean;
   lastLogin: Date;
   accessToken: string;

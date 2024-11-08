@@ -9,11 +9,16 @@ import LoginPage from "./pages/LoginPage";
 import { store } from "./services/redux-toolkit/store";
 import { Provider } from "react-redux";
 import ProtectLoginRoutes from "./components/ProtectLoginRoutes";
+import CheckAuth from "./components/CheckAuth";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage></HomePage>,
+    element: (
+      <CheckAuth>
+        <HomePage></HomePage>
+      </CheckAuth>
+    ),
   },
   {
     path: "/login",
@@ -38,5 +43,5 @@ createRoot(document.getElementById("root")!).render(
     <Provider store={store}>
       <RouterProvider router={router} />
     </Provider>
-  </StrictMode>,
+  </StrictMode>
 );

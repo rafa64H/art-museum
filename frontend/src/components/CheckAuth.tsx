@@ -8,7 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 type ProtectedRouteProps = PropsWithChildren;
-function CheckAuth({ children }: ProtectedRouteProps) {
+function ProtectLoginRoutes({ children }: ProtectedRouteProps) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -36,7 +36,6 @@ function CheckAuth({ children }: ProtectedRouteProps) {
           };
 
           dispatch(setUser(userData));
-          navigate("/", { replace: true });
         }
       } catch (error) {
         console.log(error);
@@ -49,4 +48,4 @@ function CheckAuth({ children }: ProtectedRouteProps) {
   return children;
 }
 
-export default CheckAuth;
+export default ProtectLoginRoutes;
