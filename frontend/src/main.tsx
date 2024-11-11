@@ -8,8 +8,9 @@ import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import { store } from "./services/redux-toolkit/store";
 import { Provider } from "react-redux";
-import ProtectLoginRoutes from "./components/ProtectLoginRoutes";
-import CheckAuth from "./components/CheckAuth";
+import ProtectLoginRoutes from "./components/ProtectedRoutes/ProtectLoginRoutes";
+import CheckAuth from "./components/ProtectedRoutes/CheckAuth";
+import ProfilePage from "./pages/ProfilePage";
 
 const router = createBrowserRouter([
   {
@@ -17,6 +18,14 @@ const router = createBrowserRouter([
     element: (
       <CheckAuth>
         <HomePage></HomePage>
+      </CheckAuth>
+    ),
+  },
+  {
+    path: "/profile/:userId",
+    element: (
+      <CheckAuth>
+        <ProfilePage></ProfilePage>
       </CheckAuth>
     ),
   },

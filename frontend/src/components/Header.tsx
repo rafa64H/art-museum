@@ -3,7 +3,7 @@ import NavBar from "./NavBar";
 import CompanyLogo from "./ui/CompanyLogo";
 
 function Header() {
-  const [openNav, setOpenNav] = useState(false);
+  const [openNav, setOpenNav] = useState(true);
 
   return (
     <header className="bg-FirstDarkBlue flex items-center justify-between p-4">

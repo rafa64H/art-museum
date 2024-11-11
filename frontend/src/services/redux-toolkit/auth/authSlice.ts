@@ -1,22 +1,33 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type UserReduxToolkit = {
-  id: string;
-  username: string;
-  name: string;
-  email: string;
-  role: "user" | "admin";
-  profilePictureURL: string;
-  verified: boolean;
-  lastLogin: Date;
-  accessToken: string;
-};
+export type UserReduxToolkit =
+  | {
+      userData: {
+        id: string;
+        username: string;
+        name: string;
+        email: string;
+        role: "user" | "admin";
+        profilePictureURL: string;
+        verified: boolean;
+        lastLogin: Date;
+        accessToken: string;
+      };
+      isLoading: boolean;
+    }
+  | {
+      userData: null;
+      isLoading: boolean;
+    };
 export type AuthState = {
-  user: UserReduxToolkit | null;
+  user: UserReduxToolkit | { userData: null; isLoading: boolean };
 };
 
 const initialState: AuthState = {
-  user: null,
+  user: {
+    userData: null,
+    isLoading: true,
+  },
 };
 
 export const authSlice = createSlice({
@@ -27,12 +38,12 @@ export const authSlice = createSlice({
       state.user = action.payload;
     },
     setAccessToken(state, action: PayloadAction<string>) {
-      state.user = state.user
-        ? { ...state.user, accessToken: action.payload }
-        : null;
+      if (state.user.userData) {
+        state.user.userData.accessToken = action.payload;
+      }
     },
     logout(state) {
-      state.user = null;
+      state.user.userData = null;
     },
   },
 });

@@ -3,10 +3,7 @@ import TextInput from "./ui/TextInput";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "./ui/ButtonComponent";
 import { BACKEND_URL } from "../constants";
-import {
-  setUser,
-  UserReduxToolkit,
-} from "../services/redux-toolkit/auth/authSlice";
+import { setUser } from "../services/redux-toolkit/auth/authSlice";
 import { useDispatch } from "react-redux";
 
 function SignUpForm() {
@@ -123,20 +120,21 @@ function SignUpForm() {
           }
           if (response.status === 201) {
             const responseData = await response.json();
+            console.log(responseData);
 
-            const userData: UserReduxToolkit = {
-              id: responseData._id as string,
-              username: responseData.username as string,
-              name: responseData.name as string,
-              profilePictureURL: responseData.profilePictureURL as string,
-              email: responseData.email as string,
-              role: responseData.role as "user" | "admin",
-              lastLogin: responseData.lastLogin as Date,
-              verified: responseData.verified as boolean,
+            const userData = {
+              id: responseData.user._id as string,
+              username: responseData.user.username as string,
+              name: responseData.user.name as string,
+              profilePictureURL: responseData.user.profilePictureURL as string,
+              email: responseData.user.email as string,
+              role: responseData.user.role as "user" | "admin",
+              lastLogin: responseData.user.lastLogin as Date,
+              verified: responseData.user.verified as boolean,
               accessToken: responseData.accessToken as string,
             };
 
-            dispatch(setUser(userData));
+            dispatch(setUser({ userData, isLoading: false }));
             navigate("/");
           }
         } catch (error) {

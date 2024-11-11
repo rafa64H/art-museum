@@ -16,13 +16,17 @@ function NavBar({ isOpen }: Props) {
       }`}
     >
       <ul className="flex list-none flex-col items-center gap-2">
-        {user ? (
+        {user.isLoading ? (
+          <>
+            <p>Loading...</p>
+          </>
+        ) : user.userData ? (
           <>
             <NavItem linkProp="/" text="Home"></NavItem>
-            <Link to={"/profile"}>
+            <Link to={`/profile/${user.userData.id}`}>
               <img
                 className="w-[7rem] h-[7rem] rounded-full hover:border-firstGreen duration-150 border-2 border-[rgba(0,0,0,0)]"
-                src={`${user.profilePictureURL}`}
+                src={`${user.userData.profilePictureURL}`}
               ></img>
             </Link>
           </>
