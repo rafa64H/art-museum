@@ -1,11 +1,14 @@
 import React from "react";
 import Header from "../components/Header";
+import ComponentAccountSettings from "../components/ComponentAccountSettings";
 
 function AccountSettingsPage() {
   return (
     <>
       <Header></Header>
-      <div className="bg-mainBg text-white"></div>
+      <div className="bg-mainBg text-white">
+        <ComponentAccountSettings></ComponentAccountSettings>
+      </div>
     </>
   );
 }

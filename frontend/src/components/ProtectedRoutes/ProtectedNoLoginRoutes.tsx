@@ -38,7 +38,6 @@ function ProtectedNoLoginRoute({ children }: ProtectedRouteProps) {
             };
 
             dispatch(setUser({ userData, isLoading: false }));
-            navigate("/", { replace: true });
             return;
           }
           navigate("/sign-up", { replace: true });
