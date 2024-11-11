@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { RootState } from "../../services/redux-toolkit/store";
 
 type ProtectedRouteProps = PropsWithChildren;
-function ProtectLoginRoutes({ children }: ProtectedRouteProps) {
+function CheckAuth({ children }: ProtectedRouteProps) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
@@ -41,7 +41,8 @@ function ProtectLoginRoutes({ children }: ProtectedRouteProps) {
           }
         }
       } catch (error) {
-        console.log(error);
+        dispatch(setUser({ userData: null, isLoading: false }));
+        console.error(error);
       }
     };
 
@@ -51,4 +52,4 @@ function ProtectLoginRoutes({ children }: ProtectedRouteProps) {
   return children;
 }
 
-export default ProtectLoginRoutes;
+export default CheckAuth;

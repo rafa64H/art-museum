@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { RootState } from "../../services/redux-toolkit/store";
 
 type ProtectedRouteProps = PropsWithChildren;
-function ProtectedLoginRoute({ children }: ProtectedRouteProps) {
+function ProtectedNoLoginRoute({ children }: ProtectedRouteProps) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
@@ -18,6 +18,7 @@ function ProtectedLoginRoute({ children }: ProtectedRouteProps) {
           const response = await requestAccessTokenRefresh();
           if (response.status === 401) {
             dispatch(setUser({ userData: null, isLoading: false }));
+            navigate("/sign-up", { replace: true });
             return;
           }
           const responseData = await response.json();
@@ -40,8 +41,11 @@ function ProtectedLoginRoute({ children }: ProtectedRouteProps) {
             navigate("/", { replace: true });
             return;
           }
+          navigate("/sign-up", { replace: true });
         }
       } catch (error) {
+        navigate("/sign-up", { replace: true });
+
         console.log(error);
       }
     };
@@ -52,4 +56,4 @@ function ProtectedLoginRoute({ children }: ProtectedRouteProps) {
   return children;
 }
 
-export default ProtectedLoginRoute;
+export default ProtectedNoLoginRoute;

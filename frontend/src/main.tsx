@@ -11,6 +11,8 @@ import { Provider } from "react-redux";
 import ProtectLoginRoutes from "./components/ProtectedRoutes/ProtectLoginRoutes";
 import CheckAuth from "./components/ProtectedRoutes/CheckAuth";
 import ProfilePage from "./pages/ProfilePage";
+import ProtectedNoLoginRoute from "./components/ProtectedRoutes/ProtectedNoLoginRoutes";
+import AccountSettingsPage from "./pages/AccountSettingsPage";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +29,14 @@ const router = createBrowserRouter([
       <CheckAuth>
         <ProfilePage></ProfilePage>
       </CheckAuth>
+    ),
+  },
+  {
+    path: "/account-settings",
+    element: (
+      <ProtectedNoLoginRoute>
+        <AccountSettingsPage></AccountSettingsPage>
+      </ProtectedNoLoginRoute>
     ),
   },
   {

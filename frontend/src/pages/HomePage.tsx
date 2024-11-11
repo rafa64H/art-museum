@@ -32,7 +32,7 @@ function HomePage() {
           mode: "cors",
           credentials: "include",
           headers: {
-            authorization: `Bearer ${user?.accessToken}`,
+            authorization: `Bearer ${user.userData?.accessToken}`,
           },
           body: formData,
         });
