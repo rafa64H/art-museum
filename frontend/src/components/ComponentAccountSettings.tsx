@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import MultipleSelectButton from "./ui/MultipleSelectButton";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
@@ -8,6 +8,8 @@ import ButtonComponent from "./ui/ButtonComponent";
 function ComponentAccountSettings() {
   const [selectedOption, setSelectedOption] = useState(1);
   const [openModal, setOpenModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertMessage2, setAlertMessage2] = useState("");
 
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -34,7 +36,19 @@ function ComponentAccountSettings() {
           Introduce your current password before changing information
         </h2>
 
-        <form>
+        <span
+          className="text-xl font-bold text-red-400"
+          role="alert"
+          aria-live="assertive"
+        >
+          {alertMessage2}
+        </span>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
           <TextInput
             idFor="authPassword"
             label="Introduce current password"
@@ -74,6 +88,13 @@ function ComponentAccountSettings() {
           setOpenModal(true);
         }}
       >
+        <span
+          className="text-xl font-bold text-red-400"
+          role="alert"
+          aria-live="assertive"
+        >
+          {alertMessage}
+        </span>
         <TextInput
           idFor="email"
           label="Change email"

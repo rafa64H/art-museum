@@ -5,6 +5,8 @@ import ButtonComponent from "./ui/ButtonComponent";
 import { BACKEND_URL } from "../constants";
 import { setUser } from "../services/redux-toolkit/auth/authSlice";
 import { useDispatch } from "react-redux";
+import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
+import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");
@@ -32,11 +34,11 @@ function SignUpForm() {
           const confirmPassword = confirmPasswordRef.current?.value;
 
           const allRefsCurrent = [
-            emailRef.current,
-            usernameRef.current,
-            nameRef.current,
-            passwordRef.current,
-            confirmPasswordRef.current,
+            emailRef.current!,
+            usernameRef.current!,
+            nameRef.current!,
+            passwordRef.current!,
+            confirmPasswordRef.current!,
           ];
 
           //Regex: does it have 6 characters, a symbol and a number?
@@ -46,37 +48,22 @@ function SignUpForm() {
           //and does not only consist of spaces?
           const regexNameAndUsername = /^(?=.*\S.*\S.*\S)(?!\s*$).*/;
 
-          const arrayEmptyStringInputs = allRefsCurrent.filter(
-            (refCurrent) => refCurrent!.value === ""
-          );
-
-          if (arrayEmptyStringInputs.length) {
-            const emptyInputsForAlertMessage: string[] = [];
-
-            arrayEmptyStringInputs.map((refCurrent) => {
-              emptyInputsForAlertMessage.push(
-                ` ${refCurrent!.id
-                  .replace(/([a-z])([A-Z])/g, "$1 $2")
-                  .toLocaleLowerCase()}`
-              ); //Make the id of the ref.current from camelCase to spaces
-              refCurrent!.setAttribute("data-error-input", "true");
-            });
-
-            setAlertMessage(
-              `Please fill in all fields: ${[...emptyInputsForAlertMessage]}`
-            );
+          if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
             return;
           }
 
-          if (password !== confirmPassword) {
-            passwordRef.current!.setAttribute("data-error-input", "true");
-            confirmPasswordRef.current!.setAttribute(
-              "data-error-input",
-              "true"
-            );
-            setAlertMessage("Passwords do not match");
+          if (
+            !checkPasswordsMatch(
+              password!,
+              confirmPassword!,
+              passwordRef.current!,
+              confirmPasswordRef.current!,
+              setAlertMessage
+            )
+          ) {
             return;
           }
+
           if (!regexPassword.test(password!)) {
             passwordRef.current!.setAttribute("data-error-input", "true");
 
