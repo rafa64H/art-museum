@@ -6,6 +6,7 @@ type Props = {
   type: "text" | "email" | "password";
   placeholder: string;
   refProp: React.Ref<HTMLInputElement>;
+  defaultValueProp?: string;
   additionalFunction?: () => void;
 };
 function TextInput({
@@ -14,19 +15,21 @@ function TextInput({
   type,
   placeholder,
   refProp,
+  defaultValueProp,
   additionalFunction,
 }: Props) {
   return (
-    <div className="flex w-[min(50rem,60%)] flex-col lg:grid lg:grid-cols-2">
-      <label className="lg:ml-auto" htmlFor={idFor}>
+    <div className="w-[min(35rem,100%)] flex flex-col mb-4 lg:grid lg:grid-cols-3">
+      <label className="" htmlFor={idFor}>
         {label}:
       </label>
       <input
-        className="border-2 border-black p-2 text-black data-[error-input=true]:border-red-700"
+        className="border-2 mt-2 lg:mt-0 lg:col-span-2 border-black p-2 text-black data-[error-input=true]:border-red-700"
         id={idFor}
         type={type}
         placeholder={placeholder}
         ref={refProp}
+        defaultValue={defaultValueProp}
         onFocus={(e) => {
           const target = e.target as HTMLInputElement;
 
