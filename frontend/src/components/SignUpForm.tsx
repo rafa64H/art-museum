@@ -1,12 +1,13 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import TextInput from "./ui/TextInput";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "./ui/ButtonComponent";
 import { BACKEND_URL } from "../constants";
-import { setUser } from "../services/redux-toolkit/auth/authSlice";
-import { useDispatch } from "react-redux";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
+import checkValidityPassword from "../utils/forms/checkValidityPassword";
+import checkValidityNameOrUsername from "../utils/forms/checkValidityNameUsername";
+import setUserStoreLogin from "../utils/setUserStoreLogin";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");
@@ -16,8 +17,6 @@ function SignUpForm() {
   const nameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
-
-  const dispatch = useDispatch();
 
   const navigate = useNavigate();
 
@@ -41,13 +40,6 @@ function SignUpForm() {
             confirmPasswordRef.current!,
           ];
 
-          //Regex: does it have 6 characters, a symbol and a number?
-          const regexPassword = /^(?=.*[0-9])(?=.*[\W_])[\w\W]{6,}$/;
-
-          //Regex: does it have 3 non-space characters
-          //and does not only consist of spaces?
-          const regexNameAndUsername = /^(?=.*\S.*\S.*\S)(?!\s*$).*/;
-
           if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
             return;
           }
@@ -64,24 +56,31 @@ function SignUpForm() {
             return;
           }
 
-          if (!regexPassword.test(password!)) {
-            passwordRef.current!.setAttribute("data-error-input", "true");
-
-            setAlertMessage(
-              "Password is not valid: Needs 6 characters, at least symbol and at least a number"
-            );
+          if (
+            !checkValidityPassword(
+              password!,
+              passwordRef.current!,
+              setAlertMessage
+            )
+          ) {
             return;
           }
-          if (!regexNameAndUsername.test(username!)) {
-            usernameRef.current!.setAttribute("data-error-input", "true");
-
-            setAlertMessage("Invalid username, needs at least 3 characters");
+          if (
+            !checkValidityNameOrUsername(
+              username!,
+              usernameRef.current!,
+              setAlertMessage
+            )
+          ) {
             return;
           }
-          if (!regexNameAndUsername.test(name!)) {
-            nameRef.current!.setAttribute("data-error-input", "true");
-
-            setAlertMessage("Invalid Name, needs at least 3 characters");
+          if (
+            !checkValidityNameOrUsername(
+              name!,
+              usernameRef.current!,
+              setAlertMessage
+            )
+          ) {
             return;
           }
 
@@ -107,21 +106,8 @@ function SignUpForm() {
           }
           if (response.status === 201) {
             const responseData = await response.json();
-            console.log(responseData);
 
-            const userData = {
-              id: responseData.user._id as string,
-              username: responseData.user.username as string,
-              name: responseData.user.name as string,
-              profilePictureURL: responseData.user.profilePictureURL as string,
-              email: responseData.user.email as string,
-              role: responseData.user.role as "user" | "admin",
-              lastLogin: responseData.user.lastLogin as Date,
-              verified: responseData.user.verified as boolean,
-              accessToken: responseData.accessToken as string,
-            };
-
-            dispatch(setUser({ userData, isLoading: false }));
+            setUserStoreLogin(responseData);
             navigate("/");
           }
         } catch (error) {

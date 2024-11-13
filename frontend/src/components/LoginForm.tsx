@@ -1,18 +1,16 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import TextInput from "./ui/TextInput";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "./ui/ButtonComponent";
 import { BACKEND_URL } from "../constants";
-import { setUser } from "../services/redux-toolkit/auth/authSlice";
-import { useDispatch } from "react-redux";
+import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
+import setUserStoreLogin from "../utils/setUserStoreLogin";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");
 
   const emailOrUsernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
-
-  const dispatch = useDispatch();
 
   const navigate = useNavigate();
 
@@ -26,29 +24,11 @@ function SignUpForm() {
           const password = passwordRef.current?.value;
 
           const allRefsCurrent = [
-            emailOrUsernameRef.current,
-            passwordRef.current,
+            emailOrUsernameRef.current!,
+            passwordRef.current!,
           ];
 
-          const arrayEmptyStringInputs = allRefsCurrent.filter(
-            (refCurrent) => refCurrent!.value === ""
-          );
-
-          if (arrayEmptyStringInputs.length) {
-            const emptyInputsForAlertMessage: string[] = [];
-
-            arrayEmptyStringInputs.map((refCurrent) => {
-              emptyInputsForAlertMessage.push(
-                ` ${refCurrent!.id
-                  .replace(/([a-z])([A-Z])/g, "$1 $2")
-                  .toLocaleLowerCase()}`
-              ); //Make the id of the ref.current from camelCase to spaces
-              refCurrent!.setAttribute("data-error-input", "true");
-            });
-
-            setAlertMessage(
-              `Please fill in all fields: ${[...emptyInputsForAlertMessage]}`
-            );
+          if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
             return;
           }
 
@@ -83,19 +63,7 @@ function SignUpForm() {
           if (response.status === 200) {
             const responseData = await response.json();
 
-            const userData = {
-              id: responseData.user._id as string,
-              username: responseData.user.username as string,
-              name: responseData.user.name as string,
-              profilePictureURL: responseData.user.profilePictureURL as string,
-              email: responseData.user.email as string,
-              role: responseData.user.role as "user" | "admin",
-              lastLogin: responseData.user.lastLogin as Date,
-              verified: responseData.user.verified as boolean,
-              accessToken: responseData.accessToken as string,
-            };
-
-            dispatch(setUser({ userData, isLoading: false }));
+            setUserStoreLogin(responseData);
             navigate("/");
           }
         } catch (error) {
