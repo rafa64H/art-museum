@@ -1,5 +1,4 @@
 import { ObjectId } from "mongodb";
-import ErrorReturn from "../constants/ErrorReturn";
 import { bucket } from "../db/connectDB";
 import { Request, Response } from "express";
 import { UserModel } from "../models/user.model";
@@ -14,13 +13,15 @@ export async function uploadImageHandler(
     const userId = req.userId!;
     const file = req.file;
     if (!file) {
-      throw new ErrorReturn(400, "no file provided");
+      return res
+        .status(400)
+        .json({ success: false, message: "No file provided" });
     }
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
 
     if (!foundUser) {
-      throw new ErrorReturn(401, "Unauthorized");
+      return res.status(401).json({ success: false, message: "Unauhtorized" });
     }
 
     const fileName = file.originalname;
@@ -34,9 +35,9 @@ export async function uploadImageHandler(
     });
 
     stream.on("error", async (error) => {
-      console.error("Error uploading file");
-
-      throw new ErrorReturn(500, "Error uploading file");
+      return res
+        .status(500)
+        .json({ success: false, message: "Error uploading file" });
     });
 
     stream.on("finish", async () => {
@@ -62,12 +63,8 @@ export async function uploadImageHandler(
 
     stream.end(file.buffer);
   } catch (error) {
-    const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
 
-    res.status(isErrorReturn ? error.status : 500).json({
-      success: false,
-      message: isErrorReturn ? error.message : error,
-    });
+    res.status(500).json({ success: false, message: error });
   }
 }

@@ -7,7 +7,6 @@ import Router from "express";
 import { Request, Response, NextFunction } from "express";
 import { ImageModel } from "../models/image.model";
 import multer from "multer";
-import ErrorReturn from "../constants/ErrorReturn";
 import { bucket } from "../db/connectDB";
 import verifyJWT from "../middleware/verifyJWT";
 import testRoutes from "./test.route";

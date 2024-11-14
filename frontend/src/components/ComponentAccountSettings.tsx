@@ -4,6 +4,10 @@ import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
 import TextInput from "./ui/TextInput";
 import ButtonComponent from "./ui/ButtonComponent";
+import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
+import checkValidityNameOrUsername from "../utils/forms/checkValidityNameUsername";
+import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
+import checkValidityPassword from "../utils/forms/checkValidityPassword";
 
 function ComponentAccountSettings() {
   const [selectedOption, setSelectedOption] = useState(1);
@@ -85,6 +89,64 @@ function ComponentAccountSettings() {
         className="ml-2 mt-8"
         onSubmit={(e) => {
           e.preventDefault();
+
+          const allRefsCurrent = [
+            emailRef.current!,
+            nameRef.current!,
+            usernameRef.current!,
+            passwordRef.current!,
+            confirmPasswordRef.current!,
+          ];
+
+          const email = emailRef.current!.value;
+          const name = nameRef.current!.value;
+          const username = usernameRef.current!.value;
+          const password = passwordRef.current!.value;
+          const confirmPassword = confirmPasswordRef.current!.value;
+
+          if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
+            return;
+          }
+
+          if (
+            !checkValidityNameOrUsername(
+              name,
+              nameRef.current!,
+              setAlertMessage
+            )
+          ) {
+            return;
+          }
+          if (
+            !checkValidityNameOrUsername(
+              username,
+              usernameRef.current!,
+              setAlertMessage
+            )
+          ) {
+            return;
+          }
+          if (
+            !checkPasswordsMatch(
+              password,
+              confirmPassword,
+              passwordRef.current!,
+              confirmPasswordRef.current!,
+              setAlertMessage
+            )
+          ) {
+            return;
+          }
+          if (
+            !checkValidityPassword(
+              password,
+              passwordRef.current!,
+              setAlertMessage
+            )
+          ) {
+            return;
+          }
+
           setOpenModal(true);
         }}
       >
@@ -102,6 +164,9 @@ function ComponentAccountSettings() {
           refProp={emailRef}
           defaultValueProp={user.userData?.email}
           type="email"
+          additionalFunction={() => {
+            setAlertMessage("");
+          }}
         ></TextInput>
         <TextInput
           idFor="name"
@@ -110,6 +175,9 @@ function ComponentAccountSettings() {
           refProp={nameRef}
           defaultValueProp={user.userData?.name}
           type="text"
+          additionalFunction={() => {
+            setAlertMessage("");
+          }}
         ></TextInput>
         <TextInput
           idFor="username"
@@ -118,6 +186,9 @@ function ComponentAccountSettings() {
           refProp={usernameRef}
           defaultValueProp={user.userData?.username}
           type="text"
+          additionalFunction={() => {
+            setAlertMessage("");
+          }}
         ></TextInput>
 
         <TextInput
@@ -126,6 +197,9 @@ function ComponentAccountSettings() {
           placeholder="Change your password"
           refProp={passwordRef}
           type="password"
+          additionalFunction={() => {
+            setAlertMessage("");
+          }}
         ></TextInput>
         <TextInput
           idFor="confirmPassword"
@@ -133,6 +207,9 @@ function ComponentAccountSettings() {
           placeholder="Confirm new password"
           refProp={confirmPasswordRef}
           type="password"
+          additionalFunction={() => {
+            setAlertMessage("");
+          }}
         ></TextInput>
 
         <ButtonComponent

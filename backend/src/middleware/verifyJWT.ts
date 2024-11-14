@@ -1,6 +1,5 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
-import ErrorReturn from "../constants/ErrorReturn";
 import { JWT_SECRET_ACCESS } from "../constants/env";
 import { verifyToken } from "../utils/jwtFunctions";
 import { ObjectId } from "mongodb";
@@ -20,31 +19,30 @@ const verifyJWT = async (
     const authHeader =
       req.headers.authorization || (req.headers.Authorization as string);
 
-    if (!authHeader) throw new ErrorReturn(401, "Unauthorized");
+    if (!authHeader)
+      return res.status(401).json({ success: false, message: "Unauhtorized" });
     if (!authHeader?.startsWith("Bearer "))
-      throw new ErrorReturn(401, "Unauthorized");
+      return res.status(401).json({ success: false, message: "Unauhtorized" });
 
     const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, JWT_SECRET_ACCESS);
 
-    if (typeof decoded !== "object") throw new ErrorReturn(401, "Unauthorized");
+    if (typeof decoded !== "object")
+      return res.status(401).json({ success: false, message: "Unauhtorized" });
 
     req.userId = decoded.userId;
     req.role = decoded.role;
     next();
   } catch (error) {
-    const isErrorReturn = error instanceof ErrorReturn;
-    console.log(error);
-
     if (error instanceof jwt.TokenExpiredError) {
       await refreshHandler(req, res);
       next();
     }
 
-    res
-      .status(isErrorReturn ? error.status : 500)
-      .json({ success: false, message: isErrorReturn ? error.message : error });
+    console.log(error);
+
+    res.status(500).json({ success: false, message: error });
   }
 };
 export default verifyJWT;

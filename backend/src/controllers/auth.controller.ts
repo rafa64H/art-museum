@@ -10,7 +10,6 @@ import {
   sendWelcomeEmail,
 } from "../services/mailtrap/mailtrap";
 import { ObjectId } from "mongodb";
-import ErrorReturn from "../constants/ErrorReturn";
 import { JWT_SECRET_ACCESS, JWT_SECRET_REFRESH } from "../constants/env";
 import { thirtyDaysFromNow } from "../utils/date";
 import jwt from "jsonwebtoken";
@@ -25,7 +24,9 @@ export const signUpHandler = async (req: Request, res: Response) => {
 
   try {
     if (!email || !password || !name || !username) {
-      throw new ErrorReturn(400, "Some fields are empty");
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already in use" });
     }
 
     const usernameWithAt = `@${username}`;
@@ -34,15 +35,19 @@ export const signUpHandler = async (req: Request, res: Response) => {
     const alreadyUsedUsername = await UserModel.findOne({ usernameWithAt });
 
     if (alreadyUsedEmail) {
-      throw new ErrorReturn(400, "Email already in use");
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already in use" });
     }
     if (alreadyUsedUsername) {
-      throw new ErrorReturn(400, "Username already in use");
+      return res
+        .status(400)
+        .json({ success: false, message: "Username already in use" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = Math.floor(
-      100000 + Math.random() * 900000,
+      100000 + Math.random() * 900000
     ).toString();
 
     const role = "user";
@@ -88,12 +93,9 @@ export const signUpHandler = async (req: Request, res: Response) => {
       accessToken,
     });
   } catch (error) {
-    const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
 
-    res
-      .status(isErrorReturn ? error.status : 500)
-      .json({ success: false, message: isErrorReturn ? error.message : error });
+    res.status(500).json({ success: false, message: error });
   }
 };
 
@@ -107,7 +109,9 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      throw new ErrorReturn(400, 'Invalid or expired verification code"');
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired" });
     }
 
     user.verified = true;
@@ -126,12 +130,9 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
 
-    res
-      .status(isErrorReturn ? error.status : 500)
-      .json({ success: false, message: isErrorReturn ? error.message : error });
+    res.status(500).json({ success: false, message: error });
   }
 };
 
@@ -150,11 +151,15 @@ export const loginHandler = async (req: Request, res: Response) => {
     }
 
     if (!user) {
-      throw new ErrorReturn(400, "Invalid credentials");
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new ErrorReturn(400, "Invalid credentials");
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     const userId = (user._id as ObjectId).toString();
@@ -189,12 +194,9 @@ export const loginHandler = async (req: Request, res: Response) => {
       accessToken,
     });
   } catch (error) {
-    const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
 
-    res
-      .status(isErrorReturn ? error.status : 500)
-      .json({ success: false, message: isErrorReturn ? error.message : error });
+    res.status(500).json({ success: false, message: error });
   }
 };
 
@@ -219,7 +221,9 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
     }
 
     if (!user) {
-      throw new ErrorReturn(404, "User not found");
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
     }
 
     // Generate reset token
@@ -242,12 +246,9 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
       message: "Password reset link sent to your email",
     });
   } catch (error) {
-    const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
 
-    res
-      .status(isErrorReturn ? error.status : 500)
-      .json({ success: false, message: isErrorReturn ? error.message : error });
+    res.status(500).json({ success: false, message: error });
   }
 };
 
@@ -262,7 +263,9 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      throw new ErrorReturn(400, "Invalid or expired reset token");
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expared reset token" });
     }
 
     // update password
@@ -279,12 +282,9 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
       .status(200)
       .json({ success: true, message: "Password reset successful" });
   } catch (error) {
-    const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
 
-    res
-      .status(isErrorReturn ? error.status : 500)
-      .json({ success: false, message: isErrorReturn ? error.message : error });
+    res.status(500).json({ success: false, message: error });
   }
 };
 
@@ -292,20 +292,21 @@ export const refreshHandler = async (req: Request, res: Response) => {
   try {
     const cookies = req.cookies;
     if (!cookies.jwt) {
-      throw new ErrorReturn(401, "Unauthorized");
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     const refreshToken = cookies.jwt;
 
     const decodedJwt = jwt.verify(refreshToken, JWT_SECRET_REFRESH);
     if (typeof decodedJwt !== "object")
-      throw new ErrorReturn(401, "Unauthorized");
+      return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const userId = decodedJwt.userId as string;
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
 
-    if (!foundUser) throw new ErrorReturn(401, "Unauthorized");
+    if (!foundUser)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const role = foundUser.role;
 
@@ -317,11 +318,8 @@ export const refreshHandler = async (req: Request, res: Response) => {
       .status(200)
       .json({ user: { ...foundUser, password: undefined }, accessToken });
   } catch (error) {
-    const isErrorReturn = error instanceof ErrorReturn;
     console.log(error);
 
-    res
-      .status(isErrorReturn ? error.status : 500)
-      .json({ success: false, message: isErrorReturn ? error.message : error });
+    res.status(500).json({ success: false, message: error });
   }
 };

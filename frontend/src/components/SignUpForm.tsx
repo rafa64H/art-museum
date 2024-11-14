@@ -101,8 +101,14 @@ function SignUpForm() {
             body: JSON.stringify(data),
           });
 
+          if (response.status === 400) {
+            const responseData = await response.json();
+            setAlertMessage(responseData.message);
+            return;
+          }
           if (response.status !== 201) {
             setAlertMessage("Internal server error, try again later");
+            return;
           }
           if (response.status === 201) {
             const responseData = await response.json();
@@ -112,8 +118,7 @@ function SignUpForm() {
           }
         } catch (error) {
           setAlertMessage("Internal server error, try again later");
-
-          console.error(error);
+          console.log(error);
         }
       }}
     >

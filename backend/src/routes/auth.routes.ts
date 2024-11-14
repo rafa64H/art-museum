@@ -11,12 +11,24 @@ import {
 
 const authRoutes = express.Router();
 
-authRoutes.post("/signup", signUpHandler);
-authRoutes.post("/login", loginHandler);
-authRoutes.get("/refresh", refreshHandler);
+authRoutes.post("/signup", async (req, res) => {
+  await signUpHandler(req, res);
+});
+authRoutes.post("/login", async (req, res) => {
+  await loginHandler(req, res);
+});
+authRoutes.get("/refresh", async (req, res) => {
+  await refreshHandler(req, res);
+});
 authRoutes.get("/logout", logoutHandler);
-authRoutes.post("/verify-email/:code", verifyEmailHandler);
-authRoutes.post("/password/forgot-password", forgotPasswordHandler);
-authRoutes.post("/password/reset-password/:token", resetPasswordHandler);
+authRoutes.post("/verify-email/:code", async (req, res) => {
+  await verifyEmailHandler(req, res);
+});
+authRoutes.post("/password/forgot-password", async (req, res) => {
+  await forgotPasswordHandler(req, res);
+});
+authRoutes.post("/password/reset-password/:token", async (req, res) => {
+  await resetPasswordHandler(req, res);
+});
 
 export default authRoutes;
