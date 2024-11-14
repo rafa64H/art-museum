@@ -14,6 +14,8 @@ function ComponentAccountSettings() {
   const [openModal, setOpenModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertMessage2, setAlertMessage2] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageURL, setImageURL] = useState<string | undefined>(undefined);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -23,6 +25,16 @@ function ComponentAccountSettings() {
   const passwordDialogRef = useRef<HTMLInputElement>(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files ? event.target.files[0] : null;
+    if (selectedFile) {
+      setImageFile(selectedFile);
+      setImageURL(URL.createObjectURL(selectedFile));
+      console.log(selectedFile);
+    }
+  };
+
   return (
     <div>
       <section
@@ -157,6 +169,42 @@ function ComponentAccountSettings() {
         >
           {alertMessage}
         </span>
+        <div>
+          <img
+            className="w-[10rem]"
+            src={imageFile ? imageURL : user.userData?.profilePictureURL}
+          ></img>
+
+          <label
+            htmlFor="imageFileInput"
+            className="bg-firstBrown hover:bg-firstGreen mt-2 p-3 font-semibold text-white duration-150 cursor-pointer inline-block"
+          >
+            <i className="fa-solid fa-upload"></i> Change profile picture
+          </label>
+
+          {imageFile ? (
+            <ButtonComponent
+              additionalClassnames="ml-2"
+              textBtn="Cancel"
+              typeButton="button"
+              onClickFunction={() => {
+                setImageFile(null);
+                setImageURL(undefined);
+              }}
+            ></ButtonComponent>
+          ) : (
+            <></>
+          )}
+
+          <input
+            id="imageFileInput"
+            className="hidden"
+            onChange={(e) => handleFileChange(e)}
+            type="file"
+            accept="image/*"
+          ></input>
+        </div>
+
         <TextInput
           idFor="email"
           label="Change email"

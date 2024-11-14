@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import NavBar from "./NavBar";
 import CompanyLogo from "./ui/CompanyLogo";
 
 function Header() {
-  const [openNav, setOpenNav] = useState(true);
+  const [openNav, setOpenNav] = useState(false);
 
   return (
     <header className="bg-FirstDarkBlue flex items-center justify-between p-4">

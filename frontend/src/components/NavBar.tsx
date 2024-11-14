@@ -1,4 +1,3 @@
-import React from "react";
 import NavItem from "./ui/NavItem";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";

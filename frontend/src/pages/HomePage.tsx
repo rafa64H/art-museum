@@ -5,16 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
 
 function HomePage() {
-  const [file, setFile] = useState<File | null>(null);
   const user = useSelector((state: RootState) => state.auth.user);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files ? event.target.files[0] : null;
-    if (selectedFile) {
-      setFile(selectedFile);
-      console.log(selectedFile);
-    }
-  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -51,10 +42,7 @@ function HomePage() {
   return (
     <>
       <Header></Header>
-      <form onSubmit={(e) => handleSubmit(e)}>
-        <input onChange={(e) => handleFileChange(e)} type="file"></input>
-        <button type="submit">Upload Artwork</button>
-      </form>
+      <form onSubmit={(e) => handleSubmit(e)}></form>
     </>
   );
 }
