@@ -8,6 +8,9 @@ import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import checkValidityNameOrUsername from "../utils/forms/checkValidityNameUsername";
 import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
+import { BACKEND_URL } from "../constants";
+import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
+import setUserStoreCheckAuth from "../utils/setUserStoreCheckAuth";
 
 function ComponentAccountSettings() {
   const [selectedOption, setSelectedOption] = useState(1);
@@ -61,8 +64,41 @@ function ComponentAccountSettings() {
         </span>
 
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
+
+            const email = emailRef.current!.value;
+            const name = nameRef.current!.value;
+            const username = usernameRef.current!.value;
+            const password = passwordRef.current!.value;
+            const verifyPassword = passwordDialogRef.current!.value;
+
+            try {
+              const url = `${BACKEND_URL}/account/edit-account`;
+
+              const data = {
+                newEmail: email !== user.userData!.email ? email : null,
+                newName: name !== user.userData!.name ? name : null,
+                newUsername:
+                  username !== user.userData?.username ? username : null,
+                newPassword: password,
+                password: verifyPassword,
+              };
+
+              const response = await fetch(url, {
+                method: "PUT",
+                headers: {
+                  authorization: `Bearer ${user.userData?.accessToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+              });
+
+              console.log(response);
+              console.log(await response.json());
+            } catch (error) {
+              console.log(error);
+            }
           }}
         >
           <TextInput
@@ -99,67 +135,71 @@ function ComponentAccountSettings() {
 
       <form
         className="ml-2 mt-8"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
 
-          const allRefsCurrent = [
-            emailRef.current!,
-            nameRef.current!,
-            usernameRef.current!,
-            passwordRef.current!,
-            confirmPasswordRef.current!,
-          ];
-
-          const email = emailRef.current!.value;
-          const name = nameRef.current!.value;
-          const username = usernameRef.current!.value;
-          const password = passwordRef.current!.value;
-          const confirmPassword = confirmPasswordRef.current!.value;
-
-          if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
-            return;
-          }
-
-          if (
-            !checkValidityNameOrUsername(
-              name,
+          try {
+            const allRefsCurrent = [
+              emailRef.current!,
               nameRef.current!,
-              setAlertMessage
-            )
-          ) {
-            return;
-          }
-          if (
-            !checkValidityNameOrUsername(
-              username,
               usernameRef.current!,
-              setAlertMessage
-            )
-          ) {
-            return;
-          }
-          if (
-            !checkPasswordsMatch(
-              password,
-              confirmPassword,
               passwordRef.current!,
               confirmPasswordRef.current!,
-              setAlertMessage
-            )
-          ) {
-            return;
-          }
-          if (
-            !checkValidityPassword(
-              password,
-              passwordRef.current!,
-              setAlertMessage
-            )
-          ) {
-            return;
-          }
+            ];
 
-          setOpenModal(true);
+            const email = emailRef.current!.value;
+            const name = nameRef.current!.value;
+            const username = usernameRef.current!.value;
+            const password = passwordRef.current!.value;
+            const confirmPassword = confirmPasswordRef.current!.value;
+
+            if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
+              return;
+            }
+
+            if (
+              !checkValidityNameOrUsername(
+                name,
+                nameRef.current!,
+                setAlertMessage
+              )
+            ) {
+              return;
+            }
+            if (
+              !checkValidityNameOrUsername(
+                username,
+                usernameRef.current!,
+                setAlertMessage
+              )
+            ) {
+              return;
+            }
+            if (
+              !checkPasswordsMatch(
+                password,
+                confirmPassword,
+                passwordRef.current!,
+                confirmPasswordRef.current!,
+                setAlertMessage
+              )
+            ) {
+              return;
+            }
+            if (
+              !checkValidityPassword(
+                password,
+                passwordRef.current!,
+                setAlertMessage
+              )
+            ) {
+              return;
+            }
+
+            setOpenModal(true);
+          } catch (error) {
+            console.log(error);
+          }
         }}
       >
         <span

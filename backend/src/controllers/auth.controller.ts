@@ -292,21 +292,27 @@ export const refreshHandler = async (req: Request, res: Response) => {
   try {
     const cookies = req.cookies;
     if (!cookies.jwt) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized d" });
     }
 
     const refreshToken = cookies.jwt;
 
     const decodedJwt = jwt.verify(refreshToken, JWT_SECRET_REFRESH);
     if (typeof decodedJwt !== "object")
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized e" });
 
     const userId = decodedJwt.userId as string;
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
 
     if (!foundUser)
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized f" });
 
     const role = foundUser.role;
 

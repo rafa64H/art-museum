@@ -20,27 +20,30 @@ const verifyJWT = async (
       req.headers.authorization || (req.headers.Authorization as string);
 
     if (!authHeader)
-      return res.status(401).json({ success: false, message: "Unauhtorized" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauhtorized a" });
     if (!authHeader?.startsWith("Bearer "))
-      return res.status(401).json({ success: false, message: "Unauhtorized" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauhtorized b" });
 
     const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, JWT_SECRET_ACCESS);
 
     if (typeof decoded !== "object")
-      return res.status(401).json({ success: false, message: "Unauhtorized" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauhtorized c" });
 
     req.userId = decoded.userId;
     req.role = decoded.role;
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      await refreshHandler(req, res);
-      next();
+      return res.status(401).json({ success: false, message: "JWT expired" });
     }
-
-    console.log(error);
 
     res.status(500).json({ success: false, message: error });
   }
