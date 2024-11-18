@@ -10,7 +10,6 @@ import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
-import setUserStoreCheckAuth from "../utils/setUserStoreCheckAuth";
 
 function ComponentAccountSettings() {
   const [selectedOption, setSelectedOption] = useState(1);
@@ -70,32 +69,60 @@ function ComponentAccountSettings() {
             const email = emailRef.current!.value;
             const name = nameRef.current!.value;
             const username = usernameRef.current!.value;
-            const password = passwordRef.current!.value;
             const verifyPassword = passwordDialogRef.current!.value;
+            const newPassword = passwordRef.current!.value;
 
             try {
-              const url = `${BACKEND_URL}/account/edit-account`;
+              const response = await requestAccessTokenRefresh();
+              if (response.status === 401) {
+                return;
+              }
 
-              const data = {
-                newEmail: email !== user.userData!.email ? email : null,
-                newName: name !== user.userData!.name ? name : null,
-                newUsername:
-                  username !== user.userData?.username ? username : null,
-                newPassword: password,
-                password: verifyPassword,
-              };
+              if (selectedOption === 1) {
+                const url = `${BACKEND_URL}/account/edit-account`;
 
-              const response = await fetch(url, {
-                method: "PUT",
-                headers: {
-                  authorization: `Bearer ${user.userData?.accessToken}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-              });
+                const data = {
+                  newEmail: email !== user.userData!.email ? email : null,
+                  newName: name !== user.userData!.name ? name : null,
+                  newUsername:
+                    username !== user.userData?.username ? username : null,
+                  password: verifyPassword,
+                };
 
-              console.log(response);
-              console.log(await response.json());
+                const response = await fetch(url, {
+                  method: "PUT",
+                  headers: {
+                    authorization: `Bearer ${user.userData?.accessToken}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(data),
+                });
+
+                console.log(response);
+                console.log(await response.json());
+              }
+              if (selectedOption === 2) {
+                const url = `${BACKEND_URL}/account/change-password`;
+
+                const data = {
+                  newPassword: newPassword,
+                  password: verifyPassword,
+                };
+
+                if (!newPassword) return;
+
+                const response = await fetch(url, {
+                  method: "PUT",
+                  headers: {
+                    authorization: `Bearer ${user.userData?.accessToken}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(data),
+                });
+
+                console.log(response);
+                console.log(await response.json());
+              }
             } catch (error) {
               console.log(error);
             }
@@ -131,10 +158,18 @@ function ComponentAccountSettings() {
             setSelectedOption(1);
           }}
         ></MultipleSelectButton>
+        <MultipleSelectButton
+          textBtn="Change password"
+          typeButton="button"
+          buttonActivated={selectedOption === 2}
+          onClickFunction={() => {
+            setSelectedOption(2);
+          }}
+        ></MultipleSelectButton>
       </section>
 
       <form
-        className="ml-2 mt-8"
+        className={`ml-2 mt-8 ${selectedOption === 1 ? "block" : "hidden"}`}
         onSubmit={async (e) => {
           e.preventDefault();
 
@@ -143,15 +178,11 @@ function ComponentAccountSettings() {
               emailRef.current!,
               nameRef.current!,
               usernameRef.current!,
-              passwordRef.current!,
-              confirmPasswordRef.current!,
             ];
 
             const email = emailRef.current!.value;
             const name = nameRef.current!.value;
             const username = usernameRef.current!.value;
-            const password = passwordRef.current!.value;
-            const confirmPassword = confirmPasswordRef.current!.value;
 
             if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
               return;
@@ -170,26 +201,6 @@ function ComponentAccountSettings() {
               !checkValidityNameOrUsername(
                 username,
                 usernameRef.current!,
-                setAlertMessage
-              )
-            ) {
-              return;
-            }
-            if (
-              !checkPasswordsMatch(
-                password,
-                confirmPassword,
-                passwordRef.current!,
-                confirmPasswordRef.current!,
-                setAlertMessage
-              )
-            ) {
-              return;
-            }
-            if (
-              !checkValidityPassword(
-                password,
-                passwordRef.current!,
                 setAlertMessage
               )
             ) {
@@ -279,6 +290,65 @@ function ComponentAccountSettings() {
           }}
         ></TextInput>
 
+        <ButtonComponent
+          textBtn="Change information"
+          typeButton="submit"
+        ></ButtonComponent>
+      </form>
+
+      <form
+        className={`ml-2 mt-8 ${selectedOption === 2 ? "block" : "hidden"}`}
+        onSubmit={async (e) => {
+          e.preventDefault();
+
+          try {
+            const allRefsCurrent = [
+              passwordRef.current!,
+              confirmPasswordRef.current!,
+            ];
+
+            const password = passwordRef.current!.value;
+            const confirmPassword = confirmPasswordRef.current!.value;
+
+            if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
+              return;
+            }
+
+            if (
+              !checkPasswordsMatch(
+                password,
+                confirmPassword,
+                passwordRef.current!,
+                confirmPasswordRef.current!,
+                setAlertMessage
+              )
+            ) {
+              return;
+            }
+            if (
+              !checkValidityPassword(
+                password,
+                passwordRef.current!,
+                setAlertMessage
+              )
+            ) {
+              return;
+            }
+
+            setOpenModal(true);
+          } catch (error) {
+            console.log(error);
+          }
+        }}
+      >
+        <span
+          className="text-xl font-bold text-red-400"
+          role="alert"
+          aria-live="assertive"
+        >
+          {alertMessage}
+        </span>
+
         <TextInput
           idFor="changePassword"
           label="Change password"
@@ -301,7 +371,7 @@ function ComponentAccountSettings() {
         ></TextInput>
 
         <ButtonComponent
-          textBtn="Change information"
+          textBtn="Change password"
           typeButton="submit"
         ></ButtonComponent>
       </form>

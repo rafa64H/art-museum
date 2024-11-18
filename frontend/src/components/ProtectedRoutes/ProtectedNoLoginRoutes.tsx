@@ -1,10 +1,8 @@
 import { PropsWithChildren, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import requestAccessTokenRefresh from "../../utils/requestAccessTokenRefresh";
-import { setUser } from "../../services/redux-toolkit/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../services/redux-toolkit/store";
-import setUserStoreCheckAuth from "../../utils/setUserStoreCheckAuth";
 
 type ProtectedRouteProps = PropsWithChildren;
 function ProtectedNoLoginRoute({ children }: ProtectedRouteProps) {
@@ -17,16 +15,13 @@ function ProtectedNoLoginRoute({ children }: ProtectedRouteProps) {
       try {
         if (!user.userData && user.isLoading) {
           const response = await requestAccessTokenRefresh();
+
           if (response.status === 401) {
-            dispatch(setUser({ userData: null, isLoading: false }));
             navigate("/sign-up", { replace: true });
             return;
           }
-          const responseData = await response.json();
 
           if (response.status === 200) {
-            setUserStoreCheckAuth(responseData);
-
             return;
           }
           navigate("/sign-up", { replace: true });
