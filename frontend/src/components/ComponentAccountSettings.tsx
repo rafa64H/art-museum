@@ -41,7 +41,7 @@ function ComponentAccountSettings() {
     <div>
       <section
         data-open-modal={openModal}
-        className="z-30 data-[open-modal='true']:scale-100 scale-0 duration-200 bg-slate-700 pt-4 pb-8 px-8 w-[min(80%,45rem)] absolute translate-x-[-50%] translate-y-[-50%] top-[50%] left-[50%]"
+        className="z-30 data-[open-modal='true']:scale-100 scale-0 duration-200 bg-slate-700 pt-4 pb-8 px-8 w-[min(80%,45rem)] fixed translate-x-[-50%] translate-y-[-50%] top-[50%] left-[50%]"
       >
         <ButtonComponent
           textBtn="Close"
@@ -144,7 +144,7 @@ function ComponentAccountSettings() {
 
       <div
         data-open-modal={openModal}
-        className="data-[open-modal='true']:block hidden z-20 absolute w-[100%] h-[100%] bg-[rgba(0,0,0,0.6)]"
+        className="data-[open-modal='true']:block hidden z-20 fixed top-0 w-[100%] h-[100%] bg-[rgba(0,0,0,0.6)]"
       ></div>
 
       <h1>Account Settings</h1>
