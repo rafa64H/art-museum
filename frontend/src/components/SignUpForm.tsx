@@ -7,7 +7,7 @@ import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import checkValidityNameOrUsername from "../utils/forms/checkValidityNameUsername";
-import setUserStoreLogin from "../utils/setUserStoreLogin";
+import setUserStoreLogin from "../utils/setUserStore";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");

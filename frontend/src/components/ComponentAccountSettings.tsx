@@ -10,6 +10,8 @@ import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
+import { useNavigate } from "react-router-dom";
+import setUserStore from "../utils/setUserStore";
 
 function ComponentAccountSettings() {
   const [selectedOption, setSelectedOption] = useState(1);
@@ -27,6 +29,7 @@ function ComponentAccountSettings() {
   const passwordDialogRef = useRef<HTMLInputElement>(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
+  const navigate = useNavigate();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files ? event.target.files[0] : null;
@@ -73,8 +76,9 @@ function ComponentAccountSettings() {
             const newPassword = passwordRef.current!.value;
 
             try {
-              const response = await requestAccessTokenRefresh();
-              if (response.status === 401) {
+              const responseRequestTokenRefresh =
+                await requestAccessTokenRefresh();
+              if (responseRequestTokenRefresh.status === 401) {
                 return;
               }
 
@@ -89,7 +93,7 @@ function ComponentAccountSettings() {
                   password: verifyPassword,
                 };
 
-                const response = await fetch(url, {
+                const responseEditAccount = await fetch(url, {
                   method: "PUT",
                   headers: {
                     authorization: `Bearer ${user.userData?.accessToken}`,
@@ -98,9 +102,62 @@ function ComponentAccountSettings() {
                   body: JSON.stringify(data),
                 });
 
-                console.log(response);
-                console.log(await response.json());
+                if (responseEditAccount.status === 401) {
+                  const responseDataEditAccount =
+                    await responseEditAccount.json();
+
+                  if (
+                    responseDataEditAccount.message.includes("Unauthorized")
+                  ) {
+                    navigate("/", { replace: true });
+                    return;
+                  }
+
+                  setAlertMessage2(responseDataEditAccount.message);
+                  return;
+                }
+
+                if (responseEditAccount.status === 200) {
+                  if (imageFile) {
+                    const formData = new FormData();
+                    formData.append("file", imageFile);
+
+                    const url = `${BACKEND_URL}/api/images/profilePictures`;
+
+                    const responseProfilePictureUpload = await fetch(url, {
+                      method: "POST",
+                      mode: "cors",
+                      credentials: "include",
+                      headers: {
+                        authorization: `Bearer ${user.userData?.accessToken}`,
+                      },
+                      body: formData,
+                    });
+
+                    const responseProfilePictureUploadData =
+                      await responseProfilePictureUpload.json();
+
+                    const newProfilePictureURL =
+                      responseProfilePictureUploadData.profilePictureURL as string;
+
+                    setUserStore(responseProfilePictureUploadData);
+                    navigate(0);
+                    return;
+                  }
+
+                  const responseEditAccountData =
+                    await responseEditAccount.json();
+
+                  console.log(responseEditAccountData);
+                  setUserStore(responseEditAccountData);
+
+                  setAlertMessage("User account edited");
+                  setOpenModal(false);
+                  setImageFile(null);
+                  setImageURL(undefined);
+                }
               }
+
               if (selectedOption === 2) {
                 const url = `${BACKEND_URL}/account/change-password`;
 
@@ -111,7 +168,7 @@ function ComponentAccountSettings() {
 
                 if (!newPassword) return;
 
-                const response = await fetch(url, {
+                const responseChangePassword = await fetch(url, {
                   method: "PUT",
                   headers: {
                     authorization: `Bearer ${user.userData?.accessToken}`,
@@ -120,10 +177,12 @@ function ComponentAccountSettings() {
                   body: JSON.stringify(data),
                 });
 
-                console.log(response);
-                console.log(await response.json());
+                console.log(responseChangePassword);
+                console.log(await responseChangePassword.json());
               }
             } catch (error) {
+              setOpenModal(false);
+              setAlertMessage("Internal server error");
               console.log(error);
             }
           }}
@@ -180,7 +239,6 @@ function ComponentAccountSettings() {
               usernameRef.current!,
             ];
 
-            const email = emailRef.current!.value;
             const name = nameRef.current!.value;
             const username = usernameRef.current!.value;
 
@@ -223,7 +281,7 @@ function ComponentAccountSettings() {
         <div>
           <img
             className="w-[10rem]"
-            src={imageFile ? imageURL : user.userData?.profilePictureURL}
+            src={imageURL ? imageURL : user.userData?.profilePictureURL}
           ></img>
 
           <label

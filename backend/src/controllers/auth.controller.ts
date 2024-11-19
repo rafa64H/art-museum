@@ -322,7 +322,10 @@ export const refreshHandler = async (req: Request, res: Response) => {
 
     res
       .status(200)
-      .json({ user: { ...foundUser, password: undefined }, accessToken });
+      .json({
+        user: { ...foundUser.toObject(), password: undefined },
+        accessToken,
+      });
   } catch (error) {
     console.log(error);
 

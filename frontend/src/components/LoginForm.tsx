@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "./ui/ButtonComponent";
 import { BACKEND_URL } from "../constants";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
-import setUserStoreLogin from "../utils/setUserStoreLogin";
+import setUserStoreLogin from "../utils/setUserStore";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");

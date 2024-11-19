@@ -1,7 +1,7 @@
 import { BACKEND_URL } from "../constants";
 import { setUser } from "../services/redux-toolkit/auth/authSlice";
 import { store } from "../services/redux-toolkit/store";
-import setUserStoreCheckAuth from "./setUserStoreCheckAuth";
+import setUserStoreLogin from "./setUserStore";
 export default async function requestAccessTokenRefresh() {
   const url = `${BACKEND_URL}/auth/refresh`;
 
@@ -21,7 +21,7 @@ export default async function requestAccessTokenRefresh() {
   const responseData = await response.json();
   console.log(responseData);
   if (response.status === 200) {
-    setUserStoreCheckAuth(responseData);
+    setUserStoreLogin(responseData);
     return response;
   }
 

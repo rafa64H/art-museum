@@ -24,7 +24,7 @@ export async function uploadImageHandler(
       return res.status(401).json({ success: false, message: "Unauhtorized" });
     }
 
-    const fileName = file.originalname;
+    const fileName = userId;
     const fileRef = `usersProfilePictures/${userId}/${fileName}`;
     const fileUpload = bucket.file(fileRef);
 
@@ -58,7 +58,13 @@ export async function uploadImageHandler(
       foundUser.profilePictureURL = downloadURL[0];
       await foundUser.save();
 
-      res.status(200).json({ success: true, message: "Upload completed" });
+      res
+        .status(200)
+        .json({
+          success: true,
+          user: { ...foundUser.toObject(), password: undefined },
+          message: "Upload completed",
+        });
     });
 
     stream.end(file.buffer);

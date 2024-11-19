@@ -15,9 +15,7 @@ type ResponseDataType = {
   accessToken: string;
 };
 
-export default function setUserStoreLogin(
-  responseData: ResponseDataType
-): void {
+export default function setUserStore(responseData: ResponseDataType): void {
   const userData = {
     id: responseData.user._id as string,
     username: responseData.user.username as string,

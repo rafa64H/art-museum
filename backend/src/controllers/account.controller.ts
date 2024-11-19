@@ -53,7 +53,13 @@ export async function editAccountHandler(
 
     await foundUser.save();
 
-    res.status(200).json({ success: true, message: "User account edited" });
+    const userToReturn = foundUser;
+
+    res.status(200).json({
+      success: true,
+      user: { ...foundUser.toObject(), password: undefined },
+      message: "User account edited",
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error });
   }
