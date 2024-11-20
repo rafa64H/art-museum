@@ -11,7 +11,6 @@ import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { useNavigate } from "react-router-dom";
-import setUserStore from "../utils/setUserStore";
 
 function ComponentAccountSettings() {
   const [selectedOption, setSelectedOption] = useState(1);
@@ -134,27 +133,13 @@ function ComponentAccountSettings() {
                       body: formData,
                     });
 
-                    const responseProfilePictureUploadData =
-                      await responseProfilePictureUpload.json();
+                    console.log(responseProfilePictureUpload);
 
-                    const newProfilePictureURL =
-                      responseProfilePictureUploadData.profilePictureURL as string;
-
-                    setUserStore(responseProfilePictureUploadData);
                     navigate(0);
                     return;
                   }
 
-                  const responseEditAccountData =
-                    await responseEditAccount.json();
-
-                  console.log(responseEditAccountData);
-                  setUserStore(responseEditAccountData);
-
-                  setAlertMessage("User account edited");
-                  setOpenModal(false);
-                  setImageFile(null);
-                  setImageURL(undefined);
+                  navigate(0);
                 }
               }
 

@@ -44,6 +44,11 @@ const verifyJWT = async (
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ success: false, message: "JWT expired" });
     }
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized d" });
+    }
 
     res.status(500).json({ success: false, message: error });
   }

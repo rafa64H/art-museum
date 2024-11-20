@@ -8,6 +8,8 @@ export interface UserDocument extends mongoose.Document {
   verified: boolean;
   profilePictureURL: string;
   role: "user" | "admin";
+  followers: string[];
+  following: string[];
   lastLogin: Date;
   createdAt: Date;
   lastUpdated: Date;
@@ -42,6 +44,16 @@ const UserSchema = new mongoose.Schema<UserDocument>(
     password: {
       type: String,
       required: true,
+    },
+    followers: {
+      type: [String],
+      required: true,
+      default: [],
+    },
+    following: {
+      type: [String],
+      required: true,
+      default: [],
     },
     role: {
       type: String,
