@@ -10,9 +10,9 @@ import { store } from "./services/redux-toolkit/store";
 import { Provider } from "react-redux";
 import ProtectLoginRoutes from "./components/ProtectedRoutes/ProtectLoginRoutes";
 import CheckAuth from "./components/ProtectedRoutes/CheckAuth";
-import ProfilePage from "./pages/ProfilePage";
 import ProtectedNoLoginRoute from "./components/ProtectedRoutes/ProtectedNoLoginRoutes";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
+import CheckProfilePage from "./components/ProtectedRoutes/CheckProfilePage";
 
 const router = createBrowserRouter([
   {
@@ -27,7 +27,7 @@ const router = createBrowserRouter([
     path: "/profile/:userId",
     element: (
       <CheckAuth>
-        <ProfilePage></ProfilePage>
+        <CheckProfilePage></CheckProfilePage>
       </CheckAuth>
     ),
   },

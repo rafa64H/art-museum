@@ -81,7 +81,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    await sendVerificationEmail(user.email, verificationToken);
+    // await sendVerificationEmail(user.email, verificationToken);
 
     res.status(201).json({
       success: true,
@@ -320,12 +320,10 @@ export const refreshHandler = async (req: Request, res: Response) => {
       expiresIn: "15m",
     });
 
-    res
-      .status(200)
-      .json({
-        user: { ...foundUser.toObject(), password: undefined },
-        accessToken,
-      });
+    res.status(200).json({
+      user: { ...foundUser.toObject(), password: undefined },
+      accessToken,
+    });
   } catch (error) {
     console.log(error);
 
