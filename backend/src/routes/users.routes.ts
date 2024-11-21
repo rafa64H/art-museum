@@ -8,7 +8,13 @@ import {
 } from "../controllers/users.controller";
 
 const usersRoutes = express.Router();
-usersRoutes.use(verifyJWT as express.RequestHandler);
+usersRoutes.use((req, res, next) => {
+  if (!(req.method === "GET")) {
+    verifyJWT(req, res, next);
+  } else {
+    next();
+  }
+});
 
 usersRoutes.get("/", async (req, res) => {
   await getAllUsersHandler(req, res);

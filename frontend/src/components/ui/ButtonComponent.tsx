@@ -19,7 +19,7 @@ function ButtonComponent({
       className={`bg-firstBrown hover:bg-firstGreen mt-2 p-3 font-semibold text-white duration-150 ${
         additionalClassnames ? `${additionalClassnames}` : ""
       }`}
-      onClick={(e) => {
+      onClick={async (e) => {
         if (onClickFunction) onClickFunction(e);
       }}
     >

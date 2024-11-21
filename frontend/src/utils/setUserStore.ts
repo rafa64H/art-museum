@@ -9,6 +9,8 @@ type ResponseDataType = {
     profilePictureURL: string;
     email: string;
     role: string;
+    followers: string[];
+    following: string[];
     lastLogin: Date;
     verified: boolean;
   };
@@ -22,6 +24,8 @@ export default function setUserStore(responseData: ResponseDataType): void {
     name: responseData.user.name as string,
     profilePictureURL: responseData.user.profilePictureURL as string,
     email: responseData.user.email as string,
+    following: responseData.user.following as string[],
+    followers: responseData.user.followers as string[],
     role: responseData.user.role as "user" | "admin",
     lastLogin: responseData.user.lastLogin as Date,
     verified: responseData.user.verified as boolean,

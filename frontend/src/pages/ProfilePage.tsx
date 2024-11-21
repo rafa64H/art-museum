@@ -1,13 +1,18 @@
 import React from "react";
 import Header from "../components/Header";
 import { RootState } from "../services/redux-toolkit/store";
-import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import { UserReduxToolkit } from "../services/redux-toolkit/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  setUserFollowing,
+  UserData,
+} from "../services/redux-toolkit/auth/authSlice";
+import ButtonComponent from "../components/ui/ButtonComponent";
+import { BACKEND_URL } from "../constants";
 
 type Props = {
   isUserProfile: boolean;
-  userProfile?: { profilePictureURL: string; username: string; name: string };
+  userProfile?: UserData;
   getUserProfileLoading?: boolean;
 };
 function ProfilePage({
@@ -16,6 +21,9 @@ function ProfilePage({
   getUserProfileLoading,
 }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   return (
     <>
       <Header></Header>
@@ -47,6 +55,64 @@ function ProfilePage({
             ></img>
             <h1 className="text-3xl font-semibold">{userProfile?.name}</h1>
             <p className="text-xl">{userProfile?.username}</p>
+            <ButtonComponent
+              typeButton="button"
+              textBtn={
+                user.userData?.following.find((id) => id === userProfile?.id) &&
+                user.userData
+                  ? "Unfollow"
+                  : "Follow"
+              }
+              onClickFunction={async () => {
+                try {
+                  if (!user.userData || !userProfile) {
+                    navigate("/sign-up");
+                    return;
+                  }
+                  const isUserFollowing = user.userData?.following.some(
+                    (id) => id === userProfile.id
+                  );
+
+                  const url = `${BACKEND_URL}/api/users/followers/${userProfile?.id}`;
+
+                  if (isUserFollowing) {
+                    const responseDeleteFollow = await fetch(url, {
+                      method: "DELETE",
+                      headers: {
+                        authorization: `Bearer ${user.userData?.accessToken}`,
+                      },
+                    });
+
+                    const responseDeleteFollowData =
+                      await responseDeleteFollow.json();
+
+                    dispatch(
+                      setUserFollowing(
+                        responseDeleteFollowData.userRequestFollowing
+                      )
+                    );
+                    console.log(responseDeleteFollowData);
+                    return;
+                  }
+
+                  const responseAddFollow = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                      authorization: `Bearer ${user.userData?.accessToken}`,
+                    },
+                  });
+
+                  const responseAddFollowData = await responseAddFollow.json();
+                  dispatch(
+                    setUserFollowing(responseAddFollowData.userRequestFollowing)
+                  );
+
+                  console.log(responseAddFollowData);
+                } catch (error) {
+                  console.log(error);
+                }
+              }}
+            ></ButtonComponent>
           </>
         )}
       </section>

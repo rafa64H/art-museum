@@ -1,18 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
+export type UserData = {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  role: "user" | "admin";
+  profilePictureURL: string;
+  verified: boolean;
+  lastLogin: Date;
+  accessToken: string;
+  following: string[];
+  followers: string[];
+};
 export type UserReduxToolkit =
   | {
-      userData: {
-        id: string;
-        username: string;
-        name: string;
-        email: string;
-        role: "user" | "admin";
-        profilePictureURL: string;
-        verified: boolean;
-        lastLogin: Date;
-        accessToken: string;
-      };
+      userData: UserData;
       isLoading: boolean;
     }
   | {
@@ -37,6 +39,11 @@ export const authSlice = createSlice({
     setUser(state, action: PayloadAction<UserReduxToolkit>) {
       state.user = action.payload;
     },
+    setUserFollowing(state, action: PayloadAction<string[]>) {
+      if (state.user.userData) {
+        state.user.userData.following = action.payload;
+      }
+    },
     setAccessToken(state, action: PayloadAction<string>) {
       if (state.user.userData) {
         state.user.userData.accessToken = action.payload;
@@ -48,6 +55,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setUser, logout, setAccessToken } = authSlice.actions;
+export const { setUser, setUserFollowing, logout, setAccessToken } =
+  authSlice.actions;
 
 export default authSlice.reducer;

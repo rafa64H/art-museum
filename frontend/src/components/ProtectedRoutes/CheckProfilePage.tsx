@@ -30,7 +30,13 @@ function CheckProfilePage() {
         if (responseGetUser.status === 200) {
           const responseGetUserData = await responseGetUser.json();
 
-          setUserProfile(responseGetUserData.user);
+          const userData = {
+            ...responseGetUserData.user,
+            id: responseGetUserData.user._id,
+            _id: undefined,
+          };
+
+          setUserProfile(userData);
           setGetUserProfileLoading(false);
         }
       } catch (error) {

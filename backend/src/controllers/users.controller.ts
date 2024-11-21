@@ -19,10 +19,7 @@ export async function getAllUsersHandler(
   }
 }
 
-export async function getUserHandler(
-  req: AuthMiddlewareRequest,
-  res: Response
-) {
+export async function getUserHandler(req: Request, res: Response) {
   try {
     const userId = req.params.userId;
 
@@ -121,7 +118,7 @@ export async function deleteFollowerHandler(
 
     return res.status(200).json({
       success: true,
-      message: `${userRequest.username} now following ${foundUser.username}`,
+      message: `${userRequest.username} unfollowed ${foundUser.username}`,
       userRequestFollowing: userRequest.following,
       foundUserFollowers: foundUser.followers,
     });
