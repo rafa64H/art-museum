@@ -55,6 +55,13 @@ function ProfilePage({
             ></img>
             <h1 className="text-3xl font-semibold">{userProfile?.name}</h1>
             <p className="text-xl">{userProfile?.username}</p>
+            {userProfile?.following.some((id) => id === user.userData?.id) ? (
+              <>
+                <p className="text-lg">This person is following you</p>
+              </>
+            ) : (
+              <></>
+            )}
             <ButtonComponent
               typeButton="button"
               textBtn={
@@ -91,6 +98,7 @@ function ProfilePage({
                         responseDeleteFollowData.userRequestFollowing
                       )
                     );
+
                     console.log(responseDeleteFollowData);
                     return;
                   }

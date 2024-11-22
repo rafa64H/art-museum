@@ -11,8 +11,13 @@ import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { useNavigate } from "react-router-dom";
+import { UserData } from "../services/redux-toolkit/auth/authSlice";
 
-function ComponentAccountSettings() {
+type Props = {
+  followersObjects: UserData[] | null;
+};
+
+function ComponentAccountSettings({ followersObjects }: Props) {
   const [selectedOption, setSelectedOption] = useState(1);
   const [openModal, setOpenModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -53,7 +58,8 @@ function ComponentAccountSettings() {
         ></ButtonComponent>
 
         <h2 className="font-bold my-8 text-xl">
-          Introduce your current password before changing information
+          Introduce your current password before changing information, page will
+          reload after change.
         </h2>
 
         <span
@@ -208,6 +214,14 @@ function ComponentAccountSettings() {
           buttonActivated={selectedOption === 2}
           onClickFunction={() => {
             setSelectedOption(2);
+          }}
+        ></MultipleSelectButton>
+        <MultipleSelectButton
+          textBtn="Following"
+          typeButton="button"
+          buttonActivated={selectedOption === 3}
+          onClickFunction={() => {
+            setSelectedOption(3);
           }}
         ></MultipleSelectButton>
       </section>
@@ -418,6 +432,29 @@ function ComponentAccountSettings() {
           typeButton="submit"
         ></ButtonComponent>
       </form>
+
+      <ul>
+        {followersObjects === null ? (
+          <>
+            <h2>Loading</h2>
+          </>
+        ) : followersObjects.length === 0 ? (
+          <>
+            <h2>Nothing</h2>
+          </>
+        ) : (
+          followersObjects.map((userObject, index) => (
+            <li key={index}>
+              <img
+                src={userObject.profilePictureURL}
+                className="w-[5rem]"
+              ></img>
+              <p>{userObject.name}</p>
+              <p>{userObject.username}</p>
+            </li>
+          ))
+        )}
+      </ul>
     </div>
   );
 }

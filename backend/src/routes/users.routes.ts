@@ -4,6 +4,7 @@ import {
   addFollowerHandler,
   deleteFollowerHandler,
   getAllUsersHandler,
+  getFollowersFromUser,
   getUserHandler,
 } from "../controllers/users.controller";
 
@@ -19,10 +20,14 @@ usersRoutes.use((req, res, next) => {
 usersRoutes.get("/", async (req, res) => {
   await getAllUsersHandler(req, res);
 });
-
 usersRoutes.get("/:userId", async (req, res) => {
   await getUserHandler(req, res);
 });
+
+usersRoutes.get("/followers/:userId", async (req, res) => {
+  await getFollowersFromUser(req, res);
+});
+
 usersRoutes.post("/followers/:userId", async (req, res) => {
   await addFollowerHandler(req, res);
 });

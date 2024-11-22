@@ -39,6 +39,43 @@ export async function getUserHandler(req: Request, res: Response) {
     res.status(500).json({ success: false, message: error });
   }
 }
+
+export async function getFollowersFromUser(req: Request, res: Response) {
+  try {
+    const userId = req.params.userId;
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const objectUser = foundUser.toObject();
+
+    let following: {}[] = [];
+
+    for (let index = 0; index < objectUser.following.length; index++) {
+      const idFromFollowingObjectId = ObjectId.createFromHexString(
+        objectUser.following[index]
+      );
+
+      const userFromFollowing = await UserModel.findOne(
+        idFromFollowingObjectId
+      );
+
+      if (!userFromFollowing) return null;
+
+      const userFromFollowingObject = userFromFollowing.toObject();
+
+      following.push({ ...userFromFollowingObject, password: undefined });
+    }
+
+    res.status(200).json({ success: true, following: following });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error });
+  }
+}
 export async function addFollowerHandler(
   req: AuthMiddlewareRequest,
   res: Response
