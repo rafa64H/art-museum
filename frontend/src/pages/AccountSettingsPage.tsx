@@ -2,15 +2,19 @@ import Header from "../components/Header";
 import ComponentAccountSettings from "../components/ComponentAccountSettings";
 import { BACKEND_URL } from "../constants";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
+import { UserData } from "../services/redux-toolkit/auth/authSlice";
 
 function AccountSettingsPage() {
-  const [followersObjects, setFollowersObjects] = useState<UserData[] | null>(
-    null
-  );
+  const [followersObjects, setFollowersObjects] = useState<
+    UserData[] | string | null
+  >(null);
+  const [followingObjects, setFollowingObjects] = useState<
+    UserData[] | string | null
+  >(null);
+
   const user = useSelector((state: RootState) => state.auth.user);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     const getFollowers = async () => {
@@ -20,13 +24,20 @@ function AccountSettingsPage() {
         }
         const url = `${BACKEND_URL}/api/users/followers/${user.userData?.id}`;
 
-        const responseGetFollowers = await fetch(url, {
+        const responseGetFollowersFollowing = await fetch(url, {
           method: "GET",
         });
 
-        const responseGetFollowersData = await responseGetFollowers.json();
-
-        setFollowersObjects(responseGetFollowersData.following);
+        const responseGetFollowersFollowingData =
+          await responseGetFollowersFollowing.json();
+        if (responseGetFollowersFollowing.status === 200) {
+          setFollowersObjects(responseGetFollowersFollowingData.followers);
+          setFollowingObjects(responseGetFollowersFollowingData.following);
+        }
+        if (responseGetFollowersFollowing.status !== 200) {
+          setFollowersObjects("Error, try again later or try to reload page");
+          setFollowingObjects("Error, try again later or try to reload page");
+        }
       } catch (error) {
         console.log(error);
       }
@@ -40,6 +51,7 @@ function AccountSettingsPage() {
       <div className="bg-mainBg text-white">
         <ComponentAccountSettings
           followersObjects={followersObjects}
+          followingObjects={followingObjects}
         ></ComponentAccountSettings>
       </div>
     </>

@@ -14,11 +14,15 @@ import { useNavigate } from "react-router-dom";
 import { UserData } from "../services/redux-toolkit/auth/authSlice";
 
 type Props = {
-  followersObjects: UserData[] | null;
+  followersObjects: UserData[] | string | null;
+  followingObjects: UserData[] | string | null;
 };
 
-function ComponentAccountSettings({ followersObjects }: Props) {
-  const [selectedOption, setSelectedOption] = useState(1);
+function ComponentAccountSettings({
+  followersObjects,
+  followingObjects,
+}: Props) {
+  const [selectedOption, setSelectedOption] = useState(3);
   const [openModal, setOpenModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertMessage2, setAlertMessage2] = useState("");
@@ -222,6 +226,14 @@ function ComponentAccountSettings({ followersObjects }: Props) {
           buttonActivated={selectedOption === 3}
           onClickFunction={() => {
             setSelectedOption(3);
+          }}
+        ></MultipleSelectButton>
+        <MultipleSelectButton
+          textBtn="Followers"
+          typeButton="button"
+          buttonActivated={selectedOption === 4}
+          onClickFunction={() => {
+            setSelectedOption(4);
           }}
         ></MultipleSelectButton>
       </section>
@@ -433,17 +445,48 @@ function ComponentAccountSettings({ followersObjects }: Props) {
         ></ButtonComponent>
       </form>
 
-      <ul>
+      <ul className={`ml-2 mt-8 ${selectedOption === 3 ? "block" : "hidden"}`}>
+        {followingObjects === null ? (
+          <>
+            <h2>Loading...</h2>
+          </>
+        ) : typeof followersObjects === "string" ? (
+          <>
+            <h2>Error, reload page</h2>
+          </>
+        ) : followingObjects.length === 0 ? (
+          <>
+            <h2>Nothing</h2>
+          </>
+        ) : (
+          (followingObjects as UserData[]).map((userObject, index) => (
+            <li key={index}>
+              <img
+                src={userObject.profilePictureURL}
+                className="w-[5rem]"
+              ></img>
+              <p>{userObject.name}</p>
+              <p>{userObject.username}</p>
+            </li>
+          ))
+        )}
+      </ul>
+
+      <ul className={`ml-2 mt-8 ${selectedOption === 4 ? "block" : "hidden"}`}>
         {followersObjects === null ? (
           <>
-            <h2>Loading</h2>
+            <h2>Loading...</h2>
+          </>
+        ) : typeof followersObjects === "string" ? (
+          <>
+            <h2>Error, reload page</h2>
           </>
         ) : followersObjects.length === 0 ? (
           <>
             <h2>Nothing</h2>
           </>
         ) : (
-          followersObjects.map((userObject, index) => (
+          (followersObjects as UserData[]).map((userObject, index) => (
             <li key={index}>
               <img
                 src={userObject.profilePictureURL}

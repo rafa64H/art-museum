@@ -40,7 +40,10 @@ export async function getUserHandler(req: Request, res: Response) {
   }
 }
 
-export async function getFollowersFromUser(req: Request, res: Response) {
+export async function getFollowersFollowingFromUser(
+  req: Request,
+  res: Response
+) {
   try {
     const userId = req.params.userId;
     const userIdObjectId = ObjectId.createFromHexString(userId);
@@ -51,9 +54,18 @@ export async function getFollowersFromUser(req: Request, res: Response) {
         .status(404)
         .json({ success: false, message: "User not found" });
 
+    console.log(foundUser._id, userIdObjectId);
+
+    if (!((foundUser._id as string).toString() === userId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Not the same user" });
+
     const objectUser = foundUser.toObject();
 
     let following: {}[] = [];
+
+    let followers: {}[] = [];
 
     for (let index = 0; index < objectUser.following.length; index++) {
       const idFromFollowingObjectId = ObjectId.createFromHexString(
@@ -71,7 +83,25 @@ export async function getFollowersFromUser(req: Request, res: Response) {
       following.push({ ...userFromFollowingObject, password: undefined });
     }
 
-    res.status(200).json({ success: true, following: following });
+    for (let index = 0; index < objectUser.followers.length; index++) {
+      const idFromFollowersObjectId = ObjectId.createFromHexString(
+        objectUser.followers[index]
+      );
+
+      const userFromFollowers = await UserModel.findOne(
+        idFromFollowersObjectId
+      );
+
+      if (!userFromFollowers) return null;
+
+      const userFromFollowersObject = userFromFollowers.toObject();
+
+      followers.push({ ...userFromFollowersObject, password: undefined });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, following: following, followers: followers });
   } catch (error) {
     res.status(500).json({ success: false, message: error });
   }
