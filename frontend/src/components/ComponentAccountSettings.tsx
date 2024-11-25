@@ -10,7 +10,7 @@ import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserData } from "../services/redux-toolkit/auth/authSlice";
 
 type Props = {
@@ -448,25 +448,36 @@ function ComponentAccountSettings({
       <ul className={`ml-2 mt-8 ${selectedOption === 3 ? "block" : "hidden"}`}>
         {followingObjects === null ? (
           <>
-            <h2>Loading...</h2>
+            <h2 className="p-2 text-2xl font-semibold">Loading...</h2>
           </>
         ) : typeof followersObjects === "string" ? (
           <>
-            <h2>Error, reload page</h2>
+            <h2 className="p-2 text-2xl font-semibold">Error, reload page</h2>
           </>
         ) : followingObjects.length === 0 ? (
           <>
-            <h2>Nothing</h2>
+            <h2 className="p-2 text-2xl font-semibold">Nothing</h2>
           </>
         ) : (
           (followingObjects as UserData[]).map((userObject, index) => (
-            <li key={index}>
-              <img
-                src={userObject.profilePictureURL}
-                className="w-[5rem]"
-              ></img>
-              <p>{userObject.name}</p>
-              <p>{userObject.username}</p>
+            <li className="inline-block relative" key={index}>
+              <button
+                type="button"
+                className="absolute translate-y-[-73%] right-0 translate-x-[73%] text-xl hover:text-firstGreen"
+              >
+                <i className="fa-solid fa-trash"></i>
+              </button>
+              <Link
+                className="flex flex-col items-center border-2 border-transparent hover:border-firstGreen hover:text-firstGreen duration-150"
+                to={`/profile/${userObject._id}`}
+              >
+                <img
+                  src={userObject.profilePictureURL}
+                  className="w-[5rem]"
+                ></img>
+                <p>{userObject.name}</p>
+                <p>{userObject.username}</p>
+              </Link>
             </li>
           ))
         )}
@@ -475,25 +486,36 @@ function ComponentAccountSettings({
       <ul className={`ml-2 mt-8 ${selectedOption === 4 ? "block" : "hidden"}`}>
         {followersObjects === null ? (
           <>
-            <h2>Loading...</h2>
+            <h2 className="p-2 text-2xl font-semibold">Loading...</h2>
           </>
         ) : typeof followersObjects === "string" ? (
           <>
-            <h2>Error, reload page</h2>
+            <h2 className="p-2 text-2xl font-semibold">Error, reload page</h2>
           </>
         ) : followersObjects.length === 0 ? (
           <>
-            <h2>Nothing</h2>
+            <h2 className="p-2 text-2xl font-semibold">Nothing</h2>
           </>
         ) : (
           (followersObjects as UserData[]).map((userObject, index) => (
-            <li key={index}>
-              <img
-                src={userObject.profilePictureURL}
-                className="w-[5rem]"
-              ></img>
-              <p>{userObject.name}</p>
-              <p>{userObject.username}</p>
+            <li className="inline-block relative" key={index}>
+              <button
+                type="button"
+                className="absolute translate-y-[-73%] right-0 translate-x-[73%] text-xl hover:text-firstGreen"
+              >
+                <i className="fa-solid fa-trash"></i>
+              </button>
+              <Link
+                className="flex flex-col items-center border-2 border-transparent hover:border-firstGreen hover:text-firstGreen duration-150"
+                to={`/profile/${userObject._id}`}
+              >
+                <img
+                  src={userObject.profilePictureURL}
+                  className="w-[5rem]"
+                ></img>
+                <p>{userObject.name}</p>
+                <p>{userObject.username}</p>
+              </Link>
             </li>
           ))
         )}
