@@ -26,10 +26,15 @@ function AccountSettingsPage() {
 
         const responseGetFollowersFollowing = await fetch(url, {
           method: "GET",
+          headers: {
+            authorization: `Bearer ${user.userData?.accessToken}`,
+          },
         });
+        console.log(responseGetFollowersFollowing);
 
         const responseGetFollowersFollowingData =
           await responseGetFollowersFollowing.json();
+        console.log(responseGetFollowersFollowingData);
         if (responseGetFollowersFollowing.status === 200) {
           setFollowersObjects(responseGetFollowersFollowingData.followers);
           setFollowingObjects(responseGetFollowersFollowingData.following);

@@ -41,10 +41,16 @@ export async function getUserHandler(req: Request, res: Response) {
 }
 
 export async function getFollowersFollowingFromUser(
-  req: Request,
+  req: AuthMiddlewareRequest,
   res: Response
 ) {
   try {
+    const userIdMiddleware = req.userId;
+    if (!userIdMiddleware)
+      return res.status(401).json({
+        success: true,
+        message: "Unauthorized to get followers and following",
+      });
     const userId = req.params.userId;
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
@@ -56,7 +62,7 @@ export async function getFollowersFollowingFromUser(
 
     console.log(foundUser._id, userIdObjectId);
 
-    if (!((foundUser._id as string).toString() === userId))
+    if (!((foundUser._id as string).toString() === userIdMiddleware))
       return res
         .status(400)
         .json({ success: false, message: "Not the same user" });

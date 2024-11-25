@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import MultipleSelectButton from "./ui/MultipleSelectButton";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
 import TextInput from "./ui/TextInput";
 import ButtonComponent from "./ui/ButtonComponent";
@@ -11,7 +11,10 @@ import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { Link, useNavigate } from "react-router-dom";
-import { UserData } from "../services/redux-toolkit/auth/authSlice";
+import {
+  setUserFollowing,
+  UserData,
+} from "../services/redux-toolkit/auth/authSlice";
 
 type Props = {
   followersObjects: UserData[] | string | null;
@@ -38,6 +41,7 @@ function ComponentAccountSettings({
 
   const user = useSelector((state: RootState) => state.auth.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files ? event.target.files[0] : null;
@@ -464,6 +468,36 @@ function ComponentAccountSettings({
               <button
                 type="button"
                 className="absolute translate-y-[-73%] right-0 translate-x-[73%] text-xl hover:text-firstGreen"
+                onClick={async () => {
+                  try {
+                    const url = `${BACKEND_URL}/api/users/followers/${userObject?._id}`;
+                    const isUserFollowing = user.userData?.following.some(
+                      (id) => id === userObject._id
+                    );
+                    if (isUserFollowing) {
+                      const responseDeleteFollow = await fetch(url, {
+                        method: "DELETE",
+                        headers: {
+                          authorization: `Bearer ${user.userData?.accessToken}`,
+                        },
+                      });
+
+                      const responseDeleteFollowData =
+                        await responseDeleteFollow.json();
+
+                      dispatch(
+                        setUserFollowing(
+                          responseDeleteFollowData.userRequestFollowing
+                        )
+                      );
+
+                      console.log(responseDeleteFollowData);
+                      return;
+                    }
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }}
               >
                 <i className="fa-solid fa-trash"></i>
               </button>
@@ -502,6 +536,36 @@ function ComponentAccountSettings({
               <button
                 type="button"
                 className="absolute translate-y-[-73%] right-0 translate-x-[73%] text-xl hover:text-firstGreen"
+                onClick={async () => {
+                  try {
+                    const url = `${BACKEND_URL}/api/users/followers/${userProfile?.id}`;
+                    const isUserFollowing = user.userData?.following.some(
+                      (id) => id === userObject._id
+                    );
+                    if (isUserFollowing) {
+                      const responseDeleteFollow = await fetch(url, {
+                        method: "DELETE",
+                        headers: {
+                          authorization: `Bearer ${user.userData?.accessToken}`,
+                        },
+                      });
+
+                      const responseDeleteFollowData =
+                        await responseDeleteFollow.json();
+
+                      dispatch(
+                        setUserFollowing(
+                          responseDeleteFollowData.userRequestFollowing
+                        )
+                      );
+
+                      console.log(responseDeleteFollowData);
+                      return;
+                    }
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }}
               >
                 <i className="fa-solid fa-trash"></i>
               </button>
