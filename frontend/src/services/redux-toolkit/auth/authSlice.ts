@@ -44,6 +44,11 @@ export const authSlice = createSlice({
         state.user.userData.following = action.payload;
       }
     },
+    setUserFollowers(state, action: PayloadAction<string[]>) {
+      if (state.user.userData) {
+        state.user.userData.followers = action.payload;
+      }
+    },
     setAccessToken(state, action: PayloadAction<string>) {
       if (state.user.userData) {
         state.user.userData.accessToken = action.payload;
@@ -55,7 +60,12 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setUser, setUserFollowing, logout, setAccessToken } =
-  authSlice.actions;
+export const {
+  setUser,
+  setUserFollowing,
+  setUserFollowers,
+  logout,
+  setAccessToken,
+} = authSlice.actions;
 
 export default authSlice.reducer;

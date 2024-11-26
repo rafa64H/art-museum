@@ -4,14 +4,14 @@ import { BACKEND_URL } from "../constants";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
-import { UserData } from "../services/redux-toolkit/auth/authSlice";
+import { UserDataResponse } from "../types/userDataResponse";
 
 function AccountSettingsPage() {
   const [followersObjects, setFollowersObjects] = useState<
-    UserData[] | string | null
+    UserDataResponse[] | string | null
   >(null);
   const [followingObjects, setFollowingObjects] = useState<
-    UserData[] | string | null
+    UserDataResponse[] | string | null
   >(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
@@ -57,6 +57,8 @@ function AccountSettingsPage() {
         <ComponentAccountSettings
           followersObjects={followersObjects}
           followingObjects={followingObjects}
+          setFollowersObjects={setFollowersObjects}
+          setFollowingObjects={setFollowingObjects}
         ></ComponentAccountSettings>
       </div>
     </>

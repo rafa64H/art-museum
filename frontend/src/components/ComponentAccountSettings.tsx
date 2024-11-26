@@ -12,18 +12,27 @@ import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  setUserFollowers,
   setUserFollowing,
-  UserData,
 } from "../services/redux-toolkit/auth/authSlice";
+import { UserDataResponse } from "../types/userDataResponse";
 
 type Props = {
-  followersObjects: UserData[] | string | null;
-  followingObjects: UserData[] | string | null;
+  followersObjects: UserDataResponse[] | string | null;
+  followingObjects: UserDataResponse[] | string | null;
+  setFollowersObjects: React.Dispatch<
+    React.SetStateAction<UserDataResponse[] | string | null>
+  >;
+  setFollowingObjects: React.Dispatch<
+    React.SetStateAction<UserDataResponse[] | string | null>
+  >;
 };
 
 function ComponentAccountSettings({
   followersObjects,
   followingObjects,
+  setFollowersObjects,
+  setFollowingObjects,
 }: Props) {
   const [selectedOption, setSelectedOption] = useState(3);
   const [openModal, setOpenModal] = useState(false);
@@ -463,7 +472,7 @@ function ComponentAccountSettings({
             <h2 className="p-2 text-2xl font-semibold">Nothing</h2>
           </>
         ) : (
-          (followingObjects as UserData[]).map((userObject, index) => (
+          (followingObjects as UserDataResponse[]).map((userObject, index) => (
             <li className="inline-block relative" key={index}>
               <button
                 type="button"
@@ -489,6 +498,13 @@ function ComponentAccountSettings({
                         setUserFollowing(
                           responseDeleteFollowData.userRequestFollowing
                         )
+                      );
+
+                      //For some reason dispatch redux-toolkit
+                      //doesn't re-render page
+                      //If you know how to solve the error, you can help :)
+                      setFollowingObjects(
+                        responseDeleteFollowData.userRequestFollowing
                       );
 
                       console.log(responseDeleteFollowData);
@@ -531,14 +547,14 @@ function ComponentAccountSettings({
             <h2 className="p-2 text-2xl font-semibold">Nothing</h2>
           </>
         ) : (
-          (followersObjects as UserData[]).map((userObject, index) => (
+          (followersObjects as UserDataResponse[]).map((userObject, index) => (
             <li className="inline-block relative" key={index}>
               <button
                 type="button"
                 className="absolute translate-y-[-73%] right-0 translate-x-[73%] text-xl hover:text-firstGreen"
                 onClick={async () => {
                   try {
-                    const url = `${BACKEND_URL}/api/users/followers/${userProfile?.id}`;
+                    const url = `${BACKEND_URL}/api/users/followers/${userObject?.id}`;
                     const isUserFollowing = user.userData?.following.some(
                       (id) => id === userObject._id
                     );
@@ -554,9 +570,13 @@ function ComponentAccountSettings({
                         await responseDeleteFollow.json();
 
                       dispatch(
-                        setUserFollowing(
-                          responseDeleteFollowData.userRequestFollowing
+                        setUserFollowers(
+                          responseDeleteFollowData.foundUserFollowers
                         )
+                      );
+
+                      setFollowersObjects(
+                        responseDeleteFollowData.foundUserFollowers
                       );
 
                       console.log(responseDeleteFollowData);
