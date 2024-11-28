@@ -4,6 +4,7 @@ export interface PostDocument extends mongoose.Document {
   authorId: ObjectId;
   title: string;
   content: string;
+  imageURL: string | null;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -22,6 +23,10 @@ const PostSchema = new mongoose.Schema<PostDocument>({
   content: {
     type: String,
     required: true,
+  },
+  imageURL: {
+    type: String,
+    default: null,
   },
   createdAt: {
     type: Date,

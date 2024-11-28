@@ -9,8 +9,10 @@ import { ImageModel } from "../models/image.model";
 import multer from "multer";
 import { bucket } from "../db/connectDB";
 import verifyJWT from "../middleware/verifyJWT";
-import testRoutes from "./test.route";
-import { uploadImageHandler } from "../controllers/images.controller";
+import {
+  uploadImageHandler,
+  uploadImagePostHandler,
+} from "../controllers/images.controller";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -28,5 +30,9 @@ imagesRoutes.post(
   upload.single("file"),
   uploadImageHandler as express.RequestHandler
 );
+
+imagesRoutes.post("/postImages", upload.single("file"), async (req, res) => {
+  await uploadImagePostHandler(req, res);
+});
 
 export default imagesRoutes;
