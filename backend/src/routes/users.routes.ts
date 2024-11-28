@@ -2,7 +2,9 @@ import express, { RequestHandler, Router } from "express";
 import verifyJWT from "../middleware/verifyJWT";
 import {
   addFollowerHandler,
+  changePasswordHandler,
   deleteFollowerHandler,
+  editUserHandler,
   getAllUsersHandler,
   getFollowersFollowingFromUser,
   getUserHandler,
@@ -21,6 +23,22 @@ usersRoutes.get(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await getFollowersFollowingFromUser(req, res);
+  }
+);
+
+usersRoutes.put(
+  "/edit-account",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await editUserHandler(req, res);
+  }
+);
+
+usersRoutes.put(
+  "/change-password",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await changePasswordHandler(req, res);
   }
 );
 

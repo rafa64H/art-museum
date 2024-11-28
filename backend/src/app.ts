@@ -4,7 +4,6 @@ import { connectDB } from "./db/connectDB";
 import authRoutes from "./routes/auth.routes";
 import testRoutes from "./routes/test.route";
 import imagesRoutes from "./routes/images.routes";
-import accountRoutes from "./routes/account.routes";
 import usersRoutes from "./routes/users.routes";
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -26,8 +25,6 @@ app.use(
 );
 
 app.use("/auth", authRoutes);
-
-app.use("/account", accountRoutes);
 
 app.use("/api/users", usersRoutes);
 

@@ -34,7 +34,7 @@ function ComponentAccountSettings({
   setFollowersObjects,
   setFollowingObjects,
 }: Props) {
-  const [selectedOption, setSelectedOption] = useState(3);
+  const [selectedOption, setSelectedOption] = useState(1);
   const [openModal, setOpenModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertMessage2, setAlertMessage2] = useState("");
@@ -105,7 +105,7 @@ function ComponentAccountSettings({
               }
 
               if (selectedOption === 1) {
-                const url = `${BACKEND_URL}/account/edit-account`;
+                const url = `${BACKEND_URL}/api/users/edit-account`;
 
                 const data = {
                   newEmail: email !== user.userData!.email ? email : null,
@@ -167,7 +167,7 @@ function ComponentAccountSettings({
               }
 
               if (selectedOption === 2) {
-                const url = `${BACKEND_URL}/account/change-password`;
+                const url = `${BACKEND_URL}/api/users/change-password`;
 
                 const data = {
                   newPassword: newPassword,
