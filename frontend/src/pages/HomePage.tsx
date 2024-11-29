@@ -29,33 +29,10 @@ function HomePage() {
           e.preventDefault();
 
           try {
-            //Post model
-
-            const data = {
-              title: titleRef.current!.value,
-              content: contentRef.current!.value,
-            };
-
-            const url = `${BACKEND_URL}/api/posts`;
-            const responsePostModel = await fetch(url, {
-              method: "POST",
-              headers: {
-                authorization: `Bearer ${user.userData?.accessToken}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            });
-            console.log("hola");
-
-            console.log(responsePostModel);
-
-            const responsePostModelData = await responsePostModel.json();
-            /// image
             if (!imageFile) return;
 
             const formData = new FormData();
             formData.append("file", imageFile);
-            formData.append("postId", responsePostModelData.id);
 
             const url2 = `${BACKEND_URL}/api/images/postImages`;
 
@@ -65,13 +42,36 @@ function HomePage() {
               credentials: "include",
               headers: {
                 authorization: `Bearer ${user.userData?.accessToken}`,
-                "Content-Type": "multipart/form-data",
               },
               body: formData,
             });
 
             console.log(responsePostImage);
-            console.log(await responsePostImage.json());
+            const responsePostImageData = await responsePostImage.json();
+
+            //Post model
+            const data = {
+              title: titleRef.current!.value,
+              content: contentRef.current!.value,
+              imageURL: responsePostImageData.image.imageURL,
+              imageId: responsePostImageData.image._id,
+            };
+            console.log(responsePostImageData);
+            const url = `${BACKEND_URL}/api/posts`;
+            const responsePostModel = await fetch(url, {
+              method: "POST",
+              headers: {
+                authorization: `Bearer ${user.userData?.accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+
+            console.log(responsePostModel);
+
+            const responsePostModelData = await responsePostModel.json();
+
+            console.log(responsePostModelData);
           } catch (error) {
             console.log(error);
           }

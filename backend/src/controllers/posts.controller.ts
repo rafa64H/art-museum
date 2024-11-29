@@ -24,9 +24,11 @@ export async function createPostHandler(
         .status(404)
         .json({ success: false, message: "User not found" });
 
-    const { title, content } = req.body as {
+    const { title, content, imageURL, imageId } = req.body as {
       title: string;
       content: string | null;
+      imageURL: string | null;
+      imageId: string | null;
     };
 
     if (!title)
@@ -38,6 +40,8 @@ export async function createPostHandler(
       authorId: userIdObjectId,
       title: title,
       content: content ? content : "",
+      imageURL: imageURL ? imageURL : null,
+      imageId: imageId ? imageId : null,
     });
 
     await newPost.save();

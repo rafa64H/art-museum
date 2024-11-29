@@ -31,8 +31,10 @@ imagesRoutes.post(
   uploadImageHandler as express.RequestHandler
 );
 
-imagesRoutes.post("/postImages", upload.single("file"), async (req, res) => {
-  await uploadImagePostHandler(req, res);
-});
+imagesRoutes.post(
+  "/postImages",
+  upload.single("file"),
+  uploadImagePostHandler as express.RequestHandler
+);
 
 export default imagesRoutes;

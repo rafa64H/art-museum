@@ -87,29 +87,15 @@ export async function uploadImagePostHandler(
         .status(400)
         .json({ success: false, message: "No file provided" });
     }
-
-    const { postId } = req.body as { postId: string };
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
 
     if (!foundUser) {
       return res.status(401).json({ success: false, message: "Unauhtorized" });
     }
-    if (!postId)
-      return res
-        .status(400)
-        .json({ success: false, message: "No post Id, it is required" });
 
-    const postIdObjectId = ObjectId.createFromHexString(postId);
-    const foundPost = await PostModel.findOne(postIdObjectId);
-
-    if (!foundPost)
-      return res
-        .status(404)
-        .json({ success: false, message: "Post not found" });
-
-    const fileName = foundPost.title;
-    const fileRef = `postsImages/${postId}/${fileName}`;
+    const fileName = file.originalname;
+    const fileRef = `postsImages/${userId}/${fileName}`;
     const fileUpload = bucket.file(fileRef);
 
     const stream = fileUpload.createWriteStream({
@@ -133,27 +119,22 @@ export async function uploadImagePostHandler(
       const newPostImage = new ImageModel({
         uploaderId: userIdObjectId,
         filename: fileName,
-
         imageURL: downloadURL[0],
         fileRefFirebaseStorage: fileRef,
       });
 
       await newPostImage.save();
 
-      foundPost.imageURL = downloadURL[0];
-
-      await foundPost.save();
-
       res.status(200).json({
         success: true,
-        post: foundPost.toObject(),
+        image: newPostImage.toObject(),
         message: "Upload completed",
       });
     });
 
     stream.end(file.buffer);
   } catch (error) {
-    console.log((error as Error).message);
+    console.log(error);
 
     res.status(500).json({ success: false, message: error });
   }
