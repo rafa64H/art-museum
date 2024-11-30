@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
 
 export interface UserDocument extends mongoose.Document {
@@ -7,6 +8,7 @@ export interface UserDocument extends mongoose.Document {
   password: string;
   verified: boolean;
   profilePictureURL: string;
+  profilePictureId: ObjectId | null;
   role: "user" | "admin";
   followers: string[];
   following: string[];
@@ -31,6 +33,11 @@ const UserSchema = new mongoose.Schema<UserDocument>(
         "https://firebasestorage.googleapis.com/v0/b/crisp-ecommerce-developm-4e4a7.appspot.com/o/usersProfilePictures%2FnoProfilePicture%2Fno-image.webp?alt=media&token=be573938-4699-4dc9-8946-de509efb42a2",
       type: String,
       required: true,
+    },
+    profilePictureId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ProfilePicture",
+      default: null,
     },
     username: {
       type: String,

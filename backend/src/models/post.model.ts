@@ -5,7 +5,7 @@ export interface PostDocument extends mongoose.Document {
   title: string;
   content: string;
   imageURL?: string | null;
-  imageId?: string | null;
+  imageId?: ObjectId | null;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;

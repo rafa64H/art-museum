@@ -7,7 +7,7 @@ import { ProfilePictureModel } from "../models/profilePicture.model";
 import { PostModel } from "../models/post.model";
 import { ImageModel } from "../models/image.model";
 
-export async function uploadImageHandler(
+export async function uploadProfilePictureHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
@@ -24,6 +24,13 @@ export async function uploadImageHandler(
 
     if (!foundUser) {
       return res.status(401).json({ success: false, message: "Unauhtorized" });
+    }
+
+    const profilePictureId = foundUser.profilePictureId;
+
+    if (profilePictureId) {
+      const deletedPreviousProfilePicture =
+        await ProfilePictureModel.findOneAndDelete(profilePictureId);
     }
 
     const fileName = userId;
@@ -58,6 +65,8 @@ export async function uploadImageHandler(
       await newProfilePicture.save();
 
       foundUser.profilePictureURL = downloadURL[0];
+      const newProfilePictureId = newProfilePicture._id as ObjectId;
+      foundUser.profilePictureId = newProfilePictureId;
       await foundUser.save();
 
       res.status(200).json({

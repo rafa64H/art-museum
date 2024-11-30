@@ -10,8 +10,8 @@ import multer from "multer";
 import { bucket } from "../db/connectDB";
 import verifyJWT from "../middleware/verifyJWT";
 import {
-  uploadImageHandler,
   uploadImagePostHandler,
+  uploadProfilePictureHandler,
 } from "../controllers/images.controller";
 
 const upload = multer({
@@ -28,7 +28,7 @@ imagesRoutes.use(verifyJWT as express.RequestHandler);
 imagesRoutes.post(
   "/profilePictures",
   upload.single("file"),
-  uploadImageHandler as express.RequestHandler
+  uploadProfilePictureHandler as express.RequestHandler
 );
 
 imagesRoutes.post(
