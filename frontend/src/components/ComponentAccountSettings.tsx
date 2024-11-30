@@ -41,6 +41,7 @@ function ComponentAccountSettings({
   const [alertMessage2, setAlertMessage2] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
+  const [submitFormLoading, setSubmitFormLoading] = useState(false);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -82,6 +83,7 @@ function ComponentAccountSettings({
         <form
           onSubmit={async (e) => {
             e.preventDefault();
+            setSubmitFormLoading(true);
 
             const email = emailRef.current!.value;
             const name = nameRef.current!.value;
@@ -93,6 +95,7 @@ function ComponentAccountSettings({
               const responseRequestTokenRefresh =
                 await requestAccessTokenRefresh();
               if (responseRequestTokenRefresh.status === 401) {
+                navigate("/", { replace: true });
                 return;
               }
 
@@ -128,6 +131,7 @@ function ComponentAccountSettings({
                   }
 
                   setAlertMessage2(responseDataEditAccount.message);
+                  setSubmitFormLoading(false);
                   return;
                 }
 
@@ -179,10 +183,20 @@ function ComponentAccountSettings({
 
                 console.log(responseChangePassword);
                 console.log(await responseChangePassword.json());
+
+                if (responseChangePassword.ok) {
+                  setAlertMessage("Password changed");
+                  setOpenModal(false);
+                  setSubmitFormLoading(false);
+                }
+
+                setAlertMessage2("Internal server error, try again later.");
+                setSubmitFormLoading(false);
               }
             } catch (error) {
               setOpenModal(false);
-              setAlertMessage("Internal server error");
+              setAlertMessage("Internal server error, try again later");
+              setSubmitFormLoading(false);
               console.log(error);
             }
           }}
@@ -197,6 +211,7 @@ function ComponentAccountSettings({
           <ButtonComponent
             textBtn="Change account information"
             typeButton="submit"
+            loadingDisabled={submitFormLoading}
           ></ButtonComponent>
         </form>
       </section>

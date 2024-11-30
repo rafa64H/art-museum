@@ -11,6 +11,7 @@ import setUserStoreLogin from "../utils/setUserStore";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");
+  const [submitFormLoading, setSubmitFormLoading] = useState(false);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -25,6 +26,7 @@ function SignUpForm() {
       className="p-4"
       onSubmit={async (e) => {
         e.preventDefault();
+        setSubmitFormLoading(true);
         try {
           const email = emailRef.current?.value;
           const username = usernameRef.current?.value;
@@ -41,6 +43,7 @@ function SignUpForm() {
           ];
 
           if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
+            setSubmitFormLoading(false);
             return;
           }
 
@@ -53,6 +56,7 @@ function SignUpForm() {
               setAlertMessage
             )
           ) {
+            setSubmitFormLoading(false);
             return;
           }
 
@@ -63,6 +67,7 @@ function SignUpForm() {
               setAlertMessage
             )
           ) {
+            setSubmitFormLoading(false);
             return;
           }
           if (
@@ -72,6 +77,7 @@ function SignUpForm() {
               setAlertMessage
             )
           ) {
+            setSubmitFormLoading(false);
             return;
           }
           if (
@@ -81,6 +87,7 @@ function SignUpForm() {
               setAlertMessage
             )
           ) {
+            setSubmitFormLoading(false);
             return;
           }
 
@@ -104,10 +111,12 @@ function SignUpForm() {
           if (response.status === 400) {
             const responseData = await response.json();
             setAlertMessage(responseData.message);
+            setSubmitFormLoading(false);
             return;
           }
           if (response.status !== 201) {
             setAlertMessage("Internal server error, try again later");
+            setSubmitFormLoading(false);
             return;
           }
           if (response.status === 201) {
@@ -118,6 +127,7 @@ function SignUpForm() {
           }
         } catch (error) {
           setAlertMessage("Internal server error, try again later");
+          setSubmitFormLoading(false);
           console.log(error);
         }
       }}
@@ -181,7 +191,11 @@ function SignUpForm() {
         }}
       ></TextInput>
 
-      <ButtonComponent textBtn="Sign up" typeButton="submit"></ButtonComponent>
+      <ButtonComponent
+        textBtn="Sign up"
+        typeButton="submit"
+        loadingDisabled={submitFormLoading}
+      ></ButtonComponent>
 
       <p className="mt-4">
         <Link className="hover:underline" to="/login">

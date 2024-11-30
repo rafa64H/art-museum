@@ -8,6 +8,7 @@ import setUserStoreLogin from "../utils/setUserStore";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");
+  const [submitFormLoading, setSubmitFormLoading] = useState(false);
 
   const emailOrUsernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -19,6 +20,7 @@ function SignUpForm() {
       className="p-4"
       onSubmit={async (e) => {
         e.preventDefault();
+        setSubmitFormLoading(true);
         try {
           const emailOrUsername = emailOrUsernameRef.current?.value;
           const password = passwordRef.current?.value;
@@ -29,6 +31,7 @@ function SignUpForm() {
           ];
 
           if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
+            setSubmitFormLoading(false);
             return;
           }
 
@@ -49,6 +52,7 @@ function SignUpForm() {
 
           if (response.status !== 200 && !(response.status === 400)) {
             setAlertMessage("Internal server error, try again later");
+            setSubmitFormLoading(false);
             return;
           }
           if (response.status === 400) {
@@ -58,6 +62,7 @@ function SignUpForm() {
               "true"
             );
             passwordRef.current!.setAttribute("data-error-input", "true");
+            setSubmitFormLoading(false);
             return;
           }
           if (response.status === 200) {
@@ -69,6 +74,7 @@ function SignUpForm() {
         } catch (error) {
           setAlertMessage("Internal server error, try again later");
 
+          setSubmitFormLoading(false);
           console.error(error);
         }
       }}
@@ -102,7 +108,11 @@ function SignUpForm() {
         }}
       ></TextInput>
 
-      <ButtonComponent textBtn="Login" typeButton="submit"></ButtonComponent>
+      <ButtonComponent
+        textBtn="Login"
+        typeButton="submit"
+        loadingDisabled={submitFormLoading}
+      ></ButtonComponent>
 
       <p className="mt-4">
         <Link className="hover:underline" to="/sign-up">
