@@ -135,13 +135,12 @@ function ComponentAccountSettings({
                   return;
                 }
 
-                if (responseEditAccount.status === 200) {
+                if (responseEditAccount.ok) {
                   if (imageFile) {
                     const formData = new FormData();
                     formData.append("file", imageFile);
 
                     const url = `${BACKEND_URL}/api/images/profilePictures`;
-
                     const responseProfilePictureUpload = await fetch(url, {
                       method: "POST",
                       mode: "cors",
@@ -151,8 +150,6 @@ function ComponentAccountSettings({
                       },
                       body: formData,
                     });
-
-                    console.log(responseProfilePictureUpload);
 
                     navigate(0);
                     return;
@@ -169,7 +166,6 @@ function ComponentAccountSettings({
                   newPassword: newPassword,
                   password: verifyPassword,
                 };
-
                 if (!newPassword) return;
 
                 const responseChangePassword = await fetch(url, {
@@ -180,9 +176,6 @@ function ComponentAccountSettings({
                   },
                   body: JSON.stringify(data),
                 });
-
-                console.log(responseChangePassword);
-                console.log(await responseChangePassword.json());
 
                 if (responseChangePassword.ok) {
                   setAlertMessage("Password changed");

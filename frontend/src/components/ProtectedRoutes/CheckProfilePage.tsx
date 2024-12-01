@@ -27,9 +27,8 @@ function CheckProfilePage() {
           },
         });
 
-        if (responseGetUser.status === 200) {
+        if (responseGetUser.ok) {
           const responseGetUserData = await responseGetUser.json();
-
           const userData = {
             ...responseGetUserData.user,
             id: responseGetUserData.user._id,

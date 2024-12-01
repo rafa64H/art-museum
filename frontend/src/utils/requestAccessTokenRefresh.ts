@@ -19,7 +19,6 @@ export default async function requestAccessTokenRefresh() {
     return response;
   }
   const responseData = await response.json();
-  console.log(responseData);
   if (response.status === 200) {
     setUserStoreLogin(responseData);
     return response;

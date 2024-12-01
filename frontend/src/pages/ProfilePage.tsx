@@ -89,7 +89,6 @@ function ProfilePage({
                         authorization: `Bearer ${user.userData?.accessToken}`,
                       },
                     });
-
                     const responseDeleteFollowData =
                       await responseDeleteFollow.json();
 
@@ -98,8 +97,6 @@ function ProfilePage({
                         responseDeleteFollowData.userRequestFollowing
                       )
                     );
-
-                    console.log(responseDeleteFollowData);
                     return;
                   }
 
@@ -109,13 +106,10 @@ function ProfilePage({
                       authorization: `Bearer ${user.userData?.accessToken}`,
                     },
                   });
-
                   const responseAddFollowData = await responseAddFollow.json();
                   dispatch(
                     setUserFollowing(responseAddFollowData.userRequestFollowing)
                   );
-
-                  console.log(responseAddFollowData);
                 } catch (error) {
                   console.log(error);
                 }

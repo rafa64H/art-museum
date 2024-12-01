@@ -10,15 +10,12 @@ export async function createPostHandler(
 ) {
   try {
     const userId = req.userId;
-
     if (!userId)
       return res
         .status(401)
         .json({ success: false, message: "Unauthorized to create post" });
-
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
-
     if (!foundUser)
       return res
         .status(404)
@@ -30,7 +27,6 @@ export async function createPostHandler(
       imageURL: string | null;
       imageId: string | null;
     };
-
     if (!title)
       return res
         .status(400)
@@ -43,7 +39,6 @@ export async function createPostHandler(
       imageURL: imageURL ? imageURL : null,
       imageId: imageId ? imageId : null,
     });
-
     await newPost.save();
 
     const newPostId = newPost._id as ObjectId;

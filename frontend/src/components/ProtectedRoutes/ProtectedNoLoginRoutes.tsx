@@ -21,7 +21,7 @@ function ProtectedNoLoginRoute({ children }: ProtectedRouteProps) {
             return;
           }
 
-          if (response.status === 200) {
+          if (response.ok) {
             return;
           }
           navigate("/sign-up", { replace: true });

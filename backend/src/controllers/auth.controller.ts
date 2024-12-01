@@ -33,7 +33,6 @@ export const signUpHandler = async (req: Request, res: Response) => {
 
     const alreadyUsedEmail = await UserModel.findOne({ email });
     const alreadyUsedUsername = await UserModel.findOne({ usernameWithAt });
-
     if (alreadyUsedEmail) {
       return res
         .status(400)
@@ -60,11 +59,9 @@ export const signUpHandler = async (req: Request, res: Response) => {
       verificationToken,
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
     });
-
     await user.save();
 
     const userId = (user._id as ObjectId).toString();
-
     // jwt
     const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
       expiresIn: "15m",
@@ -73,7 +70,6 @@ export const signUpHandler = async (req: Request, res: Response) => {
     const refreshToken = jwt.sign({ userId, role }, JWT_SECRET_REFRESH, {
       expiresIn: "30d",
     });
-
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
       secure: true,
@@ -149,12 +145,12 @@ export const loginHandler = async (req: Request, res: Response) => {
       const usernameWithAt = `@${emailOrUsername}`;
       user = await UserModel.findOne({ username: usernameWithAt });
     }
-
     if (!user) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid credentials" });
     }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res
@@ -164,7 +160,6 @@ export const loginHandler = async (req: Request, res: Response) => {
 
     const userId = (user._id as ObjectId).toString();
     const role = user.role;
-
     // jwt
     const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
       expiresIn: "1m",
@@ -173,7 +168,6 @@ export const loginHandler = async (req: Request, res: Response) => {
     const refreshToken = jwt.sign({ userId, role }, JWT_SECRET_REFRESH, {
       expiresIn: "30d",
     });
-
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
       secure: true,
@@ -219,7 +213,6 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
     } else {
       user = await UserModel.findOne({ email: emailOrUsername });
     }
-
     if (!user) {
       return res
         .status(400)
@@ -230,14 +223,11 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
     const resetToken = crypto.randomBytes(20).toString("hex");
     const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
     const resetTokenExpiresAtDate = new Date(resetTokenExpiresAt);
-
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpiresAt = resetTokenExpiresAtDate;
-
     await user.save();
 
     const resetURL = `${process.env.SERVER_URL}/reset-password/${resetToken}`;
-
     // send email
     await sendPasswordResetEmail(user.email, resetURL);
 
@@ -261,7 +251,6 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
       resetPasswordToken: token,
       resetPasswordExpiresAt: { $gt: Date.now() },
     });
-
     if (!user) {
       return res
         .status(400)
@@ -270,7 +259,6 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
 
     // update password
     const hashedPassword = await bcrypt.hash(password, 10);
-
     user.password = hashedPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpiresAt = undefined;

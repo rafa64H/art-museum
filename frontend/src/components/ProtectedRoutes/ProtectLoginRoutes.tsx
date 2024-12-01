@@ -16,7 +16,7 @@ function ProtectedLoginRoute({ children }: ProtectedRouteProps) {
         if (!user.userData && user.isLoading) {
           const response = await requestAccessTokenRefresh();
 
-          if (response.status === 200) {
+          if (response.ok) {
             navigate("/", { replace: true });
             return;
           }

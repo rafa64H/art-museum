@@ -65,7 +65,7 @@ function SignUpForm() {
             setSubmitFormLoading(false);
             return;
           }
-          if (response.status === 200) {
+          if (response.ok) {
             const responseData = await response.json();
 
             setUserStoreLogin(responseData);

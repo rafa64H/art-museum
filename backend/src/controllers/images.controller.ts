@@ -21,13 +21,11 @@ export async function uploadProfilePictureHandler(
     }
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
-
     if (!foundUser) {
       return res.status(401).json({ success: false, message: "Unauhtorized" });
     }
 
     const profilePictureId = foundUser.profilePictureId;
-
     if (profilePictureId) {
       const deletedPreviousProfilePicture =
         await ProfilePictureModel.findOneAndDelete(profilePictureId);
@@ -42,13 +40,11 @@ export async function uploadProfilePictureHandler(
         contentType: file.mimetype,
       },
     });
-
     stream.on("error", async (error) => {
       return res
         .status(500)
         .json({ success: false, message: "Error uploading file" });
     });
-
     stream.on("finish", async () => {
       const downloadURL = await fileUpload.getSignedUrl({
         action: "read",
@@ -61,7 +57,6 @@ export async function uploadProfilePictureHandler(
         imageURL: downloadURL[0],
         fileRefFirebaseStorage: fileRef,
       });
-
       await newProfilePicture.save();
 
       foundUser.profilePictureURL = downloadURL[0];
@@ -112,13 +107,11 @@ export async function uploadImagePostHandler(
         contentType: file.mimetype,
       },
     });
-
     stream.on("error", async (error) => {
       return res
         .status(500)
         .json({ success: false, message: "Error uploading file" });
     });
-
     stream.on("finish", async () => {
       const downloadURL = await fileUpload.getSignedUrl({
         action: "read",
@@ -131,7 +124,6 @@ export async function uploadImagePostHandler(
         imageURL: downloadURL[0],
         fileRefFirebaseStorage: fileRef,
       });
-
       await newPostImage.save();
 
       res.status(200).json({
