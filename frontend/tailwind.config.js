@@ -3,6 +3,9 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      animation: {
+        loadingAnimation: "spin 600ms ease-in-out infinite",
+      },
       colors: {
         firstLavender: "#575799",
         firstBrown: "#865200",

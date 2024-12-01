@@ -26,7 +26,12 @@ function ButtonComponent({
       }}
       disabled={loadingDisabled}
     >
-      {textBtn}
+      <div className={loadingDisabled ? "opacity-0" : "opacity-1"}>
+        {textBtn}
+      </div>
+      <div className={loadingDisabled ? "block" : "hidden"}>
+        <div className="inline-block w-[1.5rem] h-[1.5rem] rounded-full border-black border-t-transparent border-4 animate-loadingAnimation"></div>
+      </div>
     </button>
   );
 }
