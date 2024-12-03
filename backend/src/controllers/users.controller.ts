@@ -94,7 +94,7 @@ export async function editUserHandler(
         .status(400)
         .json({ success: false, message: "Invalid Username" });
 
-    if (!(newEmail === foundUser.email)) {
+    if (!(newEmail === foundUser.email) && !foundUser.changedEmail) {
       foundUser.email = newEmail!;
       foundUser.verified = false;
       foundUser.changedEmail = true;

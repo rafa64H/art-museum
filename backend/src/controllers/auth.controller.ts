@@ -98,33 +98,37 @@ export const signUpHandler = async (req: Request, res: Response) => {
 export const verifyEmailHandler = async (req: Request, res: Response) => {
   const { code, userId } = req.body as { code: string; userId: string };
   try {
-    const user = await UserModel.findOne({
-      _id: userId,
-      verificationToken: code,
-      verificationTokenExpiresAt: { $gt: Date.now() },
-    });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
 
-    if (!user) {
+    const foundUser = await UserModel.findOne(userIdObjectId);
+
+    const idxd = foundUser!._id as ObjectId;
+    console.log(idxd, foundUser?.verificationToken, code);
+
+    if (!foundUser) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid or expired" });
     }
 
-    user.verified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpiresAt = undefined;
-    await user.save();
+    if (foundUser.verificationToken === code) {
+      foundUser.verified = true;
+      foundUser.changedEmail = false;
+      foundUser.verificationToken = undefined;
+      foundUser.verificationTokenExpiresAt = undefined;
+      await foundUser.save();
 
-    await sendWelcomeEmail(user.email, user.name);
+      await sendWelcomeEmail(foundUser.email, foundUser.name);
 
-    res.status(200).json({
-      success: true,
-      message: "Email verified successfully",
-      user: {
-        ...user.toObject(),
-        password: undefined,
-      },
-    });
+      res.status(200).json({
+        success: true,
+        message: "Email verified successfully",
+        user: {
+          ...foundUser.toObject(),
+          password: undefined,
+        },
+      });
+    }
   } catch (error) {
     console.log(error);
 
@@ -318,3 +322,37 @@ export const refreshHandler = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error });
   }
 };
+
+export async function sendEmailVerificationCodeHandler(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId = req.params.userId;
+
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res.status(404).json({ success: false, message: "No user found" });
+
+    const verificationToken = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    foundUser.verificationToken = verificationToken;
+    foundUser.verificationTokenExpiresAt = new Date(
+      Date.now() + 24 * 60 * 60 * 1000
+    );
+    await foundUser.save();
+    await sendVerificationEmail(foundUser.email, verificationToken);
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Verification code sent to email" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+}

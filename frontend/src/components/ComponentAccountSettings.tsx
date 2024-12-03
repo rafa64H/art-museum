@@ -42,6 +42,10 @@ function ComponentAccountSettings({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [submitFormLoading, setSubmitFormLoading] = useState(false);
+  const [
+    sendEmailVerificationLinkLoading,
+    setSendEmailVerificationLinkLoading,
+  ] = useState(false);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -311,12 +315,60 @@ function ComponentAccountSettings({
           typeOfImage="profilePicture"
         ></ImageInput>
 
+        {!user.userData?.verified ? (
+          <>
+            <p className="text-lg font-bold">
+              Email not verified, click the button to send a code to verify it
+            </p>
+            <ButtonComponent
+              textBtn="Send code to email"
+              typeButton="button"
+              loadingDisabled={sendEmailVerificationLinkLoading}
+              onClickFunction={async () => {
+                try {
+                  setSendEmailVerificationLinkLoading(true);
+                  const userId = user.userData?.id;
+                  const urlGetVerificationCode = `${BACKEND_URL}/auth/request-email-code/${userId}`;
+                  const responseSendVerificationCode = await fetch(
+                    urlGetVerificationCode,
+                    {
+                      method: "GET",
+                    }
+                  );
+
+                  if (responseSendVerificationCode.ok) {
+                    navigate(`/verify-email/${user.userData?.id}`);
+                    return;
+                  }
+                  setAlertMessage("An error occurred, try again later.");
+                  setSendEmailVerificationLinkLoading(false);
+                } catch (error) {
+                  console.log(error);
+                }
+              }}
+            ></ButtonComponent>
+          </>
+        ) : (
+          <></>
+        )}
+
+        {user.userData?.changedEmail ? (
+          <>
+            <p className="text-lg">
+              Email changed, press the button if you want to undo to{" "}
+              {user.userData.previousEmail}
+            </p>
+          </>
+        ) : (
+          <></>
+        )}
         <TextInput
           idFor="email"
           label="Change email"
           placeholder="Change your email"
           refProp={emailRef}
           defaultValueProp={user.userData?.email}
+          disabledProp={!user.userData?.verified || user.userData?.changedEmail}
           type="email"
           additionalFunction={() => {
             setAlertMessage("");

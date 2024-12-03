@@ -13,6 +13,7 @@ import CheckAuth from "./components/ProtectedRoutes/CheckAuth";
 import ProtectedNoLoginRoute from "./components/ProtectedRoutes/ProtectedNoLoginRoutes";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import CheckProfilePage from "./components/ProtectedRoutes/CheckProfilePage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
         <AccountSettingsPage></AccountSettingsPage>
       </ProtectedNoLoginRoute>
     ),
+  },
+  {
+    path: "/verify-email/:userId",
+    element: <VerifyEmailPage></VerifyEmailPage>,
   },
   {
     path: "/login",

@@ -5,6 +5,7 @@ import {
   logoutHandler,
   refreshHandler,
   resetPasswordHandler,
+  sendEmailVerificationCodeHandler,
   signUpHandler,
   verifyEmailHandler,
 } from "../controllers/auth.controller";
@@ -21,9 +22,14 @@ authRoutes.get("/refresh", async (req, res) => {
   await refreshHandler(req, res);
 });
 authRoutes.get("/logout", logoutHandler);
-authRoutes.post("/verify-email/:code", async (req, res) => {
+authRoutes.post("/verify-email", async (req, res) => {
   await verifyEmailHandler(req, res);
 });
+
+authRoutes.get("/request-email-code/:userId", async (req, res) => {
+  await sendEmailVerificationCodeHandler(req, res);
+});
+
 authRoutes.post("/password/forgot-password", async (req, res) => {
   await forgotPasswordHandler(req, res);
 });
