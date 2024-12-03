@@ -7,6 +7,8 @@ export type UserData = {
   role: "user" | "admin";
   profilePictureURL: string;
   verified: boolean;
+  changedEmail: boolean;
+  previousEmail: string | null;
   lastLogin: Date;
   accessToken: string;
   following: string[];

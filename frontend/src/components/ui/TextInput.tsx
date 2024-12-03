@@ -7,6 +7,7 @@ type Props = {
   placeholder: string;
   refProp: React.Ref<HTMLInputElement>;
   defaultValueProp?: string;
+  disabledProp?: boolean;
   additionalFunction?: () => void;
 };
 function TextInput({
@@ -16,6 +17,7 @@ function TextInput({
   placeholder,
   refProp,
   defaultValueProp,
+  disabledProp,
   additionalFunction,
 }: Props) {
   return (
@@ -29,6 +31,7 @@ function TextInput({
         type={type}
         placeholder={placeholder}
         ref={refProp}
+        disabled={disabledProp !== null ? disabledProp : false}
         defaultValue={defaultValueProp}
         onFocus={(e) => {
           const target = e.target as HTMLInputElement;

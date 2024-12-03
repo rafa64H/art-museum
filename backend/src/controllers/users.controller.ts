@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 import { UserModel } from "../models/user.model";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
+import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
+import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 
 export async function getAllUsersHandler(
   req: AuthMiddlewareRequest,
@@ -73,7 +75,6 @@ export async function editUserHandler(
         .status(401)
         .json({ success: false, message: "Wrong current password" });
 
-    console.log(password);
     const validDialogPassword = await bcrypt.compare(
       password,
       foundUser.password
@@ -84,13 +85,28 @@ export async function editUserHandler(
         .json({ success: false, message: "Wrong current password" });
     }
 
-    foundUser.email = newEmail ? newEmail : foundUser.email;
-    foundUser.name = newName ? newName : foundUser.name;
-    foundUser.username = newUsername ? newUsername : foundUser.username;
+    if (!backendCheckValidityEmail(foundUser.email))
+      return res.status(400).json({ success: false, message: "Invalid Email" });
+    if (!backendCheckValidityNameOrUsername(foundUser.name))
+      return res.status(400).json({ success: false, message: "Invalid Name" });
+    if (!backendCheckValidityNameOrUsername(foundUser.username))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Username" });
+
+    if (!(newEmail === foundUser.email)) {
+      foundUser.email = newEmail!;
+      foundUser.verified = false;
+      foundUser.changedEmail = true;
+    }
+
+    foundUser.name = newName === foundUser.name ? foundUser.name : newName!;
+    foundUser.username =
+      newUsername === foundUser.username
+        ? foundUser.username
+        : `@${newUsername}`;
 
     await foundUser.save();
-
-    const userToReturn = foundUser;
 
     res.status(200).json({
       success: true,

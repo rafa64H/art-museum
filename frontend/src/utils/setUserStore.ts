@@ -13,6 +13,8 @@ type ResponseDataType = {
     following: string[];
     lastLogin: Date;
     verified: boolean;
+    changedEmail: boolean;
+    previousEmail: string | null;
   };
   accessToken: string;
 };
@@ -29,6 +31,8 @@ export default function setUserStore(responseData: ResponseDataType): void {
     role: responseData.user.role as "user" | "admin",
     lastLogin: responseData.user.lastLogin as Date,
     verified: responseData.user.verified as boolean,
+    changedEmail: responseData.user.changedEmail as boolean,
+    previousEmail: responseData.user.previousEmail as string | null,
     accessToken: responseData.accessToken as string,
   };
 
