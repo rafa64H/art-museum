@@ -12,6 +12,9 @@ import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  setChangedEmail,
+  setEmailVerified,
+  setPreviousEmail,
   setUserFollowers,
   setUserFollowing,
 } from "../services/redux-toolkit/auth/authSlice";
@@ -116,8 +119,10 @@ function ComponentAccountSettings({
 
                 const responseEditAccount = await fetch(url, {
                   method: "PUT",
+                  credentials: "include",
                   headers: {
                     authorization: `Bearer ${user.userData?.accessToken}`,
+
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify(data),
@@ -137,6 +142,10 @@ function ComponentAccountSettings({
                   setAlertMessage2(responseDataEditAccount.message);
                   setSubmitFormLoading(false);
                   return;
+                }
+                if (responseEditAccount.status === 500) {
+                  setAlertMessage2("Internal server error, try again later");
+                  setSubmitFormLoading(false);
                 }
 
                 if (responseEditAccount.ok) {
@@ -318,7 +327,7 @@ function ComponentAccountSettings({
         {!user.userData?.verified ? (
           <>
             <p className="text-lg font-bold">
-              Email not verified, click the button to send a code to verify it
+              Email not verified, click the button to send a code to verify it:
             </p>
             <ButtonComponent
               textBtn="Send code to email"
@@ -354,10 +363,15 @@ function ComponentAccountSettings({
 
         {user.userData?.changedEmail ? (
           <>
-            <p className="text-lg">
-              Email changed, press the button if you want to undo to{" "}
+            <p className="text-lg mt-8">
+              Email changed, press the button if you want to undo the change{" "}
               {user.userData.previousEmail}
             </p>
+            <ButtonComponent
+              textBtn="Change to previous email"
+              typeButton="button"
+              additionalClassnames="mb-8"
+            ></ButtonComponent>
           </>
         ) : (
           <></>

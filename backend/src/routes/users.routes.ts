@@ -8,6 +8,7 @@ import {
   getAllUsersHandler,
   getFollowersFollowingFromUser,
   getUserHandler,
+  undoEmailChangeHandler,
 } from "../controllers/users.controller";
 
 const usersRoutes = express.Router();
@@ -31,6 +32,14 @@ usersRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await editUserHandler(req, res);
+  }
+);
+
+usersRoutes.put(
+  "/undo-email-change",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await undoEmailChangeHandler(req, res);
   }
 );
 

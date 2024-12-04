@@ -56,6 +56,21 @@ export const authSlice = createSlice({
         state.user.userData.accessToken = action.payload;
       }
     },
+    setEmailVerified(state, action: PayloadAction<boolean>) {
+      if (state.user.userData) {
+        state.user.userData.verified = action.payload;
+      }
+    },
+    setChangedEmail(state, action: PayloadAction<boolean>) {
+      if (state.user.userData) {
+        state.user.userData.changedEmail = action.payload;
+      }
+    },
+    setPreviousEmail(state, action: PayloadAction<string>) {
+      if (state.user.userData) {
+        state.user.userData.previousEmail = action.payload;
+      }
+    },
     logout(state) {
       state.user.userData = null;
     },
@@ -66,6 +81,9 @@ export const {
   setUser,
   setUserFollowing,
   setUserFollowers,
+  setEmailVerified,
+  setChangedEmail,
+  setPreviousEmail,
   logout,
   setAccessToken,
 } = authSlice.actions;

@@ -13,6 +13,8 @@ import { ObjectId } from "mongodb";
 import { JWT_SECRET_ACCESS, JWT_SECRET_REFRESH } from "../constants/env";
 import { thirtyDaysFromNow } from "../utils/date";
 import jwt from "jsonwebtoken";
+import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
+import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
@@ -44,9 +46,18 @@ export const signUpHandler = async (req: Request, res: Response) => {
         .json({ success: false, message: "Username already in use" });
     }
 
+    if (!backendCheckValidityEmail(email))
+      return res.status(400).json({ success: false, message: "Invalid Email" });
+    if (!backendCheckValidityNameOrUsername(name))
+      return res.status(400).json({ success: false, message: "Invalid Name" });
+    if (!backendCheckValidityNameOrUsername(username))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Username" });
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = Math.floor(
-      100000 + Math.random() * 900000
+      1000000 + Math.random() * 9000000
     ).toString();
 
     const role = "user";
@@ -103,7 +114,6 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
     const foundUser = await UserModel.findOne(userIdObjectId);
 
     const idxd = foundUser!._id as ObjectId;
-    console.log(idxd, foundUser?.verificationToken, code);
 
     if (!foundUser) {
       return res
@@ -337,7 +347,7 @@ export async function sendEmailVerificationCodeHandler(
       return res.status(404).json({ success: false, message: "No user found" });
 
     const verificationToken = Math.floor(
-      100000 + Math.random() * 900000
+      1000000 + Math.random() * 9000000
     ).toString();
 
     foundUser.verificationToken = verificationToken;

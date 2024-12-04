@@ -85,26 +85,39 @@ export async function editUserHandler(
         .json({ success: false, message: "Wrong current password" });
     }
 
-    if (!backendCheckValidityEmail(foundUser.email))
-      return res.status(400).json({ success: false, message: "Invalid Email" });
-    if (!backendCheckValidityNameOrUsername(foundUser.name))
-      return res.status(400).json({ success: false, message: "Invalid Name" });
-    if (!backendCheckValidityNameOrUsername(foundUser.username))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid Username" });
+    if (newEmail && newEmail !== foundUser.email) {
+      if (!backendCheckValidityEmail(newEmail))
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid Email" });
 
-    if (!(newEmail === foundUser.email) && !foundUser.changedEmail) {
-      foundUser.email = newEmail!;
-      foundUser.verified = false;
-      foundUser.changedEmail = true;
+      if (!(newEmail === foundUser.email) && !foundUser.changedEmail) {
+        foundUser.email = newEmail!;
+        foundUser.verified = false;
+        foundUser.changedEmail = true;
+      }
     }
 
-    foundUser.name = newName === foundUser.name ? foundUser.name : newName!;
-    foundUser.username =
-      newUsername === foundUser.username
-        ? foundUser.username
-        : `@${newUsername}`;
+    if (newName && newName !== foundUser.name) {
+      if (!backendCheckValidityNameOrUsername(foundUser.name))
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid Name" });
+
+      foundUser.name = newName;
+    }
+
+    if (newUsername && newUsername !== foundUser.username) {
+      if (!backendCheckValidityNameOrUsername(foundUser.username))
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid Username" });
+
+      foundUser.username = `@${newUsername}`;
+    }
+
+    console.log(newName, foundUser.name);
+    console.log(newUsername, foundUser.username);
 
     await foundUser.save();
 
@@ -180,8 +193,6 @@ export async function getFollowersFollowingFromUser(
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
-
-    console.log(foundUser._id, userIdObjectId);
 
     if (!((foundUser._id as string).toString() === userIdMiddleware))
       return res
@@ -318,5 +329,15 @@ export async function deleteFollowerHandler(
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error });
+  }
+}
+
+export async function undoEmailChangeHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+  } catch (error) {
+    console.log(error);
   }
 }

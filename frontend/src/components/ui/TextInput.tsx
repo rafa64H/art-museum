@@ -8,6 +8,7 @@ type Props = {
   refProp: React.Ref<HTMLInputElement>;
   defaultValueProp?: string;
   disabledProp?: boolean;
+  maxLengthProp?: number;
   additionalFunction?: () => void;
 };
 function TextInput({
@@ -18,6 +19,7 @@ function TextInput({
   refProp,
   defaultValueProp,
   disabledProp,
+  maxLengthProp,
   additionalFunction,
 }: Props) {
   return (
@@ -33,6 +35,7 @@ function TextInput({
         ref={refProp}
         disabled={disabledProp !== null ? disabledProp : false}
         defaultValue={defaultValueProp}
+        maxLength={maxLengthProp ? maxLengthProp : undefined}
         onFocus={(e) => {
           const target = e.target as HTMLInputElement;
 

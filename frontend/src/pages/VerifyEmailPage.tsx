@@ -62,13 +62,16 @@ function VerifyEmailPage() {
             }
           }}
         >
-          <TextInput
-            idFor="code"
-            label="Introduce email verification code"
-            placeholder="Introduce code"
-            refProp={codeRef}
-            type="text"
-          ></TextInput>
+          <div className="text-xl font-semibold">
+            <TextInput
+              idFor="code"
+              label="Introduce email verification code"
+              placeholder="Introduce code"
+              refProp={codeRef}
+              type="text"
+              maxLengthProp={7}
+            ></TextInput>
+          </div>
 
           <ButtonComponent
             textBtn="Submit code"
