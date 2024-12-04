@@ -92,7 +92,9 @@ export async function editUserHandler(
           .json({ success: false, message: "Invalid Email" });
 
       if (!(newEmail === foundUser.email) && !foundUser.changedEmail) {
+        foundUser.previousEmail = foundUser.email;
         foundUser.email = newEmail!;
+        foundUser.previousEmailVerified = foundUser.verified;
         foundUser.verified = false;
         foundUser.changedEmail = true;
       }
@@ -337,7 +339,38 @@ export async function undoEmailChangeHandler(
   res: Response
 ) {
   try {
+    const userId = req.userId;
+    console.log(userId);
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    console.log(foundUser);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    if (!foundUser.previousEmail)
+      return res.status(400).json({
+        success: false,
+        message: "User does not have a previous email",
+      });
+
+    foundUser.email = foundUser.previousEmail;
+    foundUser.verified = foundUser.previousEmailVerified;
+    foundUser.changedEmail = false;
+    foundUser.previousEmail = null;
+    await foundUser.save();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Email change undid successfully" });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal servver error" });
   }
 }

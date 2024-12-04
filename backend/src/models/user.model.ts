@@ -13,6 +13,7 @@ export interface UserDocument extends mongoose.Document {
   followers: string[];
   following: string[];
   changedEmail: boolean;
+  previousEmailVerified: boolean;
   previousEmail: string | null;
   lastLogin: Date;
   createdAt: Date;
@@ -86,6 +87,10 @@ const UserSchema = new mongoose.Schema<UserDocument>(
       default: false,
     },
     changedEmail: {
+      type: Boolean,
+      default: false,
+    },
+    previousEmailVerified: {
       type: Boolean,
       default: false,
     },

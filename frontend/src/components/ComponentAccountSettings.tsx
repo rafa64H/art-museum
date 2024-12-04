@@ -49,6 +49,7 @@ function ComponentAccountSettings({
     sendEmailVerificationLinkLoading,
     setSendEmailVerificationLinkLoading,
   ] = useState(false);
+  const [undoChangedEmailLoading, setUndoChangedEmailLoading] = useState(false);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -371,6 +372,29 @@ function ComponentAccountSettings({
               textBtn="Change to previous email"
               typeButton="button"
               additionalClassnames="mb-8"
+              loadingDisabled={undoChangedEmailLoading}
+              onClickFunction={async () => {
+                try {
+                  setUndoChangedEmailLoading(true);
+                  const url = `${BACKEND_URL}/api/users/undo-email-change`;
+                  const responseUndoEmailChange = await fetch(url, {
+                    method: "PUT",
+                    credentials: "include",
+                    headers: {
+                      authorization: `Bearer ${user.userData?.accessToken}`,
+                    },
+                  });
+
+                  if (responseUndoEmailChange.ok) {
+                    setUndoChangedEmailLoading(false);
+                    navigate(0);
+                  }
+                  setUndoChangedEmailLoading(false);
+                } catch (error) {
+                  setUndoChangedEmailLoading(false);
+                  console.log(error);
+                }
+              }}
             ></ButtonComponent>
           </>
         ) : (

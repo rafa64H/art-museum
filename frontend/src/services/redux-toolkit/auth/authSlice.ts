@@ -8,6 +8,7 @@ export type UserData = {
   profilePictureURL: string;
   verified: boolean;
   changedEmail: boolean;
+  previousEmailVerified: boolean;
   previousEmail: string | null;
   lastLogin: Date;
   accessToken: string;
