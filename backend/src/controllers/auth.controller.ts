@@ -116,9 +116,10 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
     const idxd = foundUser!._id as ObjectId;
 
     if (!foundUser) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired",
+      });
     }
 
     if (foundUser.verificationToken === code) {
@@ -128,7 +129,7 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
       foundUser.verificationTokenExpiresAt = undefined;
       await foundUser.save();
 
-      await sendWelcomeEmail(foundUser.email, foundUser.name);
+      // await sendWelcomeEmail(foundUser.email, foundUser.name);
 
       res.status(200).json({
         success: true,
@@ -357,9 +358,10 @@ export async function sendEmailVerificationCodeHandler(
     await foundUser.save();
     await sendVerificationEmail(foundUser.email, verificationToken);
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Verification code sent to email" });
+    return res.status(200).json({
+      success: true,
+      message: "Verification code sent to email",
+    });
   } catch (error) {
     return res
       .status(500)

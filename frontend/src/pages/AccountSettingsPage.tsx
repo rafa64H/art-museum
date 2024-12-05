@@ -19,29 +19,28 @@ function AccountSettingsPage() {
   useEffect(() => {
     const getFollowers = async () => {
       try {
-        if (!user.userData?.id) {
-          return;
-        }
-        const url = `${BACKEND_URL}/api/users/followers/${user.userData?.id}`;
+        if (user.userData?.id) {
+          const url = `${BACKEND_URL}/api/users/followers/${user.userData?.id}`;
 
-        const responseGetFollowersFollowing = await fetch(url, {
-          method: "GET",
-          headers: {
-            authorization: `Bearer ${user.userData?.accessToken}`,
-          },
-        });
-        console.log(responseGetFollowersFollowing);
+          const responseGetFollowersFollowing = await fetch(url, {
+            method: "GET",
+            headers: {
+              authorization: `Bearer ${user.userData?.accessToken}`,
+            },
+          });
+          console.log(responseGetFollowersFollowing);
 
-        const responseGetFollowersFollowingData =
-          await responseGetFollowersFollowing.json();
-        console.log(responseGetFollowersFollowingData);
-        if (responseGetFollowersFollowing.status === 200) {
-          setFollowersObjects(responseGetFollowersFollowingData.followers);
-          setFollowingObjects(responseGetFollowersFollowingData.following);
-        }
-        if (responseGetFollowersFollowing.status !== 200) {
-          setFollowersObjects("Error, try again later or try to reload page");
-          setFollowingObjects("Error, try again later or try to reload page");
+          const responseGetFollowersFollowingData =
+            await responseGetFollowersFollowing.json();
+          console.log(responseGetFollowersFollowingData);
+          if (responseGetFollowersFollowing.status === 200) {
+            setFollowersObjects(responseGetFollowersFollowingData.followers);
+            setFollowingObjects(responseGetFollowersFollowingData.following);
+          }
+          if (responseGetFollowersFollowing.status !== 200) {
+            setFollowersObjects("Error, try again later or try to reload page");
+            setFollowingObjects("Error, try again later or try to reload page");
+          }
         }
       } catch (error) {
         console.log(error);
@@ -49,7 +48,7 @@ function AccountSettingsPage() {
     };
 
     getFollowers();
-  }, [user.userData?.accessToken, user.userData?.id]);
+  }, [user.userData?.id]);
   return (
     <>
       <Header></Header>

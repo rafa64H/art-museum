@@ -1,9 +1,11 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Header from "../components/Header";
 import { Link, useParams } from "react-router-dom";
 import TextInput from "../components/ui/TextInput";
 import ButtonComponent from "../components/ui/ButtonComponent";
 import { BACKEND_URL } from "../constants";
+import { useDispatch } from "react-redux";
+import { setEmailVerified } from "../services/redux-toolkit/auth/authSlice";
 
 function VerifyEmailPage() {
   const params = useParams();
@@ -13,6 +15,8 @@ function VerifyEmailPage() {
 
   const codeRef = useRef<HTMLInputElement>(null);
 
+  const dispatch = useDispatch();
+
   return (
     <>
       <Header></Header>
@@ -21,8 +25,13 @@ function VerifyEmailPage() {
           verifiedEmail ? "block" : "hidden"
         } bg-mainBg py-4 text-white px-2`}
       >
-        <h1 className="text-xl font-semibold">The email has been verified</h1>
-        <Link to={"/account-settings"}>Go to account settings page</Link>
+        <h1 className="text-2xl font-semibold">The email has been verified</h1>
+        <Link
+          className="text-xl hover:underline hover:text-firstGreen"
+          to={"/account-settings"}
+        >
+          Go to account settings page
+        </Link>
       </section>
       <div
         className={`${
@@ -52,10 +61,11 @@ function VerifyEmailPage() {
               if (responseVerifyEmail.ok) {
                 setVerifiedEmail(true);
                 setSubmitFormLoading(false);
+
+                dispatch(setEmailVerified(true));
                 return;
               }
-              console.log(responseVerifyEmail);
-              console.log(await responseVerifyEmail.json());
+
               setSubmitFormLoading(false);
             } catch (error) {
               console.log(error);

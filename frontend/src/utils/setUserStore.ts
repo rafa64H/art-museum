@@ -15,10 +15,12 @@ type ResponseDataType = {
     verified: boolean;
     changedEmail: boolean;
     previousEmail: string | null;
+    previousEmailVerified: boolean;
   };
   accessToken: string;
 };
 
+//You should send as argument an await response.json()
 export default function setUserStore(responseData: ResponseDataType): void {
   const userData = {
     id: responseData.user._id as string,
@@ -31,8 +33,10 @@ export default function setUserStore(responseData: ResponseDataType): void {
     role: responseData.user.role as "user" | "admin",
     lastLogin: responseData.user.lastLogin as Date,
     verified: responseData.user.verified as boolean,
+
     changedEmail: responseData.user.changedEmail as boolean,
     previousEmail: responseData.user.previousEmail as string | null,
+    previousEmailVerified: responseData.user.previousEmailVerified as boolean,
     accessToken: responseData.accessToken as string,
   };
 
