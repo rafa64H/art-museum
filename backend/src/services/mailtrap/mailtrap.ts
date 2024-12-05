@@ -44,7 +44,7 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
       from: sender,
       to: recipient,
       subject: "Welcome to art museum!",
-      html: "Welcome to our web site!",
+      html: WELCOME_EMAIL_TEMPLATE,
       category: "Welcome email",
     });
 
@@ -58,7 +58,7 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 
 export const sendPasswordResetEmail = async (
   email: string,
-  resetURL: string
+  resetPasswordToken: string
 ) => {
   const recipient = [{ email }];
 
@@ -67,7 +67,10 @@ export const sendPasswordResetEmail = async (
       from: sender,
       to: recipient,
       subject: "Reset your password",
-      html: `<a href="${resetURL}">${resetURL}</a>`,
+      html: PASSWORD_RESET_REQUEST_TEMPLATE.replace(
+        "{resetPasswordToken}",
+        resetPasswordToken
+      ),
       category: "Password Reset",
     });
   } catch (error) {
@@ -97,98 +100,105 @@ export const sendResetSuccessEmail = async (email: string) => {
   }
 };
 
-export const VERIFICATION_EMAIL_TEMPLATE = `
-<!DOCTYPE html>
+export const VERIFICATION_EMAIL_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify Your Email</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(to right, #4CAF50, #45a049); padding: 20px; text-align: center;">
-    <h1 style="color: white; margin: 0;">Verify Your Email</h1>
-  </div>
-  <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-    <p>Hello,</p>
-    <p>Thank you for signing up! Your verification code is:</p>
-    <div style="text-align: center; margin: 30px 0;">
-      <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4CAF50;">{verificationCode}</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email verification code</title>
+  </head>
+  <body>
+    <div style="background-color: #00023d;padding:1.5rem;">
+      <img
+        src="https://firebasestorage.googleapis.com/v0/b/crisp-ecommerce-developm-4e4a7.appspot.com/o/company-logo.png?alt=media&token=bbc5980f-31cb-4c34-aa4e-bddcd1b71b8d"
+        alt="Art museum page logo"
+        style="width: 10rem;"
+      />
+      <h1 style="font-size:2rem; text-align: center; color: white; font-family: sans-serif;">Verify your email</h1>
     </div>
-    <p>Enter this code on the verification page to complete your registration.</p>
-    <p>This code will expire in 15 minutes for security reasons.</p>
-    <p>If you didn't create an account with us, please ignore this email.</p>
-    <p>Best regards,<br>Your App Team</p>
-  </div>
-  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
-    <p>This is an automated message, please do not reply to this email.</p>
-  </div>
-</body>
+    <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
+      Your code to verify your email is this:
+    </p>
+    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;">{verificationCode}</h2>
+    <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
+      If you didn't use this email for an account in our page, then ignore this
+      email.
+    </p>
+  </body>
 </html>
 `;
 
-export const PASSWORD_RESET_REQUEST_TEMPLATE = `
-<!DOCTYPE html>
+export const PASSWORD_RESET_REQUEST_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Password</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(to right, #4CAF50, #45a049); padding: 20px; text-align: center;">
-    <h1 style="color: white; margin: 0;">Password Reset</h1>
-  </div>
-  <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-    <p>Hello,</p>
-    <p>We received a request to reset your password. If you didn't make this request, please ignore this email.</p>
-    <p>To reset your password, click the button below:</p>
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="{resetURL}" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset your password - Code</title>
+  </head>
+  <body>
+    <div style="background-color: #00023d;padding:1.5rem;">
+      <img
+        src="https://firebasestorage.googleapis.com/v0/b/crisp-ecommerce-developm-4e4a7.appspot.com/o/company-logo.png?alt=media&token=bbc5980f-31cb-4c34-aa4e-bddcd1b71b8d"
+        alt="Art museum page logo"
+        style="width: 10rem;"
+      />
+      <h1 style="font-size:2rem; text-align: center; color: white; font-family: sans-serif;">Reset your password</h1>
     </div>
-    <p>This link will expire in 1 hour for security reasons.</p>
-    <p>Best regards,<br>Your App Team</p>
-  </div>
-  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
-    <p>This is an automated message, please do not reply to this email.</p>
-  </div>
-</body>
+    <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
+      Your code to reset your password is this:
+    </p>
+    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;">{resetPasswordToken}</h2>
+    <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
+      If you didn't request this email, ignore this (maybe be sure to change
+      your email's password).
+    </p>
+  </body>
 </html>
 `;
 
-export const PASSWORD_RESET_SUCCESS_TEMPLATE = `
-<!DOCTYPE html>
+export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Password Reset Successful</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(to right, #4CAF50, #45a049); padding: 20px; text-align: center;">
-    <h1 style="color: white; margin: 0;">Password Reset Successful</h1>
-  </div>
-  <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-    <p>Hello,</p>
-    <p>We're writing to confirm that your password has been successfully reset.</p>
-    <div style="text-align: center; margin: 30px 0;">
-      <div style="background-color: #4CAF50; color: white; width: 50px; height: 50px; line-height: 50px; border-radius: 50%; display: inline-block; font-size: 30px;">
-        ✓
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email verified successfully</title>
+  </head>
+  <body>
+    <div style="background-color: #00023d;padding:1.5rem;">
+      <img
+        src="https://firebasestorage.googleapis.com/v0/b/crisp-ecommerce-developm-4e4a7.appspot.com/o/company-logo.png?alt=media&token=bbc5980f-31cb-4c34-aa4e-bddcd1b71b8d"
+        alt="Art museum page logo"
+        style="width: 10rem;"
+      />
+      <h1 style="font-size:2rem; text-align: center; color: white; font-family: sans-serif;">Your email has been verified</h1>
     </div>
-    <p>If you did not initiate this password reset, please contact our support team immediately.</p>
-    <p>For security reasons, we recommend that you:</p>
-    <ul>
-      <li>Use a strong, unique password</li>
-      <li>Enable two-factor authentication if available</li>
-      <li>Avoid using the same password across multiple sites</li>
-    </ul>
-    <p>Thank you for helping us keep your account secure.</p>
-    <p>Best regards,<br>Your App Team</p>
-  </div>
-  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
-    <p>This is an automated message, please do not reply to this email.</p>
-  </div>
-</body>
+    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;">Your email was successfuly verified</h2>
+    <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
+      If you didn't create an account in our page and you receive this email
+      verification, then maybe someone has access to your email, maybe you
+      should change your passwod... Or something
+    </p>
+  </body>
+</html>
+`;
+
+export const PASSWORD_RESET_SUCCESS_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset password done successfuly</title>
+  </head>
+  <body>
+    <div style="background-color: #00023d;padding:1.5rem;">
+      <img
+        src="https://firebasestorage.googleapis.com/v0/b/crisp-ecommerce-developm-4e4a7.appspot.com/o/company-logo.png?alt=media&token=bbc5980f-31cb-4c34-aa4e-bddcd1b71b8d"
+        alt="Art museum page logo"
+        style="width: 10rem;"
+      />
+      <h1 style="font-size:2rem; text-align: center; color: white; font-family: sans-serif;">Reset password done successfuly</h1>
+    </div>
+    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;">Your password has been changed</h2>
+  </body>
 </html>
 `;

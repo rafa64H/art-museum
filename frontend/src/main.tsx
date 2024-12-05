@@ -14,6 +14,7 @@ import ProtectedNoLoginRoute from "./components/ProtectedRoutes/ProtectedNoLogin
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import CheckProfilePage from "./components/ProtectedRoutes/CheckProfilePage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,14 @@ const router = createBrowserRouter([
       <ProtectedNoLoginRoute>
         <AccountSettingsPage></AccountSettingsPage>
       </ProtectedNoLoginRoute>
+    ),
+  },
+  {
+    path: "/forgot-password",
+    element: (
+      <ProtectLoginRoutes>
+        <ForgotPasswordPage></ForgotPasswordPage>
+      </ProtectLoginRoutes>
     ),
   },
   {

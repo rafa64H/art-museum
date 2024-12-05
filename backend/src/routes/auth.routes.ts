@@ -30,10 +30,10 @@ authRoutes.get("/request-email-code/:userId", async (req, res) => {
   await sendEmailVerificationCodeHandler(req, res);
 });
 
-authRoutes.post("/password/forgot-password", async (req, res) => {
+authRoutes.put("/password/forgot-password", async (req, res) => {
   await forgotPasswordHandler(req, res);
 });
-authRoutes.post("/password/reset-password/:token", async (req, res) => {
+authRoutes.put("/password/reset-password", async (req, res) => {
   await resetPasswordHandler(req, res);
 });
 

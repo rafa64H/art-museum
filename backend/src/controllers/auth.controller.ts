@@ -235,20 +235,21 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
     }
 
     // Generate reset token
-    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetPasswordToken = Math.floor(
+      1000000 + Math.random() * 9000000
+    ).toString();
     const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
     const resetTokenExpiresAtDate = new Date(resetTokenExpiresAt);
-    user.resetPasswordToken = resetToken;
+    user.resetPasswordToken = resetPasswordToken;
     user.resetPasswordExpiresAt = resetTokenExpiresAtDate;
     await user.save();
 
-    const resetURL = `${process.env.SERVER_URL}/reset-password/${resetToken}`;
     // send email
-    await sendPasswordResetEmail(user.email, resetURL);
+    await sendPasswordResetEmail(user.email, resetPasswordToken);
 
     res.status(200).json({
       success: true,
-      message: "Password reset link sent to your email",
+      message: "Password reset code sent to your email",
     });
   } catch (error) {
     console.log(error);
@@ -259,18 +260,39 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
 
 export const resetPasswordHandler = async (req: Request, res: Response) => {
   try {
-    const { token } = req.params;
-    const { password } = req.body as { password: string };
+    const { password, emailOrUsername, token } = req.body as {
+      password: string;
+      emailOrUsername: string;
+      token: string;
+    };
 
-    const user = await UserModel.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpiresAt: { $gt: Date.now() },
-    });
+    console.log(password, emailOrUsername, token);
+
+    let user = null;
+    if (emailOrUsername.startsWith("@")) {
+      user = await UserModel.findOne({ username: emailOrUsername });
+    } else {
+      user = await UserModel.findOne({ email: emailOrUsername });
+    }
     if (!user) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid or expared reset token" });
+        .json({ success: false, message: "User not found" });
     }
+
+    const resetPasswordExpiresAtDate = user.resetPasswordExpiresAt!;
+    console.log(token === user.resetPasswordToken);
+    console.log(token);
+    console.log(user.resetPasswordToken);
+
+    if (resetPasswordExpiresAtDate < new Date())
+      return res
+        .status(400)
+        .json({ success: false, message: "Verification token expired" });
+    if (token !== user.resetPasswordToken)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid verification token" });
 
     // update password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -287,7 +309,7 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({ success: false, message: error });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 

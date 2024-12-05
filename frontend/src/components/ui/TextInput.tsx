@@ -23,7 +23,7 @@ function TextInput({
   additionalFunction,
 }: Props) {
   return (
-    <div className="w-[min(35rem,100%)] flex flex-col mb-4 lg:grid lg:grid-cols-3">
+    <div className="w-[min(45rem,100%)] flex flex-col mb-4 lg:grid lg:grid-cols-3">
       <label className="" htmlFor={idFor}>
         {label}:
       </label>

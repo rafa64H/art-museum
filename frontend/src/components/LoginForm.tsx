@@ -115,6 +115,11 @@ function SignUpForm() {
       ></ButtonComponent>
 
       <p className="mt-4">
+        <Link className="hover:underline" to="/forgot-password">
+          Forgot password? Click here
+        </Link>
+      </p>
+      <p className="mt-4">
         <Link className="hover:underline" to="/sign-up">
           Do not have account? Click here to register
         </Link>
