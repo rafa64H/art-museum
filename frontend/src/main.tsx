@@ -15,6 +15,8 @@ import AccountSettingsPage from "./pages/AccountSettingsPage";
 import CheckProfilePage from "./components/ProtectedRoutes/CheckProfilePage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import CreatePostPage from "./pages/CreatePostPage";
+import PostPage from "./pages/PostPage";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +24,22 @@ const router = createBrowserRouter([
     element: (
       <CheckAuth>
         <HomePage></HomePage>
+      </CheckAuth>
+    ),
+  },
+  {
+    path: "/create-post",
+    element: (
+      <ProtectedNoLoginRoute>
+        <CreatePostPage></CreatePostPage>
+      </ProtectedNoLoginRoute>
+    ),
+  },
+  {
+    path: "/post/:postId",
+    element: (
+      <CheckAuth>
+        <PostPage></PostPage>
       </CheckAuth>
     ),
   },
