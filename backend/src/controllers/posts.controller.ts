@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
 import { ObjectId } from "mongodb";
 import { UserModel } from "../models/user.model";
@@ -44,7 +44,7 @@ export async function createPostHandler(
     const newPostId = newPost._id as ObjectId;
     const newPostObjectToReturn = {
       ...newPost.toObject(),
-      id: newPostId.toString(),
+      _id: newPostId.toString(),
     };
 
     res.status(201).json({
@@ -56,5 +56,33 @@ export async function createPostHandler(
     res
       .status(500)
       .json({ success: false, message: "internal server error", error: error });
+  }
+}
+
+export async function getSinglePostHandler(req: Request, res: Response) {
+  try {
+    const { postId } = req.params;
+
+    if (!postId)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const postObjectToReturn = {
+      ...foundPost.toObject(),
+      _id: postId,
+      authorId: foundPost.authorId.toString(),
+    };
+
+    res.status(200).json({ success: true, post: postObjectToReturn });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
   }
 }
