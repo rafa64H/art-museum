@@ -6,11 +6,13 @@ import { BACKEND_URL } from "../constants";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
+import { Link } from "react-router-dom";
 
 function ForgotPasswordPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [submitFormLoading, setSubmitFormLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [changedPasswordSuccess, setChangedPasswordSuccess] = useState(false);
 
   const emailOrUsernameRef = useRef<HTMLInputElement>(null);
 
@@ -27,10 +29,10 @@ function ForgotPasswordPage() {
       <Header></Header>
       <section
         className={`${
-          emailSent ? "block" : "hidden"
+          emailSent && !changedPasswordSuccess ? "block" : "hidden"
         } bg-mainBg py-4 text-white px-2`}
       >
-        <h1 className="text-2xl font-semibold">Email sent successfully</h1>
+        <h1 className="text-2xl mb-4 font-semibold">Email sent successfully</h1>
         <form
           onSubmit={async (e) => {
             try {
@@ -90,6 +92,7 @@ function ForgotPasswordPage() {
 
               if (responseResetPassword.ok) {
                 setSubmitFormLoading(false);
+                setChangedPasswordSuccess(true);
 
                 return;
               }
@@ -132,6 +135,21 @@ function ForgotPasswordPage() {
             typeButton="submit"
           ></ButtonComponent>
         </form>
+      </section>
+      <section
+        className={`${
+          changedPasswordSuccess ? "block" : "hidden"
+        } bg-mainBg py-4 text-white px-2`}
+      >
+        <h1 className="text-2xl mb-4 font-semibold">
+          Password changed successfully
+        </h1>
+        <Link
+          className="text-xl hover:underline hover:text-firstGreen"
+          to={"/login"}
+        >
+          Go to login page
+        </Link>
       </section>
       <div
         className={`${
