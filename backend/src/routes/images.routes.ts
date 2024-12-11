@@ -10,14 +10,14 @@ import multer from "multer";
 import { bucket } from "../db/connectDB";
 import verifyJWT from "../middleware/verifyJWT";
 import {
-  uploadImagePostHandler,
+  uploadImagesPostHandler,
   uploadProfilePictureHandler,
 } from "../controllers/images.controller";
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 1024 * 1024 * 5,
+    fileSize: 1024 * 1024 * 10,
   },
 });
 
@@ -33,8 +33,8 @@ imagesRoutes.post(
 
 imagesRoutes.post(
   "/postImages",
-  upload.single("file"),
-  uploadImagePostHandler as express.RequestHandler
+  upload.array("files"),
+  uploadImagesPostHandler as express.RequestHandler
 );
 
 export default imagesRoutes;

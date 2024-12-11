@@ -3,15 +3,15 @@ import Header from "../components/Header";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
 import { BACKEND_URL } from "../constants";
-import ImageInput from "../components/ImageInput";
 import TextInput from "../components/ui/TextInput";
 import ButtonComponent from "../components/ui/ButtonComponent";
 import { useNavigate } from "react-router-dom";
+import MultipleImagesInput from "../components/MultipleImagesInput";
 
 function CreatePostPage() {
   const user = useSelector((state: RootState) => state.auth.user);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageURL, setImageURL] = useState<string | undefined>(undefined);
+  const [imageFiles, setImageFiles] = useState<File[] | null>(null);
+  const [imageURLs, setImageURLs] = useState<string[] | undefined>(undefined);
   const [formSubmitLoading, setFormSubmitLoading] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -28,15 +28,17 @@ function CreatePostPage() {
             e.preventDefault();
             setFormSubmitLoading(true);
 
-            let responsePostImageData = null;
+            let responsePostImagesData = null;
 
             try {
-              if (imageFile) {
+              if (imageFiles) {
                 const formData = new FormData();
-                formData.append("file", imageFile);
+                imageFiles.forEach((file) => {
+                  formData.append("files", file);
+                });
 
-                const urlPostImage = `${BACKEND_URL}/api/images/postImages`;
-                const responsePostImage = await fetch(urlPostImage, {
+                const urlPostImages = `${BACKEND_URL}/api/images/postImages`;
+                const responsePostImage = await fetch(urlPostImages, {
                   method: "POST",
                   mode: "cors",
                   credentials: "include",
@@ -51,15 +53,31 @@ function CreatePostPage() {
                   return;
                 }
 
-                responsePostImageData = await responsePostImage.json();
+                responsePostImagesData = await responsePostImage.json();
               }
 
-              //Post model
+              console.log(responsePostImagesData);
+
+              const imageURLsStrings =
+                responsePostImagesData.imageIdsAndUrls.map(
+                  (obj: { imageURL: string; imageId: string }) => {
+                    return obj.imageURL;
+                  }
+                );
+
+              const imageIdsStrings =
+                responsePostImagesData.imageIdsAndUrls.map(
+                  (obj: { imageId: string; imageURL: string }) => {
+                    return obj.imageId;
+                  }
+                );
+
+              // //Post model
               const data = {
                 title: titleRef.current!.value,
                 content: contentRef.current!.value,
-                imageURL: responsePostImageData.image.imageURL,
-                imageId: responsePostImageData.image._id,
+                imageURLs: imageURLsStrings,
+                imageIds: imageIdsStrings,
               };
               const urlCreatePost = `${BACKEND_URL}/api/posts`;
               const responsePostModel = await fetch(urlCreatePost, {
@@ -85,15 +103,14 @@ function CreatePostPage() {
             }
           }}
         >
-          <ImageInput
-            imageURLState={imageURL}
-            imageFileState={imageFile}
-            setImageURLState={setImageURL}
-            setImageFileState={setImageFile}
-            labelText="Upload image for post"
+          <MultipleImagesInput
+            imagesFileState={imageFiles}
+            imagesURLState={imageURLs}
+            setImagesFileState={setImageFiles}
+            setImagesURLState={setImageURLs}
+            labelText="Upload images"
             typeOfImage="post"
-            imageWidth="w-[20rem]"
-          ></ImageInput>
+          ></MultipleImagesInput>
 
           <TextInput
             idFor="title"

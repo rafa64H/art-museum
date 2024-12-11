@@ -21,12 +21,17 @@ export async function createPostHandler(
         .status(404)
         .json({ success: false, message: "User not found" });
 
-    const { title, content, imageURL, imageId } = req.body as {
+    const { title, content, imageURLs, imageIds } = req.body as {
       title: string;
       content: string | null;
-      imageURL: string | null;
-      imageId: string | null;
+      imageURLs: string[] | null;
+      imageIds: string[] | null;
     };
+
+    const imageIdsObjectIds = imageIds?.map((imageId) => {
+      return ObjectId.createFromHexString(imageId);
+    });
+
     if (!title)
       return res
         .status(400)
@@ -36,8 +41,8 @@ export async function createPostHandler(
       authorId: userIdObjectId,
       title: title,
       content: content ? content : "",
-      imageURL: imageURL ? imageURL : null,
-      imageId: imageId ? imageId : null,
+      imageURLs: imageURLs ? imageURLs : null,
+      imageIds: imageIdsObjectIds ? imageIdsObjectIds : null,
     });
     await newPost.save();
 
@@ -77,7 +82,7 @@ export async function getSinglePostHandler(req: Request, res: Response) {
 
     const postObjectToReturn = {
       ...foundPost.toObject(),
-      _id: postId,
+      _id: postId, //To not be an ObjectId but a string
       authorId: foundPost.authorId.toString(),
     };
 

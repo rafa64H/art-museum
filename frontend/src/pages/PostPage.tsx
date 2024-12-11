@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { BACKEND_URL } from "../constants";
 import Header from "../components/Header";
+import { v4 as uuidv4 } from "uuid";
 
 type postDataResponse = {
   authorId: string;
   title: string;
   content: string;
-  imageURL?: string | null;
-  imageId?: string | null;
+  imageURLs?: string[] | null;
+  imageIds?: string[] | null;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -52,11 +53,16 @@ function PostPage() {
       ) : post ? (
         <>
           <section>
-            <img
-              className="w-[min(25%,20rem)]"
-              src={post.imageURL ? post.imageURL : undefined}
-              alt={post.title}
-            />
+            {post.imageURLs?.map((imageURL) => {
+              return (
+                <img
+                  key={uuidv4()}
+                  className="w-[min(25%,20rem)]"
+                  src={imageURL ? imageURL : undefined}
+                  alt={post.title}
+                />
+              );
+            })}
 
             <h1>{post.title}</h1>
             <p>{post.content}</p>
