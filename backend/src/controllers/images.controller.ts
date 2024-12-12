@@ -102,7 +102,7 @@ export async function uploadImagesPostHandler(
 
     const arrayOfImagesIdsAndURLs = await Promise.all(
       files.map(async (file) => {
-        const fileName = file.originalname;
+        const fileName = `${Date.now()}-${file.originalname}`;
         const fileRef = `postsImages/${userId}/${fileName}`;
         const fileUpload = bucket.file(fileRef);
 

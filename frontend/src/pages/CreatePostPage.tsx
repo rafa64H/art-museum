@@ -7,12 +7,14 @@ import TextInput from "../components/ui/TextInput";
 import ButtonComponent from "../components/ui/ButtonComponent";
 import { useNavigate } from "react-router-dom";
 import MultipleImagesInput from "../components/MultipleImagesInput";
+import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 
 function CreatePostPage() {
   const user = useSelector((state: RootState) => state.auth.user);
   const [imageFiles, setImageFiles] = useState<File[] | null>(null);
   const [imageURLs, setImageURLs] = useState<string[] | undefined>(undefined);
   const [formSubmitLoading, setFormSubmitLoading] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
@@ -21,8 +23,8 @@ function CreatePostPage() {
   return (
     <>
       <Header></Header>
-      <section className="bg-mainBg text-white px-2 py-4">
-        <h1 className="text-2xl font-semibold">Create Post</h1>
+      <section className="bg-mainBg text-white px-4 py-8">
+        <h1 className="text-2xl mb-2 font-semibold">Create Post</h1>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -31,6 +33,19 @@ function CreatePostPage() {
             let responsePostImagesData = null;
 
             try {
+              const responseAccessTokenRefresh =
+                await requestAccessTokenRefresh();
+              if (!responseAccessTokenRefresh.ok) {
+                navigate("/login");
+              }
+
+              if (!user.userData?.verified) {
+                setAlertMessage("To post you need to verify your email");
+
+                setFormSubmitLoading(false);
+                return;
+              }
+
               if (imageFiles) {
                 const formData = new FormData();
                 imageFiles.forEach((file) => {
@@ -48,15 +63,19 @@ function CreatePostPage() {
                   body: formData,
                 });
 
+                if (responsePostImage.status === 400) {
+                  setFormSubmitLoading(false);
+                  setAlertMessage("Invalid image upload");
+                  return;
+                }
                 if (!responsePostImage.ok) {
                   setFormSubmitLoading(false);
+                  setAlertMessage("Error uploading images");
                   return;
                 }
 
                 responsePostImagesData = await responsePostImage.json();
               }
-
-              console.log(responsePostImagesData);
 
               const imageURLsStrings =
                 responsePostImagesData.imageIdsAndUrls.map(
@@ -89,15 +108,33 @@ function CreatePostPage() {
                 body: JSON.stringify(data),
               });
 
-              if (responsePostModel.ok) {
-                setFormSubmitLoading(false);
-                const responsePostModelData = await responsePostModel.json();
-                navigate(`/post/${responsePostModelData.post._id}`, {
-                  replace: true,
-                });
+              const responsePostModelData = await responsePostModel.json();
 
+              if (responsePostModel.status === 400) {
+                if (
+                  responsePostModelData.message ===
+                  "Title not found, it is required"
+                ) {
+                  setFormSubmitLoading(false);
+                  setAlertMessage("Title is required");
+                  return;
+                }
+
+                setFormSubmitLoading(false);
+                setAlertMessage("Invalid information to post");
+              }
+              if (!responsePostModel.ok) {
+                setFormSubmitLoading(false);
+                setAlertMessage("Error uploading post");
                 return;
               }
+
+              setFormSubmitLoading(false);
+              navigate(`/post/${responsePostModelData.post._id}`, {
+                replace: true,
+              });
+
+              return;
             } catch (error) {
               console.log(error);
             }
@@ -112,6 +149,8 @@ function CreatePostPage() {
             typeOfImage="post"
           ></MultipleImagesInput>
 
+          <p className="text-red-700 text-lg">{alertMessage}</p>
+
           <TextInput
             idFor="title"
             label="Title"
@@ -121,11 +160,11 @@ function CreatePostPage() {
           ></TextInput>
 
           <div className="w-[min(45rem,100%)] flex flex-col mb-4 lg:grid lg:grid-cols-3">
-            <label htmlFor="content">Content:</label>
+            <label htmlFor="text">Content:</label>
             <textarea
-              className="border-2 mt-2 lg:mt-0 lg:col-span-2 border-black resize-none p-2 text-black data-[error-input=true]:border-red-700"
-              id="content"
-              placeholder="Write text content from your post"
+              className="border-2 mt-2 min-h-[10rem] lg:mt-0 lg:col-span-2 border-black resize-none p-2 text-black data-[error-input=true]:border-red-700"
+              id="text"
+              placeholder="Write text for your post"
               ref={contentRef}
             ></textarea>
           </div>

@@ -44,17 +44,45 @@ function MultipleImagesInput({
       <div className="flex flex-wrap gap-4 w-[min(90%,70rem)] ">
         {imagesURLState?.map((imageURL) => {
           return (
-            <img
-              key={uuidv4()}
-              className={imagesWidth ? imagesWidth : "w-[10rem]"}
-              src={
-                imageURL
-                  ? imageURL
-                  : typeOfImage === "profilePicture"
-                  ? user.userData?.profilePictureURL
-                  : undefined
-              }
-            ></img>
+            <div key={uuidv4()} className="relative">
+              <img
+                className={
+                  imagesWidth
+                    ? `${imagesWidth} h-[100%] object-cover`
+                    : "w-[10rem] h-[100%] object-cover"
+                }
+                src={
+                  imageURL
+                    ? imageURL
+                    : typeOfImage === "profilePicture"
+                    ? user.userData?.profilePictureURL
+                    : undefined
+                }
+              ></img>
+              <button
+                onClick={() => {
+                  const indexImageURL = imagesURLState.indexOf(imageURL);
+                  const imageFileToRemove = imagesFileState![indexImageURL];
+                  console.log(imagesFileState);
+                  console.log(imagesURLState);
+                  setImagesFileState((prevValue) =>
+                    prevValue!.filter((file) => file !== imageFileToRemove)
+                  );
+
+                  setImagesURLState((prevValue) =>
+                    prevValue?.filter((url) => url !== imageURL)
+                  );
+
+                  setTimeout(() => {
+                    console.log(imagesFileState);
+                    console.log(imagesURLState);
+                  }, 3000);
+                }}
+                className="absolute top-0 right-0 text-3xl px-2  bg-firstBrown hover:bg-firstGreen duration-150 transition-all rounded-full w-fit "
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
           );
         })}
       </div>
