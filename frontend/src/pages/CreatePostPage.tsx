@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { KeyboardEventHandler, useRef, useState } from "react";
 import Header from "../components/Header";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
@@ -8,17 +8,40 @@ import ButtonComponent from "../components/ui/ButtonComponent";
 import { useNavigate } from "react-router-dom";
 import MultipleImagesInput from "../components/MultipleImagesInput";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
+import { v4 as uuidv4 } from "uuid";
 
 function CreatePostPage() {
   const user = useSelector((state: RootState) => state.auth.user);
   const [imageFiles, setImageFiles] = useState<File[] | null>(null);
   const [imageURLs, setImageURLs] = useState<string[] | undefined>(undefined);
   const [formSubmitLoading, setFormSubmitLoading] = useState(false);
+  const [tagsState, setTags] = useState<string[] | []>(["React", "Nodejs"]);
   const [alertMessage, setAlertMessage] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
+  const tagRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
+
+  function handleTagInputKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (
+      (event.key === "Delete" || event.key === "Backspace") &&
+      tagRef.current?.value === "" &&
+      tagsState
+    ) {
+      setTags((currentTags) =>
+        currentTags.filter((tag, index) => index !== currentTags.length - 1)
+      );
+    }
+
+    if (event.key === "Enter" && tagRef.current?.value !== "") {
+      const newTagValue = tagRef.current!.value;
+      setTags((currentTags) => {
+        return [...currentTags, newTagValue];
+      });
+      tagRef.current!.value = "";
+    }
+  }
 
   return (
     <>
@@ -26,118 +49,8 @@ function CreatePostPage() {
       <section className="bg-mainBg text-white px-4 py-8">
         <h1 className="text-2xl mb-2 font-semibold">Create Post</h1>
         <form
-          onSubmit={async (e) => {
+          onSubmit={(e) => {
             e.preventDefault();
-            setFormSubmitLoading(true);
-
-            let responsePostImagesData = null;
-
-            try {
-              const responseAccessTokenRefresh =
-                await requestAccessTokenRefresh();
-              if (!responseAccessTokenRefresh.ok) {
-                navigate("/login");
-              }
-
-              if (!user.userData?.verified) {
-                setAlertMessage("To post you need to verify your email");
-
-                setFormSubmitLoading(false);
-                return;
-              }
-
-              if (imageFiles) {
-                const formData = new FormData();
-                imageFiles.forEach((file) => {
-                  formData.append("files", file);
-                });
-
-                const urlPostImages = `${BACKEND_URL}/api/images/postImages`;
-                const responsePostImage = await fetch(urlPostImages, {
-                  method: "POST",
-                  mode: "cors",
-                  credentials: "include",
-                  headers: {
-                    authorization: `Bearer ${user.userData?.accessToken}`,
-                  },
-                  body: formData,
-                });
-
-                if (responsePostImage.status === 400) {
-                  setFormSubmitLoading(false);
-                  setAlertMessage("Invalid image upload");
-                  return;
-                }
-                if (!responsePostImage.ok) {
-                  setFormSubmitLoading(false);
-                  setAlertMessage("Error uploading images");
-                  return;
-                }
-
-                responsePostImagesData = await responsePostImage.json();
-              }
-
-              const imageURLsStrings =
-                responsePostImagesData.imageIdsAndUrls.map(
-                  (obj: { imageURL: string; imageId: string }) => {
-                    return obj.imageURL;
-                  }
-                );
-
-              const imageIdsStrings =
-                responsePostImagesData.imageIdsAndUrls.map(
-                  (obj: { imageId: string; imageURL: string }) => {
-                    return obj.imageId;
-                  }
-                );
-
-              // //Post model
-              const data = {
-                title: titleRef.current!.value,
-                content: contentRef.current!.value,
-                imageURLs: imageURLsStrings,
-                imageIds: imageIdsStrings,
-              };
-              const urlCreatePost = `${BACKEND_URL}/api/posts`;
-              const responsePostModel = await fetch(urlCreatePost, {
-                method: "POST",
-                headers: {
-                  authorization: `Bearer ${user.userData?.accessToken}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-              });
-
-              const responsePostModelData = await responsePostModel.json();
-
-              if (responsePostModel.status === 400) {
-                if (
-                  responsePostModelData.message ===
-                  "Title not found, it is required"
-                ) {
-                  setFormSubmitLoading(false);
-                  setAlertMessage("Title is required");
-                  return;
-                }
-
-                setFormSubmitLoading(false);
-                setAlertMessage("Invalid information to post");
-              }
-              if (!responsePostModel.ok) {
-                setFormSubmitLoading(false);
-                setAlertMessage("Error uploading post");
-                return;
-              }
-
-              setFormSubmitLoading(false);
-              navigate(`/post/${responsePostModelData.post._id}`, {
-                replace: true,
-              });
-
-              return;
-            } catch (error) {
-              console.log(error);
-            }
           }}
         >
           <MultipleImagesInput
@@ -168,10 +81,148 @@ function CreatePostPage() {
               ref={contentRef}
             ></textarea>
           </div>
+
+          <div className="flex flex-wrap bg-white border-2 p-1 border-solid border-black">
+            <ul className="">
+              {tagsState.map((tag, index) => (
+                <li
+                  className="inline-block pl-2 font-semibold bg-firstGreen rounded-full"
+                  key={uuidv4()}
+                >
+                  {tag}
+                  <button className="bg-firstLavender py-1 px-2 transition-all duration-150 hover:bg-firstBrown ml-2 rounded-full">
+                    <i className="fa-solid fa-trash"></i>
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <input
+              className="inline-block flex-grow text-black"
+              type="text"
+              ref={tagRef}
+              onKeyUp={(e) => {
+                handleTagInputKeyUp(e);
+              }}
+            ></input>
+          </div>
+
           <ButtonComponent
             textBtn="Post"
             typeButton="submit"
             loadingDisabled={formSubmitLoading}
+            onClickFunction={async (e) => {
+              setFormSubmitLoading(true);
+
+              let responsePostImagesData = null;
+
+              try {
+                const responseAccessTokenRefresh =
+                  await requestAccessTokenRefresh();
+                if (!responseAccessTokenRefresh.ok) {
+                  navigate("/login");
+                }
+
+                if (!user.userData?.verified) {
+                  setAlertMessage("To post you need to verify your email");
+
+                  setFormSubmitLoading(false);
+                  return;
+                }
+
+                if (imageFiles) {
+                  const formData = new FormData();
+                  imageFiles.forEach((file) => {
+                    formData.append("files", file);
+                  });
+
+                  const urlPostImages = `${BACKEND_URL}/api/images/postImages`;
+                  const responsePostImage = await fetch(urlPostImages, {
+                    method: "POST",
+                    mode: "cors",
+                    credentials: "include",
+                    headers: {
+                      authorization: `Bearer ${user.userData?.accessToken}`,
+                    },
+                    body: formData,
+                  });
+
+                  if (responsePostImage.status === 400) {
+                    setFormSubmitLoading(false);
+                    setAlertMessage("Invalid image upload");
+                    return;
+                  }
+                  if (!responsePostImage.ok) {
+                    setFormSubmitLoading(false);
+                    setAlertMessage("Error uploading images");
+                    return;
+                  }
+
+                  responsePostImagesData = await responsePostImage.json();
+                }
+
+                const imageURLsStrings =
+                  responsePostImagesData.imageIdsAndUrls.map(
+                    (obj: { imageURL: string; imageId: string }) => {
+                      return obj.imageURL;
+                    }
+                  );
+
+                const imageIdsStrings =
+                  responsePostImagesData.imageIdsAndUrls.map(
+                    (obj: { imageId: string; imageURL: string }) => {
+                      return obj.imageId;
+                    }
+                  );
+
+                // //Post model
+                const data = {
+                  title: titleRef.current!.value,
+                  content: contentRef.current!.value,
+                  imageURLs: imageURLsStrings,
+                  imageIds: imageIdsStrings,
+                };
+                const urlCreatePost = `${BACKEND_URL}/api/posts`;
+                const responsePostModel = await fetch(urlCreatePost, {
+                  method: "POST",
+                  headers: {
+                    authorization: `Bearer ${user.userData?.accessToken}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(data),
+                });
+
+                const responsePostModelData = await responsePostModel.json();
+
+                if (responsePostModel.status === 400) {
+                  if (
+                    responsePostModelData.message ===
+                    "Title not found, it is required"
+                  ) {
+                    setFormSubmitLoading(false);
+                    setAlertMessage("Title is required");
+                    return;
+                  }
+
+                  setFormSubmitLoading(false);
+                  setAlertMessage("Invalid information to post");
+                }
+                if (!responsePostModel.ok) {
+                  setFormSubmitLoading(false);
+                  setAlertMessage("Error uploading post");
+                  return;
+                }
+
+                setFormSubmitLoading(false);
+                navigate(`/post/${responsePostModelData.post._id}`, {
+                  replace: true,
+                });
+
+                return;
+              } catch (error) {
+                console.log(error);
+              }
+            }}
           ></ButtonComponent>
         </form>
       </section>
