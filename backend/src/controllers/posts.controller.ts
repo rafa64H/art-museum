@@ -21,11 +21,12 @@ export async function createPostHandler(
         .status(404)
         .json({ success: false, message: "User not found" });
 
-    const { title, content, imageURLs, imageIds } = req.body as {
+    const { title, content, imageURLs, imageIds, tags } = req.body as {
       title: string;
       content: string | null;
       imageURLs: string[] | null;
       imageIds: string[] | null;
+      tags: string[];
     };
 
     const imageIdsObjectIds = imageIds?.map((imageId) => {
@@ -43,6 +44,7 @@ export async function createPostHandler(
       content: content ? content : "",
       imageURLs: imageURLs ? imageURLs : null,
       imageIds: imageIdsObjectIds ? imageIdsObjectIds : null,
+      tags: tags ? tags : [],
     });
     await newPost.save();
 

@@ -129,6 +129,13 @@ function PostPage() {
             ></div>
 
             <p className="text-lg text-center">{post.content}</p>
+
+            <p>
+              Tags:{" "}
+              {post.tags.length > 0
+                ? post.tags.join(", ")
+                : "there are no tags!"}
+            </p>
           </section>
         </>
       ) : (

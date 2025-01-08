@@ -23,11 +23,12 @@ function CreatePostPage() {
 
   const navigate = useNavigate();
 
-  function handleTagInputKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
+  function handleTagInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    console.log(event.key);
     if (
       (event.key === "Delete" || event.key === "Backspace") &&
       tagRef.current?.value === "" &&
-      tagsState
+      tagsState.length > 0
     ) {
       setTags(tagsState.filter((tag, index) => index !== tagsState.length - 1));
     }
@@ -114,7 +115,7 @@ function CreatePostPage() {
               type="text"
               ref={tagRef}
               onKeyUp={(e) => {
-                handleTagInputKeyUp(e);
+                handleTagInputKeyDown(e);
               }}
             ></input>
           </div>
@@ -193,6 +194,7 @@ function CreatePostPage() {
                   content: contentRef.current!.value,
                   imageURLs: imageURLsStrings,
                   imageIds: imageIdsStrings,
+                  tags: tagsState,
                 };
                 const urlCreatePost = `${BACKEND_URL}/api/posts`;
                 const responsePostModel = await fetch(urlCreatePost, {

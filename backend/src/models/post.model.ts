@@ -38,6 +38,10 @@ const PostSchema = new mongoose.Schema<PostDocument>({
     type: Date,
     default: Date.now,
   },
+  tags: {
+    type: [String],
+    default: [],
+  },
   updatedAt: {
     type: Date,
     default: Date.now,
