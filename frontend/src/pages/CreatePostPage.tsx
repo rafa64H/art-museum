@@ -1,4 +1,4 @@
-import { KeyboardEventHandler, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Header from "../components/Header";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
@@ -29,16 +29,17 @@ function CreatePostPage() {
       tagRef.current?.value === "" &&
       tagsState
     ) {
-      setTags((currentTags) =>
-        currentTags.filter((tag, index) => index !== currentTags.length - 1)
-      );
+      setTags(tagsState.filter((tag, index) => index !== tagsState.length - 1));
     }
 
     if (event.key === "Enter" && tagRef.current?.value !== "") {
+      event.preventDefault();
       const newTagValue = tagRef.current!.value;
-      setTags((currentTags) => {
-        return [...currentTags, newTagValue];
-      });
+      const newTagValueModified = newTagValue
+        .split(" ")
+        .join("")
+        .toLocaleLowerCase();
+      setTags([...tagsState, newTagValueModified]);
       tagRef.current!.value = "";
     }
   }
@@ -86,12 +87,23 @@ function CreatePostPage() {
             <ul className="">
               {tagsState.map((tag, index) => (
                 <li
-                  className="inline-block pl-2 font-semibold bg-firstGreen rounded-full"
+                  className="inline-block pl-2 cursor-default mx-2 font-semibold bg-firstGreen rounded-full"
                   key={uuidv4()}
                 >
                   {tag}
-                  <button className="bg-firstLavender py-1 px-2 transition-all duration-150 hover:bg-firstBrown ml-2 rounded-full">
-                    <i className="fa-solid fa-trash"></i>
+                  <button>
+                    {/*When pressing enter adding a new tag, 
+                    if the onClick is on the <button> it will be
+                    triggered
+                    */}
+                    <div
+                      onClick={() => {
+                        setTags(tagsState.filter((_, i) => i !== index));
+                      }}
+                      className="bg-firstLavender p-2 transition-all duration-150 hover:bg-firstBrown ml-2 rounded-full"
+                    >
+                      <i className="fa-solid fa-trash"></i>
+                    </div>
                   </button>
                 </li>
               ))}
@@ -109,9 +121,9 @@ function CreatePostPage() {
 
           <ButtonComponent
             textBtn="Post"
-            typeButton="submit"
+            typeButton="button"
             loadingDisabled={formSubmitLoading}
-            onClickFunction={async (e) => {
+            onClickFunction={async () => {
               setFormSubmitLoading(true);
 
               let responsePostImagesData = null;
