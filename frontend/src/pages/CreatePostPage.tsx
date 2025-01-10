@@ -16,6 +16,11 @@ function CreatePostPage() {
   const [imageURLs, setImageURLs] = useState<string[] | undefined>(undefined);
   const [formSubmitLoading, setFormSubmitLoading] = useState(false);
   const [tagsState, setTags] = useState<string[] | []>(["React", "Nodejs"]);
+
+  //If there is no prevValue state, then when removing
+  //the last character from the tags input, it will remove a tag.
+  //If you can solve this problem without using state, you can help :)
+  const [inputTagPrevValue, setInputTagPrevValue] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -23,17 +28,22 @@ function CreatePostPage() {
 
   const navigate = useNavigate();
 
-  function handleTagInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+  function handleTagInputKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
     console.log(event.key);
-    if (
-      (event.key === "Delete" || event.key === "Backspace") &&
-      tagRef.current?.value === "" &&
-      tagsState.length > 0
-    ) {
-      setTags(tagsState.filter((tag, index) => index !== tagsState.length - 1));
+    if (event.key === "Delete" || event.key === "Backspace") {
+      //To not trigger re-render each time pressing "Backspace" or "Delete"
+      if (tagRef.current!.value.length <= 1) {
+        setInputTagPrevValue(tagRef.current!.value);
+      }
+
+      if (tagRef.current!.value === "" && inputTagPrevValue === "") {
+        setTags(
+          tagsState.filter((tag, index) => index !== tagsState.length - 1)
+        );
+      }
     }
 
-    if (event.key === "Enter" && tagRef.current?.value !== "") {
+    if (event.key === "Enter" && tagRef.current!.value !== "") {
       event.preventDefault();
       const newTagValue = tagRef.current!.value;
       const newTagValueModified = newTagValue
@@ -115,7 +125,7 @@ function CreatePostPage() {
               type="text"
               ref={tagRef}
               onKeyUp={(e) => {
-                handleTagInputKeyDown(e);
+                handleTagInputKeyUp(e);
               }}
             ></input>
           </div>
