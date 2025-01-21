@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import MultipleImagesInput from "../components/MultipleImagesInput";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { v4 as uuidv4 } from "uuid";
+import InputTextArea from "../components/ui/InputTextArea";
 
 function CreatePostPage() {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -84,15 +85,13 @@ function CreatePostPage() {
             type="text"
           ></TextInput>
 
-          <div className="w-[min(45rem,100%)] flex flex-col mb-4 lg:grid lg:grid-cols-3">
-            <label htmlFor="text">Content:</label>
-            <textarea
-              className="border-2 mt-2 min-h-[10rem] lg:mt-0 lg:col-span-2 border-black resize-none p-2 text-black data-[error-input=true]:border-red-700"
-              id="text"
-              placeholder="Write text for your post"
-              ref={contentRef}
-            ></textarea>
-          </div>
+          <InputTextArea
+            refProp={contentRef}
+            smallOrLarge="large"
+            idAndFor="contentText"
+            placeholder="Write your post's content"
+            textLabel="Content"
+          ></InputTextArea>
 
           <div className="flex flex-wrap bg-white border-2 p-1 border-solid border-black">
             <ul className="">
