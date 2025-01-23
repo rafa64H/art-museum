@@ -9,6 +9,8 @@ import ButtonComponent from "../components/ui/ButtonComponent";
 import LikeBtn from "../components/ui/LikeBtn";
 import DislikeBtn from "../components/ui/DislikeBtn";
 import InputTextArea from "../components/ui/InputTextArea";
+import ReplyBtn from "../components/ui/ReplyBtn";
+import UserPictureAndUsername from "../components/ui/UserPictureAndUsername";
 
 type postDataResponse = {
   authorId: string;
@@ -155,9 +157,9 @@ function PostPage() {
             ) : null}
 
             <div className="flex gap-4 my-4">
-              <LikeBtn></LikeBtn>
+              <LikeBtn smallOrLarge="large"></LikeBtn>
 
-              <DislikeBtn></DislikeBtn>
+              <DislikeBtn smallOrLarge="large"></DislikeBtn>
             </div>
           </section>
 
@@ -187,32 +189,19 @@ function PostPage() {
 
             <ul>
               <li className="relative w-fit">
-                <div className="flex items-center">
-                  <img
-                    className="w-[min(7rem,7%)] h-[min(7rem,7%)] rounded-full"
-                    src={user.userData?.profilePictureURL}
-                  ></img>
-                  <p className="ml-2">{user.userData?.username}</p>
-                </div>
+                <UserPictureAndUsername
+                  userId={user.userData?.id}
+                ></UserPictureAndUsername>
                 <p className="ml-[min(7rem,7%)]">
                   Lore ipsum amet data adida lekelev achima derek anem malinda
                   nemadi nomadi jalenimina
                 </p>
                 <div className="w-fit ml-[min(7rem,7%)]  flex gap-4 my-2">
-                  <button className="p-1 bg-firstBrown transition-all duration-150 hover:bg-firstGreen font-semibold">
-                    Like
-                    <i className=" mx-2 fa-solid fa-thumbs-up"></i>0
-                  </button>
+                  <LikeBtn smallOrLarge="small"></LikeBtn>
 
-                  <button className="p-1 bg-firstBrown transition-all duration-150 hover:bg-firstGreen font-semibold">
-                    Dislike
-                    <i className=" mx-2 fa-solid fa-thumbs-down"></i>0
-                  </button>
+                  <DislikeBtn smallOrLarge="small"></DislikeBtn>
 
-                  <button className="transition-all duration-150 hover:text-firstGreen font-semibold">
-                    Reply
-                    <i className="mx-2 fa-solid fa-reply"></i>
-                  </button>
+                  <ReplyBtn></ReplyBtn>
                 </div>
 
                 <form className="ml-[min(7rem,7%)]">
