@@ -11,6 +11,7 @@ import DislikeBtn from "../components/ui/DislikeBtn";
 import InputTextArea from "../components/ui/InputTextArea";
 import ReplyBtn from "../components/ui/ReplyBtn";
 import UserPictureAndUsername from "../components/ui/UserPictureAndUsername";
+import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 
 type postDataResponse = {
   authorId: string;
@@ -27,6 +28,7 @@ function PostPage() {
   const [loading, setLoading] = useState(true);
   const [fullViewImage, setFullViewImage] = useState(false);
   const [selectedViewImage, setSelectedViewImage] = useState(0);
+  const [alertMessage, setAlertMessage] = useState("");
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const replyRef = useRef<HTMLTextAreaElement>(null);
   const params = useParams();
@@ -168,7 +170,16 @@ function PostPage() {
           <section className="bg-mainBg text-white">
             <h2 className="text-2xl font-semibold text-center">Comments</h2>
 
-            <form>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  checkEmptyFieldsForm([commentRef.current!], setAlertMessage);
+                } catch (error) {
+                  console.log(error);
+                }
+              }}
+            >
               <div className="flex flex-col w-[min(45rem,70%)]">
                 <InputTextArea
                   refProp={commentRef}

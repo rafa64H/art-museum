@@ -3,6 +3,7 @@ import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
 import { ObjectId } from "mongodb";
 import { UserModel } from "../models/user.model";
 import { PostModel } from "../models/post.model";
+import { CommentModel } from "../models/comment.model";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -89,6 +90,27 @@ export async function getSinglePostHandler(req: Request, res: Response) {
     };
 
     res.status(200).json({ success: true, post: postObjectToReturn });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+  }
+}
+
+export async function getAllComments(req: Request, res: Response) {
+  try {
+    const { postId } = req.params;
+
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const comments = await CommentModel.find({ postId: postIdObjectId });
+    console.log(comments);
+
+    res.status(200).json({ success: true, comments });
   } catch (error) {
     res.status(500).json({ success: false, message: "internal server error" });
   }
