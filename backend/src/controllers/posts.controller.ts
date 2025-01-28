@@ -111,18 +111,14 @@ export async function getAllCommentsHandler(req: Request, res: Response) {
       postId: postIdObjectId,
     })) as CommentDocument[] | [];
 
-    if (!comments)
-      return res
-        .status(500)
-        .json({ success: false, message: "internal server error" });
-
     const commentsObjects = comments.map((comment) => {
-      comment.toObject();
+      return comment.toObject();
     });
 
     res.status(200).json({ success: true, comments: commentsObjects });
   } catch (error) {
     res.status(500).json({ success: false, message: "internal server error" });
+    console.log(error);
   }
 }
 

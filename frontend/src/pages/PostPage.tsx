@@ -13,6 +13,14 @@ import ReplyBtn from "../components/ui/ReplyBtn";
 import UserPictureAndUsername from "../components/ui/UserPictureAndUsername";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 
+type commentObj = {
+  authorId: string;
+  postId: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 type postDataResponse = {
   authorId: string;
   title: string;
@@ -26,10 +34,12 @@ type postDataResponse = {
 function PostPage() {
   const [post, setPost] = useState<postDataResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingComments, setLoadingComments] = useState(true);
   const [fullViewImage, setFullViewImage] = useState(false);
   const [selectedViewImage, setSelectedViewImage] = useState(0);
   const [alertMessage, setAlertMessage] = useState("");
   const [commentSubmitLoading, setCommentSubmitLoading] = useState(false);
+  const [commentsState, setCommentsState] = useState<commentObj[]>([]);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const replyRef = useRef<HTMLTextAreaElement>(null);
   const params = useParams();
@@ -57,7 +67,26 @@ function PostPage() {
         console.log(error);
       }
     };
+
+    const getFirstComments = async () => {
+      try {
+        const urlGetComments = `${BACKEND_URL}/api/posts/${postId}/comments`;
+
+        const responseGetComments = await fetch(urlGetComments, {
+          method: "GET",
+        });
+
+        const firstCommentsToSet = await responseGetComments.json();
+        console.log(await firstCommentsToSet);
+        setCommentsState(firstCommentsToSet.comments);
+        setLoadingComments(false);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     getPost();
+    getFirstComments();
   }, [postId]);
   return (
     <>
@@ -218,41 +247,48 @@ function PostPage() {
             </form>
 
             <ul>
-              <li className="relative w-fit">
-                <UserPictureAndUsername
-                  userId={user.userData?.id}
-                ></UserPictureAndUsername>
-                <p className="ml-[min(7rem,7%)]">
-                  Lore ipsum amet data adida lekelev achima derek anem malinda
-                  nemadi nomadi jalenimina
-                </p>
-                <div className="w-fit ml-[min(7rem,7%)]  flex gap-4 my-2">
-                  <LikeBtn smallOrLarge="small"></LikeBtn>
+              {loadingComments ? (
+                <>
+                  <div>Loading...</div>
+                </>
+              ) : (
+                commentsState.map((comment) => {
+                  return (
+                    <li className="relative w-fit">
+                      <UserPictureAndUsername
+                        userId={comment.authorId}
+                      ></UserPictureAndUsername>
+                      <p className="ml-[min(7rem,7%)]">{comment.content}</p>
+                      <div className="w-fit ml-[min(7rem,7%)]  flex gap-4 my-2">
+                        <LikeBtn smallOrLarge="small"></LikeBtn>
 
-                  <DislikeBtn smallOrLarge="small"></DislikeBtn>
+                        <DislikeBtn smallOrLarge="small"></DislikeBtn>
 
-                  <ReplyBtn></ReplyBtn>
-                </div>
+                        <ReplyBtn></ReplyBtn>
+                      </div>
 
-                <form className="ml-[min(7rem,7%)]">
-                  <div className="flex flex-col w-[min(45rem,70%)]">
-                    <InputTextArea
-                      refProp={replyRef}
-                      smallOrLarge="small"
-                      width="100%"
-                      minHeight="4rem"
-                      idAndFor="replyText"
-                      placeholder="Write your reply"
-                      textLabel="Reply"
-                    ></InputTextArea>
-                    <ButtonComponent
-                      typeButton="button"
-                      textBtn="Submit reply"
-                      additionalClassnames="self-end p-1"
-                    ></ButtonComponent>
-                  </div>
-                </form>
-              </li>
+                      <form className="ml-[min(7rem,7%)]">
+                        <div className="flex flex-col w-[min(45rem,70%)]">
+                          <InputTextArea
+                            refProp={replyRef}
+                            smallOrLarge="small"
+                            width="100%"
+                            minHeight="4rem"
+                            idAndFor="replyText"
+                            placeholder="Write your reply"
+                            textLabel="Reply"
+                          ></InputTextArea>
+                          <ButtonComponent
+                            typeButton="button"
+                            textBtn="Submit reply"
+                            additionalClassnames="self-end p-1"
+                          ></ButtonComponent>
+                        </div>
+                      </form>
+                    </li>
+                  );
+                })
+              )}
             </ul>
           </section>
         </>
