@@ -3,7 +3,7 @@ import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
 import { ObjectId } from "mongodb";
 import { UserModel } from "../models/user.model";
 import { PostModel } from "../models/post.model";
-import { CommentModel } from "../models/comment.model";
+import { CommentDocument, CommentModel } from "../models/comment.model";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -95,7 +95,7 @@ export async function getSinglePostHandler(req: Request, res: Response) {
   }
 }
 
-export async function getAllComments(req: Request, res: Response) {
+export async function getAllCommentsHandler(req: Request, res: Response) {
   try {
     const { postId } = req.params;
 
@@ -107,10 +107,125 @@ export async function getAllComments(req: Request, res: Response) {
         .status(404)
         .json({ success: false, message: "Post not found" });
 
-    const comments = await CommentModel.find({ postId: postIdObjectId });
-    console.log(comments);
+    const comments = (await CommentModel.find({
+      postId: postIdObjectId,
+    })) as CommentDocument[] | [];
 
-    res.status(200).json({ success: true, comments });
+    if (!comments)
+      return res
+        .status(500)
+        .json({ success: false, message: "internal server error" });
+
+    const commentsObjects = comments.map((comment) => {
+      comment.toObject();
+    });
+
+    res.status(200).json({ success: true, comments: commentsObjects });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+  }
+}
+
+export async function createCommentHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized to create post" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const { postId } = req.params;
+
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const { content } = req.body as { content: string };
+
+    const newComment = new CommentModel({
+      postId: postIdObjectId,
+      authorId: userIdObjectId,
+      content: content,
+    });
+
+    await newComment.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Comment created successfully",
+      newComment: { ...newComment.toObject() },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+  }
+}
+
+export async function editCommentHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized to create post" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const { postId, commentId } = req.params;
+
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const commentIdObjectId = ObjectId.createFromHexString(commentId);
+    const foundComment = (await CommentModel.findOne(
+      commentIdObjectId
+    )) as CommentDocument;
+
+    if (!foundComment)
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
+
+    if (foundComment.authorId.toString() !== userId)
+      return res
+        .status(401)
+        .json({ success: false, message: `Not same user as comment's author` });
+
+    const { content } = req.body as { content: string };
+
+    foundComment.content = content;
+
+    await foundComment.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Comment edited successfully",
+      editedComment: { ...foundComment.toObject() },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "internal server error" });
   }

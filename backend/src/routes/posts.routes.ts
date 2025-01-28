@@ -1,8 +1,10 @@
 import express, { RequestHandler } from "express";
 import verifyJWT from "../middleware/verifyJWT";
 import {
+  createCommentHandler,
   createPostHandler,
-  getAllComments,
+  editCommentHandler,
+  getAllCommentsHandler,
   getSinglePostHandler,
 } from "../controllers/posts.controller";
 
@@ -16,11 +18,15 @@ postsRoutes.post("/", verifyJWT as RequestHandler, async (req, res) => {
 });
 
 postsRoutes.get("/:postId/comments", async (req, res) => {
-  await getAllComments(req, res);
+  await getAllCommentsHandler(req, res);
 });
 
-postsRoutes.post("/:postId/comments/:commentId", async (req, res) => {});
+postsRoutes.post("/:postId/comments/", async (req, res) => {
+  await createCommentHandler(req, res);
+});
 
-postsRoutes.put("/:postId/comments/:commentId", async (req, res) => {});
+postsRoutes.put("/:postId/comments/:commentId", async (req, res) => {
+  await editCommentHandler(req, res);
+});
 
 export default postsRoutes;
