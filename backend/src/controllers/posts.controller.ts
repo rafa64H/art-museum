@@ -135,7 +135,7 @@ export async function createCommentHandler(
     if (!userId)
       return res
         .status(401)
-        .json({ success: false, message: "Unauthorized to create post" });
+        .json({ success: false, message: "Unauthorized to create comment" });
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
     if (!foundUser)
@@ -170,6 +170,7 @@ export async function createCommentHandler(
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "internal server error" });
+    console.log(error);
   }
 }
 

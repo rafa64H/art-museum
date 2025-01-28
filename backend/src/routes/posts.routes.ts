@@ -21,12 +21,20 @@ postsRoutes.get("/:postId/comments", async (req, res) => {
   await getAllCommentsHandler(req, res);
 });
 
-postsRoutes.post("/:postId/comments/", async (req, res) => {
-  await createCommentHandler(req, res);
-});
+postsRoutes.post(
+  "/:postId/comments/",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await createCommentHandler(req, res);
+  }
+);
 
-postsRoutes.put("/:postId/comments/:commentId", async (req, res) => {
-  await editCommentHandler(req, res);
-});
+postsRoutes.put(
+  "/:postId/comments/:commentId",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await editCommentHandler(req, res);
+  }
+);
 
 export default postsRoutes;

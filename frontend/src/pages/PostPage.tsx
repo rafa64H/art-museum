@@ -29,6 +29,7 @@ function PostPage() {
   const [fullViewImage, setFullViewImage] = useState(false);
   const [selectedViewImage, setSelectedViewImage] = useState(0);
   const [alertMessage, setAlertMessage] = useState("");
+  const [commentSubmitLoading, setCommentSubmitLoading] = useState(false);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const replyRef = useRef<HTMLTextAreaElement>(null);
   const params = useParams();
@@ -173,10 +174,27 @@ function PostPage() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
+                setCommentSubmitLoading(true);
                 try {
                   checkEmptyFieldsForm([commentRef.current!], setAlertMessage);
+
+                  const urlToCreatePost = `${BACKEND_URL}/api/posts/${postId}/comments`;
+                  const responseCreateComment = await fetch(urlToCreatePost, {
+                    headers: {
+                      authorization: "Bearer " + user.userData?.accessToken,
+                      "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                      content: commentRef.current?.value,
+                    }),
+                  });
+
+                  console.log(await responseCreateComment.json());
+                  setCommentSubmitLoading(false);
                 } catch (error) {
                   console.log(error);
+                  setCommentSubmitLoading(false);
                 }
               }}
             >
@@ -191,9 +209,10 @@ function PostPage() {
                   textLabel="Comment"
                 ></InputTextArea>
                 <ButtonComponent
-                  typeButton="button"
+                  typeButton="submit"
                   textBtn="Submit comment"
                   additionalClassnames="self-end"
+                  loadingDisabled={commentSubmitLoading}
                 ></ButtonComponent>
               </div>
             </form>
@@ -218,7 +237,7 @@ function PostPage() {
                 <form className="ml-[min(7rem,7%)]">
                   <div className="flex flex-col w-[min(45rem,70%)]">
                     <InputTextArea
-                      refProp={commentRef}
+                      refProp={replyRef}
                       smallOrLarge="small"
                       width="100%"
                       minHeight="4rem"
