@@ -17,6 +17,7 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import CreatePostPage from "./pages/CreatePostPage";
 import PostPage from "./pages/PostPage";
+import { ContextCommentsPostsProvider } from "./contexts/CommentsPost";
 
 const router = createBrowserRouter([
   {
@@ -39,7 +40,9 @@ const router = createBrowserRouter([
     path: "/post/:postId",
     element: (
       <CheckAuth>
-        <PostPage></PostPage>
+        <ContextCommentsPostsProvider>
+          <PostPage></PostPage>
+        </ContextCommentsPostsProvider>
       </CheckAuth>
     ),
   },

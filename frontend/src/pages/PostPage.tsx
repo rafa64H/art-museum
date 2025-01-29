@@ -12,6 +12,7 @@ import InputTextArea from "../components/ui/InputTextArea";
 import ReplyBtn from "../components/ui/ReplyBtn";
 import UserPictureAndUsername from "../components/ui/UserPictureAndUsername";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
+import { useContextCommentsPosts } from "../contexts/CommentsPost";
 
 type commentObj = {
   authorId: string;
@@ -39,12 +40,12 @@ function PostPage() {
   const [selectedViewImage, setSelectedViewImage] = useState(0);
   const [alertMessage, setAlertMessage] = useState("");
   const [commentSubmitLoading, setCommentSubmitLoading] = useState(false);
-  const [commentsState, setCommentsState] = useState<commentObj[]>([]);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const replyRef = useRef<HTMLTextAreaElement>(null);
   const params = useParams();
   const postId = params.postId;
   const user = useSelector((state: RootState) => state.auth.user);
+  const { commentsState, setCommentsState } = useContextCommentsPosts();
 
   useEffect(() => {
     const getPost = async () => {
