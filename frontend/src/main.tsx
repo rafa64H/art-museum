@@ -17,7 +17,7 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import CreatePostPage from "./pages/CreatePostPage";
 import PostPage from "./pages/PostPage";
-import { ContextCommentsPostsProvider } from "./contexts/CommentsPost";
+import { ContextCommentsPostsProvider } from "./contexts/ContextCommentsPosts";
 
 const router = createBrowserRouter([
   {

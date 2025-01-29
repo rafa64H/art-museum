@@ -4,7 +4,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-type commentObjPost = {
+export type commentObjPost = {
   authorId: string;
   postId: string;
   content: string;
