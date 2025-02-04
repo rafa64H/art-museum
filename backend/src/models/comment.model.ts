@@ -4,6 +4,7 @@ export interface CommentDocument extends mongoose.Document {
   authorId: ObjectId;
   postId: ObjectId;
   content: string;
+  repliesIds: ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +23,11 @@ const CommentSchema = new mongoose.Schema<CommentDocument>({
   content: {
     type: String,
     required: true,
+  },
+  repliesIds: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "Reply",
+    default: [],
   },
   createdAt: {
     type: Date,

@@ -3,8 +3,11 @@ import verifyJWT from "../middleware/verifyJWT";
 import {
   createCommentHandler,
   createPostHandler,
+  createReplyHandler,
   editCommentHandler,
+  editReplyHandler,
   getAllCommentsHandler,
+  getAllRepliesHandler,
   getSinglePostHandler,
 } from "../controllers/posts.controller";
 
@@ -34,6 +37,26 @@ postsRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await editCommentHandler(req, res);
+  }
+);
+
+postsRoutes.get("/:postId/comments/:commentId/replies", async (req, res) => {
+  await getAllRepliesHandler(req, res);
+});
+
+postsRoutes.post(
+  "/:postId/comments/:commentId/replies",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await createReplyHandler(req, res);
+  }
+);
+
+postsRoutes.put(
+  "/:postId/comments/:commentId/replies/:replyId",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await editReplyHandler(req, res);
   }
 );
 

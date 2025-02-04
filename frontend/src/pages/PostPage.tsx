@@ -248,10 +248,16 @@ function PostPage() {
               ) : (
                 commentsState.map((comment) => {
                   return (
-                    <CommentItem
-                      key={uuidv4()}
-                      commentProp={comment}
-                    ></CommentItem>
+                    <div>
+                      <CommentItem
+                        key={uuidv4()}
+                        commentProp={comment}
+                      ></CommentItem>
+
+                      <ul>
+                        <h3>Replies:</h3>
+                      </ul>
+                    </div>
                   );
                 })
               )}
