@@ -5,6 +5,7 @@ type Props = {
 };
 
 export type commentObjPost = {
+  _id: string;
   authorId: string;
   postId: string;
   content: string;

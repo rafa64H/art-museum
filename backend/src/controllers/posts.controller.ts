@@ -270,6 +270,8 @@ export async function createReplyHandler(
 ) {
   try {
     const userId = req.userId;
+    const { postId, commentId, content } = req.params;
+
     if (!userId)
       return res
         .status(401)
@@ -280,8 +282,6 @@ export async function createReplyHandler(
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
-
-    const { postId, commentId } = req.params;
 
     const postIdObjectId = ObjectId.createFromHexString(postId);
     const foundPost = await PostModel.findOne(postIdObjectId);
@@ -298,8 +298,6 @@ export async function createReplyHandler(
       return res
         .status(404)
         .json({ success: false, message: "Comment not found" });
-
-    const { content } = req.body as { content: string };
 
     const newReply = new ReplyModel({
       postId: postIdObjectId,

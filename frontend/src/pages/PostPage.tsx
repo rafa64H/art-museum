@@ -9,11 +9,10 @@ import ButtonComponent from "../components/ui/ButtonComponent";
 import LikeBtn from "../components/ui/LikeBtn";
 import DislikeBtn from "../components/ui/DislikeBtn";
 import InputTextArea from "../components/ui/InputTextArea";
-import ReplyBtn from "../components/ui/ReplyBtn";
-import UserPictureAndUsername from "../components/ui/UserPictureAndUsername";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import { useContextCommentsPosts } from "../contexts/ContextCommentsPosts";
 import CommentItem from "../components/CommentItem";
+import RepliesListPost from "../components/RepliesListPost";
 
 type postDataResponse = {
   authorId: string;
@@ -34,7 +33,6 @@ function PostPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [commentSubmitLoading, setCommentSubmitLoading] = useState(false);
   const commentRef = useRef<HTMLTextAreaElement>(null);
-  const replyRef = useRef<HTMLTextAreaElement>(null);
   const params = useParams();
   const postId = params.postId;
   const user = useSelector((state: RootState) => state.auth.user);
@@ -248,15 +246,19 @@ function PostPage() {
               ) : (
                 commentsState.map((comment) => {
                   return (
-                    <div>
+                    <div key={uuidv4()}>
                       <CommentItem
-                        key={uuidv4()}
                         commentProp={comment}
+                        postId={postId}
                       ></CommentItem>
+                      <h3>Replies</h3>
 
-                      <ul>
-                        <h3>Replies:</h3>
-                      </ul>
+                      <div className="pl-24">
+                        <RepliesListPost
+                          commentObjProp={comment}
+                          postId={postId}
+                        ></RepliesListPost>
+                      </div>
                     </div>
                   );
                 })
