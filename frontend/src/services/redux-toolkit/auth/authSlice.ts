@@ -39,8 +39,11 @@ export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser(state, action: PayloadAction<UserReduxToolkit>) {
-      state.user = action.payload;
+    setUser(state, action: PayloadAction<UserData>) {
+      state.user.userData = action.payload;
+    },
+    setUserLoading(state, action: PayloadAction<boolean>) {
+      state.user.isLoading = action.payload;
     },
     setUserFollowing(state, action: PayloadAction<string[]>) {
       if (state.user.userData) {
@@ -80,6 +83,7 @@ export const authSlice = createSlice({
 
 export const {
   setUser,
+  setUserLoading,
   setUserFollowing,
   setUserFollowers,
   setEmailVerified,

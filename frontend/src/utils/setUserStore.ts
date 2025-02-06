@@ -1,4 +1,7 @@
-import { setUser } from "../services/redux-toolkit/auth/authSlice";
+import {
+  setUser,
+  setUserLoading,
+} from "../services/redux-toolkit/auth/authSlice";
 import { store } from "../services/redux-toolkit/store";
 
 type ResponseDataType = {
@@ -40,5 +43,6 @@ export default function setUserStore(responseData: ResponseDataType): void {
     accessToken: responseData.accessToken as string,
   };
 
-  store.dispatch(setUser({ userData, isLoading: false }));
+  store.dispatch(setUser(userData));
+  store.dispatch(setUserLoading(false));
 }
