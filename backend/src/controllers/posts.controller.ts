@@ -270,7 +270,7 @@ export async function createReplyHandler(
 ) {
   try {
     const userId = req.userId;
-    const { postId, commentId, content } = req.params;
+    const { postId, commentId } = req.params;
 
     if (!userId)
       return res
@@ -298,6 +298,8 @@ export async function createReplyHandler(
       return res
         .status(404)
         .json({ success: false, message: "Comment not found" });
+
+    const { content } = req.body as { content: string };
 
     const newReply = new ReplyModel({
       postId: postIdObjectId,

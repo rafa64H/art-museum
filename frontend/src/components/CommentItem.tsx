@@ -16,6 +16,7 @@ type Props = {
 };
 function CommentItem({ commentProp, postId }: Props) {
   const [showReplyBox, setShowReplyBox] = useState(false);
+  const [submitReplyLoading, setSubmitReplyLoading] = useState(false);
   const replyRef = useRef<HTMLTextAreaElement>(null);
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -40,9 +41,9 @@ function CommentItem({ commentProp, postId }: Props) {
       <form
         onSubmit={async (e) => {
           e.preventDefault();
+          setSubmitReplyLoading(true);
           try {
-            const replyValue = replyRef.current?.value;
-
+            console.log(replyRef.current);
             const urlToPostReply = `${BACKEND_URL}/api/posts/${postId}/comments/${commentProp._id}/replies`;
             const responsePostReply = await fetch(urlToPostReply, {
               method: "POST",
@@ -51,21 +52,21 @@ function CommentItem({ commentProp, postId }: Props) {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                postId: postId,
-                commentId: commentProp._id,
-                content: replyValue,
+                content: replyRef.current?.value,
               }),
             });
 
             if (responsePostReply.ok) {
               console.log(await responsePostReply.json());
               setShowReplyBox(false);
+              setSubmitReplyLoading(false);
               return;
             }
 
             throw new Error("Failed to post reply");
           } catch (error) {
             console.log(error);
+            setSubmitReplyLoading(false);
           }
         }}
         className={`${showReplyBox ? "block" : "hidden"} ml-[min(7rem,7%)]`}
@@ -83,6 +84,7 @@ function CommentItem({ commentProp, postId }: Props) {
           <ButtonComponent
             typeButton="submit"
             textBtn="Submit reply"
+            loadingDisabled={submitReplyLoading}
             additionalClassnames="self-end p-1"
           ></ButtonComponent>
         </div>
