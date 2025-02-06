@@ -1,7 +1,10 @@
 import { PropsWithChildren, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import requestAccessTokenRefresh from "../../utils/requestAccessTokenRefresh";
-import { setUser } from "../../services/redux-toolkit/auth/authSlice";
+import {
+  setUser,
+  setUserLoading,
+} from "../../services/redux-toolkit/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../services/redux-toolkit/store";
 
@@ -18,7 +21,8 @@ function CheckAuth({ children }: ProtectedRouteProps) {
           await requestAccessTokenRefresh();
         }
       } catch (error) {
-        dispatch(setUser({ userData: null, isLoading: false }));
+        dispatch(setUser(null));
+        dispatch(setUserLoading(false));
         console.error(error);
       }
     };
