@@ -25,10 +25,12 @@ type ReplyObjPost = {
 function RepliesListPost({ commentObjProp, postId }: Props) {
   const [repliesState, setRepliesState] = useState<ReplyObjPost[]>([]);
   const [showReplyBox, setShowReplyBox] = useState(false);
+  const [loadingGetReplies, setLoadingGetReplies] = useState(false);
+  const [noMoreReplies, setNoMoreReplies] = useState(false);
   const replyButtonRef = useRef<HTMLTextAreaElement>(null);
 
   return (
-    <div className="border-l-2">
+    <div className={repliesState.length > 0 ? "border-l-2 pl-1" : ""}>
       <ul>
         {repliesState.map((reply) => {
           return (
@@ -54,7 +56,7 @@ function RepliesListPost({ commentObjProp, postId }: Props) {
                   showReplyBox ? "block" : "hidden"
                 } ml-[min(7rem,7%)]`}
               >
-                <div className="flex flex-col w-[min(45rem,70%)]">
+                <div className="flex flex-col w-[min(45rem,25vw)]">
                   <InputTextArea
                     refProp={replyButtonRef}
                     smallOrLarge="small"
@@ -75,30 +77,41 @@ function RepliesListPost({ commentObjProp, postId }: Props) {
           );
         })}
       </ul>
-      <ButtonComponent
-        textBtn="Show replies"
-        typeButton="button"
-        onClickFunction={async () => {
-          try {
-            const urlToGetReplies = `${BACKEND_URL}/api/posts/${postId}/comments/${commentObjProp._id}/replies`;
-
-            const responseGetReplies = await fetch(urlToGetReplies, {
-              method: "GET",
-            });
-
-            if (responseGetReplies.ok) {
-              const repliesData = await responseGetReplies.json();
-              setRepliesState(repliesData.replies);
-              return;
-            }
-            throw new Error(
-              `Could not fetch replies ${responseGetReplies.status}`
-            );
-          } catch (error) {
-            console.log(error);
+      {noMoreReplies ? (
+        <></>
+      ) : (
+        <ButtonComponent
+          textBtn={
+            repliesState.length > 0 ? "Show more replies" : "Show replies"
           }
-        }}
-      ></ButtonComponent>
+          typeButton="button"
+          loadingDisabled={loadingGetReplies}
+          onClickFunction={async () => {
+            setLoadingGetReplies(true);
+            try {
+              const urlToGetReplies = `${BACKEND_URL}/api/posts/${postId}/comments/${commentObjProp._id}/replies`;
+
+              const responseGetReplies = await fetch(urlToGetReplies, {
+                method: "GET",
+              });
+
+              if (responseGetReplies.ok) {
+                const repliesData = await responseGetReplies.json();
+                setRepliesState(repliesData.replies);
+                setLoadingGetReplies(false);
+                setNoMoreReplies(true);
+                return;
+              }
+              throw new Error(
+                `Could not fetch replies ${responseGetReplies.status}`
+              );
+            } catch (error) {
+              console.log(error);
+              setLoadingGetReplies(false);
+            }
+          }}
+        ></ButtonComponent>
+      )}
     </div>
   );
 }

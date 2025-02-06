@@ -24,7 +24,7 @@ function CommentItem({ commentProp, postId }: Props) {
       <UserPictureAndUsername
         userId={commentProp.authorId}
       ></UserPictureAndUsername>
-      <p className="ml-[min(7rem,7%)]">{commentProp.content}</p>
+      <p className="mt-2 ml-[min(7rem,7%)]">{commentProp.content}</p>
       <div className="w-fit ml-[min(7rem,7%)]  flex gap-4 my-2">
         <LikeBtn smallOrLarge="small"></LikeBtn>
 
@@ -70,7 +70,7 @@ function CommentItem({ commentProp, postId }: Props) {
         }}
         className={`${showReplyBox ? "block" : "hidden"} ml-[min(7rem,7%)]`}
       >
-        <div className="flex flex-col w-[min(45rem,70%)]">
+        <div className="flex flex-col w-[min(45rem,25vw)]">
           <InputTextArea
             refProp={replyRef}
             smallOrLarge="small"

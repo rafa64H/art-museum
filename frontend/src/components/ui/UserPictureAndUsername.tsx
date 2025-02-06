@@ -10,7 +10,7 @@ function UserPictureAndUsername({ userId }: Props) {
   return (
     <div className="flex items-center" data-user-id={userId}>
       <img
-        className="w-[min(7rem,7%)] h-[min(7rem,7%)] rounded-full"
+        className="w-14 h-14 rounded-full"
         src={user.userData?.profilePictureURL}
       ></img>
       <p className="ml-2">{user.userData?.username}</p>

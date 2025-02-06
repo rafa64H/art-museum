@@ -189,7 +189,7 @@ function PostPage() {
 
           <div className="py-2 border-b-firstLavender border-b-4 border-t-firstLavender border-t-4 w-full bg-firstBrown"></div>
 
-          <section className="bg-mainBg text-white">
+          <section className="bg-mainBg px-10 text-white">
             <h2 className="text-2xl font-semibold text-center">Comments</h2>
 
             <form
@@ -251,9 +251,9 @@ function PostPage() {
                         commentProp={comment}
                         postId={postId}
                       ></CommentItem>
-                      <h3>Replies</h3>
 
-                      <div className="pl-24">
+                      <div className="mb-10 pl-24">
+                        <h3>Replies</h3>
                         <RepliesListPost
                           commentObjProp={comment}
                           postId={postId}
