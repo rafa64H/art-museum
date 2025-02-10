@@ -8,7 +8,7 @@ import {
   UserData,
 } from "../services/redux-toolkit/auth/authSlice";
 import ButtonComponent from "../components/ui/ButtonComponent";
-import { BACKEND_URL } from "../constants";
+import { addFollow, deleteFollow } from "../utils/fetchFunctions";
 
 type Props = {
   isUserProfile: boolean;
@@ -80,15 +80,10 @@ function ProfilePage({
                     (id) => id === userProfile.id
                   );
 
-                  const url = `${BACKEND_URL}/api/users/followers/${userProfile?.id}`;
-
                   if (isUserFollowing) {
-                    const responseDeleteFollow = await fetch(url, {
-                      method: "DELETE",
-                      headers: {
-                        authorization: `Bearer ${user.userData?.accessToken}`,
-                      },
-                    });
+                    const responseDeleteFollow = await deleteFollow(
+                      userProfile?.id
+                    );
                     const responseDeleteFollowData =
                       await responseDeleteFollow.json();
 
@@ -100,12 +95,7 @@ function ProfilePage({
                     return;
                   }
 
-                  const responseAddFollow = await fetch(url, {
-                    method: "POST",
-                    headers: {
-                      authorization: `Bearer ${user.userData?.accessToken}`,
-                    },
-                  });
+                  const responseAddFollow = await addFollow(userProfile?.id);
                   const responseAddFollowData = await responseAddFollow.json();
                   dispatch(
                     setUserFollowing(responseAddFollowData.userRequestFollowing)

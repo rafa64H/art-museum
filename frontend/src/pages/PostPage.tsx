@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { BACKEND_URL } from "../constants";
 import Header from "../components/Header";
 import { v4 as uuidv4 } from "uuid";
 import { useSelector } from "react-redux";
@@ -13,6 +12,11 @@ import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import { useContextCommentsPosts } from "../contexts/ContextCommentsPosts";
 import CommentItem from "../components/CommentItem";
 import RepliesListPost from "../components/RepliesListPost";
+import {
+  createComment,
+  getCommentsFromPost,
+  getSinglePost,
+} from "../utils/fetchFunctions";
 
 type postDataResponse = {
   authorId: string;
@@ -41,11 +45,7 @@ function PostPage() {
   useEffect(() => {
     const getPost = async () => {
       try {
-        const urlGetSinglePost = `${BACKEND_URL}/api/posts/${postId}`;
-
-        const responseGetSinglePost = await fetch(urlGetSinglePost, {
-          method: "GET",
-        });
+        const responseGetSinglePost = await getSinglePost(postId);
 
         if (!responseGetSinglePost.ok) {
           return;
@@ -62,11 +62,7 @@ function PostPage() {
 
     const getFirstComments = async () => {
       try {
-        const urlGetComments = `${BACKEND_URL}/api/posts/${postId}/comments`;
-
-        const responseGetComments = await fetch(urlGetComments, {
-          method: "GET",
-        });
+        const responseGetComments = await getCommentsFromPost(postId);
 
         const firstCommentsToSet = await responseGetComments.json();
         console.log(await firstCommentsToSet);
@@ -199,17 +195,10 @@ function PostPage() {
                 try {
                   checkEmptyFieldsForm([commentRef.current!], setAlertMessage);
 
-                  const urlToCreatePost = `${BACKEND_URL}/api/posts/${postId}/comments`;
-                  const responseCreateComment = await fetch(urlToCreatePost, {
-                    headers: {
-                      authorization: "Bearer " + user.userData?.accessToken,
-                      "Content-Type": "application/json",
-                    },
-                    method: "POST",
-                    body: JSON.stringify({
-                      content: commentRef.current?.value,
-                    }),
-                  });
+                  const responseCreateComment = await createComment(
+                    postId,
+                    commentRef.current!.value
+                  );
 
                   console.log(await responseCreateComment.json());
                   setCommentSubmitLoading(false);

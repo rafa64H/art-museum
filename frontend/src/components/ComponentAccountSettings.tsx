@@ -20,6 +20,10 @@ import {
 } from "../services/redux-toolkit/auth/authSlice";
 import { UserDataResponse } from "../types/userDataResponse";
 import ImageInput from "./ImageInput";
+import {
+  editAccountInformation,
+  uploadImageProfilePicture,
+} from "../utils/fetchFunctions";
 
 type Props = {
   followersObjects: UserDataResponse[] | string | null;
@@ -110,24 +114,17 @@ function ComponentAccountSettings({
               if (selectedOption === 1) {
                 const url = `${BACKEND_URL}/api/users/edit-account`;
 
-                const data = {
+                const dataToEditAccount = {
                   newEmail: email !== user.userData!.email ? email : null,
                   newName: name !== user.userData!.name ? name : null,
                   newUsername:
-                    username !== user.userData?.username ? username : null,
+                    username !== user.userData!.username ? username : null,
                   password: verifyPassword,
                 };
 
-                const responseEditAccount = await fetch(url, {
-                  method: "PUT",
-                  credentials: "include",
-                  headers: {
-                    authorization: `Bearer ${user.userData?.accessToken}`,
-
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(data),
-                });
+                const responseEditAccount = await editAccountInformation(
+                  dataToEditAccount
+                );
 
                 if (responseEditAccount.status === 401) {
                   const responseDataEditAccount =
@@ -154,17 +151,8 @@ function ComponentAccountSettings({
                     const formData = new FormData();
                     formData.append("file", imageFile);
 
-                    const url = `${BACKEND_URL}/api/images/profilePictures`;
-                    const responseProfilePictureUpload = await fetch(url, {
-                      method: "POST",
-                      mode: "cors",
-                      credentials: "include",
-                      headers: {
-                        authorization: `Bearer ${user.userData?.accessToken}`,
-                      },
-                      body: formData,
-                    });
-
+                    const responseProfilePictureUpload =
+                      await uploadImageProfilePicture(formData);
                     navigate(0);
                     return;
                   }

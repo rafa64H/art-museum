@@ -2,9 +2,9 @@ import { useRef, useState } from "react";
 import TextInput from "./ui/TextInput";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "./ui/ButtonComponent";
-import { BACKEND_URL } from "../constants";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import setUserStoreLogin from "../utils/setUserStore";
+import { loginToAccount } from "../utils/fetchFunctions";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");
@@ -35,27 +35,21 @@ function SignUpForm() {
             return;
           }
 
-          const url = `${BACKEND_URL}/auth/login`;
           const data = {
             emailOrUsername,
             password,
           };
-          const response = await fetch(url, {
-            method: "POST",
-            mode: "cors",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          });
+          const responseFromLogin = await loginToAccount(data);
 
-          if (response.status !== 200 && !(response.status === 400)) {
+          if (
+            responseFromLogin.status !== 200 &&
+            !(responseFromLogin.status === 400)
+          ) {
             setAlertMessage("Internal server error, try again later");
             setSubmitFormLoading(false);
             return;
           }
-          if (response.status === 400) {
+          if (responseFromLogin.status === 400) {
             setAlertMessage("Invalid email/username or password");
             emailOrUsernameRef.current!.setAttribute(
               "data-error-input",
@@ -65,10 +59,10 @@ function SignUpForm() {
             setSubmitFormLoading(false);
             return;
           }
-          if (response.ok) {
-            const responseData = await response.json();
+          if (responseFromLogin.ok) {
+            const responseDataFromLogin = await responseFromLogin.json();
 
-            setUserStoreLogin(responseData);
+            setUserStoreLogin(responseDataFromLogin);
             navigate("/");
           }
         } catch (error) {
