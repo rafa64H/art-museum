@@ -3,7 +3,6 @@
 import { BACKEND_URL } from "../constants";
 import { store } from "../services/redux-toolkit/store";
 
-const user = store.getState().auth.user;
 export async function getSinglePost(postId: string | undefined) {
   const urlGetSinglePost = `${BACKEND_URL}/api/posts/${postId}`;
 
@@ -26,6 +25,7 @@ export async function createComment(
   postId: string | undefined,
   content: string
 ) {
+  const user = store.getState().auth.user;
   const urlToCreateComment = `${BACKEND_URL}/api/posts/${postId}/comments`;
   const responseCreateComment = await fetch(urlToCreateComment, {
     headers: {
@@ -42,6 +42,7 @@ export async function createComment(
 }
 
 export async function addFollow(userProfileId: string | undefined) {
+  const user = store.getState().auth.user;
   const urlToAddFollow = `${BACKEND_URL}/api/users/followers/${userProfileId}`;
 
   const responseAddFollow = await fetch(urlToAddFollow, {
@@ -55,6 +56,7 @@ export async function addFollow(userProfileId: string | undefined) {
 }
 
 export async function deleteFollow(userProfileId: string | undefined) {
+  const user = store.getState().auth.user;
   const urlToDeleteFollow = `${BACKEND_URL}/api/users/followers/${userProfileId}`;
 
   const responseDeleteFollow = await fetch(urlToDeleteFollow, {
@@ -113,6 +115,7 @@ export async function editAccountInformation(dataToEditAccount: {
   newUsername: string | null;
   password: string;
 }) {
+  const user = store.getState().auth.user;
   const urlToEditAccount = `${BACKEND_URL}/api/users/edit-account`;
 
   const responseEditAccount = await fetch(urlToEditAccount, {
@@ -130,6 +133,7 @@ export async function editAccountInformation(dataToEditAccount: {
 }
 
 export async function uploadImageProfilePicture(formData: FormData) {
+  const user = store.getState().auth.user;
   const urlToUploadProfilePicture = `${BACKEND_URL}/api/images/profilePictures`;
   const responseProfilePictureUpload = await fetch(urlToUploadProfilePicture, {
     method: "POST",
@@ -142,4 +146,48 @@ export async function uploadImageProfilePicture(formData: FormData) {
   });
 
   return responseProfilePictureUpload;
+}
+
+export async function changePassword(dataToChangeAccount: {
+  newPassword: string | null;
+  password: string;
+}) {
+  const urlToChangePassword = `${BACKEND_URL}/api/users/change-password`;
+  const user = store.getState().auth.user;
+
+  const { newPassword } = dataToChangeAccount;
+
+  if (!newPassword) return;
+
+  const responseChangePassword = await fetch(urlToChangePassword, {
+    method: "PUT",
+    headers: {
+      authorization: `Bearer ${user.userData?.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(dataToChangeAccount),
+  });
+
+  return responseChangePassword;
+}
+
+export async function requestEmailChangeCode(userId: string | undefined) {
+  const urlGetVerificationCode = `${BACKEND_URL}/auth/request-email-code/${userId}`;
+  const responseSendVerificationCode = await fetch(urlGetVerificationCode, {
+    method: "GET",
+  });
+  return responseSendVerificationCode;
+}
+
+export async function undoEmailChange() {
+  const user = store.getState().auth.user;
+  const urlToUndoEmalChange = `${BACKEND_URL}/api/users/undo-email-change`;
+  const responseUndoEmailChange = await fetch(urlToUndoEmalChange, {
+    method: "PUT",
+    credentials: "include",
+    headers: {
+      authorization: `Bearer ${user.userData?.accessToken}`,
+    },
+  });
+  return responseUndoEmailChange;
 }

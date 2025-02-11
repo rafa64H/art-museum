@@ -8,20 +8,20 @@ import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import checkValidityNameOrUsername from "../utils/forms/checkValidityNameUsername";
 import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
-import { BACKEND_URL } from "../constants";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  setChangedEmail,
-  setEmailVerified,
-  setPreviousEmail,
   setUserFollowers,
   setUserFollowing,
 } from "../services/redux-toolkit/auth/authSlice";
 import { UserDataResponse } from "../types/userDataResponse";
 import ImageInput from "./ImageInput";
 import {
+  changePassword,
+  deleteFollow,
   editAccountInformation,
+  requestEmailChangeCode,
+  undoEmailChange,
   uploadImageProfilePicture,
 } from "../utils/fetchFunctions";
 
@@ -112,8 +112,6 @@ function ComponentAccountSettings({
               }
 
               if (selectedOption === 1) {
-                const url = `${BACKEND_URL}/api/users/edit-account`;
-
                 const dataToEditAccount = {
                   newEmail: email !== user.userData!.email ? email : null,
                   newName: name !== user.userData!.name ? name : null,
@@ -162,22 +160,17 @@ function ComponentAccountSettings({
               }
 
               if (selectedOption === 2) {
-                const url = `${BACKEND_URL}/api/users/change-password`;
-
-                const data = {
+                const dataToChangePassword = {
                   newPassword: newPassword,
                   password: verifyPassword,
                 };
                 if (!newPassword) return;
 
-                const responseChangePassword = await fetch(url, {
-                  method: "PUT",
-                  headers: {
-                    authorization: `Bearer ${user.userData?.accessToken}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(data),
-                });
+                const responseChangePassword = await changePassword(
+                  dataToChangePassword
+                );
+
+                if (!responseChangePassword) return;
 
                 if (responseChangePassword.ok) {
                   setAlertMessage("Password changed");
@@ -326,13 +319,8 @@ function ComponentAccountSettings({
                 try {
                   setSendEmailVerificationLinkLoading(true);
                   const userId = user.userData?.id;
-                  const urlGetVerificationCode = `${BACKEND_URL}/auth/request-email-code/${userId}`;
-                  const responseSendVerificationCode = await fetch(
-                    urlGetVerificationCode,
-                    {
-                      method: "GET",
-                    }
-                  );
+                  const responseSendVerificationCode =
+                    await requestEmailChangeCode(userId);
 
                   if (responseSendVerificationCode.ok) {
                     navigate(`/verify-email/${user.userData?.id}`);
@@ -364,14 +352,7 @@ function ComponentAccountSettings({
               onClickFunction={async () => {
                 try {
                   setUndoChangedEmailLoading(true);
-                  const url = `${BACKEND_URL}/api/users/undo-email-change`;
-                  const responseUndoEmailChange = await fetch(url, {
-                    method: "PUT",
-                    credentials: "include",
-                    headers: {
-                      authorization: `Bearer ${user.userData?.accessToken}`,
-                    },
-                  });
+                  const responseUndoEmailChange = await undoEmailChange();
 
                   if (responseUndoEmailChange.ok) {
                     setUndoChangedEmailLoading(false);
@@ -530,17 +511,13 @@ function ComponentAccountSettings({
                 className="absolute translate-y-[-73%] right-0 translate-x-[73%] text-xl hover:text-firstGreen"
                 onClick={async () => {
                   try {
-                    const url = `${BACKEND_URL}/api/users/followers/${userObject?._id}`;
                     const isUserFollowing = user.userData?.following.some(
-                      (id) => id === userObject._id
+                      (id) => id === userObject.id
                     );
                     if (isUserFollowing) {
-                      const responseDeleteFollow = await fetch(url, {
-                        method: "DELETE",
-                        headers: {
-                          authorization: `Bearer ${user.userData?.accessToken}`,
-                        },
-                      });
+                      const responseDeleteFollow = await deleteFollow(
+                        userObject?.id
+                      );
 
                       const responseDeleteFollowData =
                         await responseDeleteFollow.json();
@@ -605,17 +582,13 @@ function ComponentAccountSettings({
                 className="absolute translate-y-[-73%] right-0 translate-x-[73%] text-xl hover:text-firstGreen"
                 onClick={async () => {
                   try {
-                    const url = `${BACKEND_URL}/api/users/followers/${userObject?.id}`;
                     const isUserFollowing = user.userData?.following.some(
                       (id) => id === userObject._id
                     );
                     if (isUserFollowing) {
-                      const responseDeleteFollow = await fetch(url, {
-                        method: "DELETE",
-                        headers: {
-                          authorization: `Bearer ${user.userData?.accessToken}`,
-                        },
-                      });
+                      const responseDeleteFollow = await deleteFollow(
+                        userObject?.id
+                      );
 
                       const responseDeleteFollowData =
                         await responseDeleteFollow.json();
