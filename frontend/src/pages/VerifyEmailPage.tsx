@@ -6,6 +6,7 @@ import ButtonComponent from "../components/ui/ButtonComponent";
 import { BACKEND_URL } from "../constants";
 import { useDispatch } from "react-redux";
 import { setEmailVerified } from "../services/redux-toolkit/auth/authSlice";
+import { verifyEmail } from "../utils/fetchFunctions";
 
 function VerifyEmailPage() {
   const params = useParams();
@@ -44,18 +45,9 @@ function VerifyEmailPage() {
               e.preventDefault();
               setSubmitFormLoading(true);
 
-              const url = `${BACKEND_URL}/auth/verify-email`;
-
-              const responseVerifyEmail = await fetch(url, {
-                method: "POST",
-                mode: "cors",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  userId: userIdParam,
-                  code: codeRef.current!.value,
-                }),
+              const responseVerifyEmail = await verifyEmail({
+                userId: userIdParam,
+                codeToVerifyEmail: codeRef.current?.value,
               });
 
               if (responseVerifyEmail.ok) {

@@ -6,7 +6,7 @@ import LikeBtn from "./ui/LikeBtn";
 import DislikeBtn from "./ui/DislikeBtn";
 import ReplyBtn from "./ui/ReplyBtn";
 import InputTextArea from "./ui/InputTextArea";
-import { BACKEND_URL } from "../constants";
+import { getRepliesFromComment } from "../utils/fetchFunctions";
 
 type Props = {
   commentObjProp: commentObjPost;
@@ -89,10 +89,9 @@ function RepliesListPost({ commentObjProp, postId }: Props) {
           onClickFunction={async () => {
             setLoadingGetReplies(true);
             try {
-              const urlToGetReplies = `${BACKEND_URL}/api/posts/${postId}/comments/${commentObjProp._id}/replies`;
-
-              const responseGetReplies = await fetch(urlToGetReplies, {
-                method: "GET",
+              const responseGetReplies = await getRepliesFromComment({
+                postId: postId,
+                commentId: commentObjProp._id,
               });
 
               if (responseGetReplies.ok) {

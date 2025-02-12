@@ -1,10 +1,10 @@
 import Header from "../components/Header";
 import ComponentAccountSettings from "../components/ComponentAccountSettings";
-import { BACKEND_URL } from "../constants";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
 import { UserDataResponse } from "../types/userDataResponse";
+import { getFollowersAndFollowings } from "../utils/fetchFunctions";
 
 function AccountSettingsPage() {
   const [followersObjects, setFollowersObjects] = useState<
@@ -20,14 +20,8 @@ function AccountSettingsPage() {
     const getFollowers = async () => {
       try {
         if (user.userData?.id) {
-          const url = `${BACKEND_URL}/api/users/followers/${user.userData?.id}`;
-
-          const responseGetFollowersFollowing = await fetch(url, {
-            method: "GET",
-            headers: {
-              authorization: `Bearer ${user.userData?.accessToken}`,
-            },
-          });
+          const responseGetFollowersFollowing =
+            await getFollowersAndFollowings();
           console.log(responseGetFollowersFollowing);
 
           const responseGetFollowersFollowingData =

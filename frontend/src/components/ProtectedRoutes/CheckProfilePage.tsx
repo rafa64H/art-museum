@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { RootState } from "../../services/redux-toolkit/store";
 import ProfilePage from "../../pages/ProfilePage";
-import { BACKEND_URL } from "../../constants";
+import { getUser } from "../../utils/fetchFunctions";
 
 function CheckProfilePage() {
   const [getUserProfileLoading, setGetUserProfileLoading] = useState(true);
@@ -16,16 +16,9 @@ function CheckProfilePage() {
   const userIdParam = params.userId;
 
   useEffect(() => {
-    async function getUser() {
+    async function getUserFunction() {
       try {
-        const url = `${BACKEND_URL}/api/users/${userIdParam}`;
-
-        const responseGetUser = await fetch(url, {
-          method: "GET",
-          headers: {
-            authorization: `Bearer ${user.userData?.accessToken}`,
-          },
-        });
+        const responseGetUser = await getUser({ userIdParam });
 
         if (responseGetUser.ok) {
           const responseGetUserData = await responseGetUser.json();
@@ -46,7 +39,7 @@ function CheckProfilePage() {
     if (userIdParam === user.userData?.id) {
       setGetUserProfileLoading(false);
     } else {
-      getUser();
+      getUserFunction();
     }
   }, [
     dispatch,

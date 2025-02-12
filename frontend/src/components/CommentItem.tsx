@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { commentObjPost } from "../contexts/ContextCommentsPosts";
 import UserPictureAndUsername from "./ui/UserPictureAndUsername";
 import LikeBtn from "./ui/LikeBtn";
@@ -6,9 +6,7 @@ import DislikeBtn from "./ui/DislikeBtn";
 import ReplyBtn from "./ui/ReplyBtn";
 import InputTextArea from "./ui/InputTextArea";
 import ButtonComponent from "./ui/ButtonComponent";
-import { BACKEND_URL } from "../constants";
-import { useSelector } from "react-redux";
-import { RootState } from "../services/redux-toolkit/store";
+import { createReplyToComment } from "../utils/fetchFunctions";
 
 type Props = {
   commentProp: commentObjPost;
@@ -18,7 +16,6 @@ function CommentItem({ commentProp, postId }: Props) {
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [submitReplyLoading, setSubmitReplyLoading] = useState(false);
   const replyRef = useRef<HTMLTextAreaElement>(null);
-  const user = useSelector((state: RootState) => state.auth.user);
 
   return (
     <li className="relative w-fit">
@@ -44,16 +41,10 @@ function CommentItem({ commentProp, postId }: Props) {
           setSubmitReplyLoading(true);
           try {
             console.log(replyRef.current);
-            const urlToPostReply = `${BACKEND_URL}/api/posts/${postId}/comments/${commentProp._id}/replies`;
-            const responsePostReply = await fetch(urlToPostReply, {
-              method: "POST",
-              headers: {
-                authorization: "Bearer " + user.userData?.accessToken,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                content: replyRef.current?.value,
-              }),
+            const responsePostReply = await createReplyToComment({
+              postId: postId,
+              commentId: commentProp._id,
+              replyContent: replyRef.current?.value,
             });
 
             if (responsePostReply.ok) {

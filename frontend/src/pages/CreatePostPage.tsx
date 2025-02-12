@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import Header from "../components/Header";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
-import { BACKEND_URL } from "../constants";
 import TextInput from "../components/ui/TextInput";
 import ButtonComponent from "../components/ui/ButtonComponent";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +9,7 @@ import MultipleImagesInput from "../components/MultipleImagesInput";
 import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { v4 as uuidv4 } from "uuid";
 import InputTextArea from "../components/ui/InputTextArea";
+import { createPost, uploadPostImages } from "../utils/fetchFunctions";
 
 function CreatePostPage() {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -158,16 +158,7 @@ function CreatePostPage() {
                     formData.append("files", file);
                   });
 
-                  const urlPostImages = `${BACKEND_URL}/api/images/postImages`;
-                  const responsePostImage = await fetch(urlPostImages, {
-                    method: "POST",
-                    mode: "cors",
-                    credentials: "include",
-                    headers: {
-                      authorization: `Bearer ${user.userData?.accessToken}`,
-                    },
-                    body: formData,
-                  });
+                  const responsePostImage = await uploadPostImages(formData);
 
                   if (responsePostImage.status === 400) {
                     setFormSubmitLoading(false);
@@ -188,32 +179,24 @@ function CreatePostPage() {
                     (obj: { imageURL: string; imageId: string }) => {
                       return obj.imageURL;
                     }
-                  );
+                  ) as string[];
 
                 const imageIdsStrings =
                   responsePostImagesData.imageIdsAndUrls.map(
                     (obj: { imageId: string; imageURL: string }) => {
                       return obj.imageId;
                     }
-                  );
+                  ) as string[];
 
                 // //Post model
                 const data = {
-                  title: titleRef.current!.value,
-                  content: contentRef.current!.value,
+                  title: titleRef.current?.value,
+                  content: contentRef.current?.value,
                   imageURLs: imageURLsStrings,
                   imageIds: imageIdsStrings,
                   tags: tagsState,
                 };
-                const urlCreatePost = `${BACKEND_URL}/api/posts`;
-                const responsePostModel = await fetch(urlCreatePost, {
-                  method: "POST",
-                  headers: {
-                    authorization: `Bearer ${user.userData?.accessToken}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(data),
-                });
+                const responsePostModel = await createPost(data);
 
                 const responsePostModelData = await responsePostModel.json();
 

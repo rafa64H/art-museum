@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import Header from "../components/Header";
 import TextInput from "../components/ui/TextInput";
 import ButtonComponent from "../components/ui/ButtonComponent";
-import { BACKEND_URL } from "../constants";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import { Link } from "react-router-dom";
+import { forgotPasswordFetch, resetPassword } from "../utils/fetchFunctions";
 
 function ForgotPasswordPage() {
   const [alertMessage, setAlertMessage] = useState("");
@@ -75,19 +75,10 @@ function ForgotPasswordPage() {
                 return;
               }
 
-              const url = `${BACKEND_URL}/auth/password/reset-password`;
-
-              const responseResetPassword = await fetch(url, {
-                method: "PUT",
-                mode: "cors",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  password: newPasswordRef.current!.value,
-                  token: resetPasswordTokenRef.current!.value,
-                  emailOrUsername: emailOrUsernameRef.current!.value,
-                }),
+              const responseResetPassword = await resetPassword({
+                password: newPasswordRef.current?.value,
+                token: resetPasswordTokenRef.current?.value,
+                emailOrUsername: emailOrUsernameRef.current?.value,
               });
 
               if (responseResetPassword.ok) {
@@ -163,17 +154,8 @@ function ForgotPasswordPage() {
               e.preventDefault();
               setSubmitFormLoading(true);
 
-              const url = `${BACKEND_URL}/auth/password/forgot-password`;
-
-              const responseForgotPassword = await fetch(url, {
-                method: "PUT",
-                mode: "cors",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  emailOrUsername: emailOrUsernameRef.current!.value,
-                }),
+              const responseForgotPassword = await forgotPasswordFetch({
+                emailOrUsername: emailOrUsernameRef.current?.value,
               });
 
               if (responseForgotPassword.ok) {
