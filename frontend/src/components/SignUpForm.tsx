@@ -112,11 +112,10 @@ function SignUpForm() {
                 setSubmitFormLoading(false);
                 return;
               }
-              if (error.response.status === 201) {
-                setAlertMessage("Internal server error, try again later");
-                setSubmitFormLoading(false);
-                return;
-              }
+
+              setAlertMessage("Internal server error, try again later");
+              setSubmitFormLoading(false);
+              return;
             }
           }
           setAlertMessage("Internal server error, try again later");

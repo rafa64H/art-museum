@@ -7,6 +7,7 @@ import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
 import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import { Link } from "react-router-dom";
 import { forgotPasswordFetch, resetPassword } from "../utils/fetchFunctions";
+import { isAxiosError } from "axios";
 
 function ForgotPasswordPage() {
   const [alertMessage, setAlertMessage] = useState("");
@@ -86,11 +87,24 @@ function ForgotPasswordPage() {
 
               return;
             } catch (error) {
+              if (isAxiosError(error)) {
+                if (error.response) {
+                  if (error.response.status === 400) {
+                    setAlertMessage(error.response.data.message);
+                    setSubmitFormLoading(false);
+                    return;
+                  }
+                  setAlertMessage("Internal server error, try again later");
+                  setSubmitFormLoading(false);
+                }
+              }
+              setAlertMessage("An error occurred, try again later");
               setSubmitFormLoading(false);
               console.log(error);
             }
           }}
         >
+          <p>{alertMessage}</p>
           <div className="text-xl font-semibold">
             <TextInput
               idFor="resetPasswordToken"
@@ -160,6 +174,18 @@ function ForgotPasswordPage() {
 
               return;
             } catch (error) {
+              if (isAxiosError(error)) {
+                if (error.response) {
+                  if (error.response.status === 400) {
+                    setAlertMessage(`User not found, verify your input`);
+                    setSubmitFormLoading(false);
+                    return;
+                  }
+                  setAlertMessage("Internal server error, try again later");
+                  setSubmitFormLoading(false);
+                }
+              }
+              setAlertMessage("Some error occurred, try again later");
               setSubmitFormLoading(false);
               console.log(error);
             }

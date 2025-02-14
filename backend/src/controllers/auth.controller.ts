@@ -106,47 +106,6 @@ export const signUpHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const verifyEmailHandler = async (req: Request, res: Response) => {
-  const { code, userId } = req.body as { code: string; userId: string };
-  try {
-    const userIdObjectId = ObjectId.createFromHexString(userId);
-
-    const foundUser = await UserModel.findOne(userIdObjectId);
-
-    const idxd = foundUser!._id as ObjectId;
-
-    if (!foundUser) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired",
-      });
-    }
-
-    if (foundUser.verificationToken === code) {
-      foundUser.verified = true;
-      foundUser.changedEmail = false;
-      foundUser.verificationToken = undefined;
-      foundUser.verificationTokenExpiresAt = undefined;
-      await foundUser.save();
-
-      // await sendWelcomeEmail(foundUser.email, foundUser.name);
-
-      res.status(200).json({
-        success: true,
-        message: "Email verified successfully",
-        user: {
-          ...foundUser.toObject(),
-          password: undefined,
-        },
-      });
-    }
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({ success: false, message: error });
-  }
-};
-
 export const loginHandler = async (req: Request, res: Response) => {
   const { emailOrUsername, password } = req.body as {
     emailOrUsername: string;
@@ -202,6 +161,47 @@ export const loginHandler = async (req: Request, res: Response) => {
       },
       accessToken,
     });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ success: false, message: error });
+  }
+};
+
+export const verifyEmailHandler = async (req: Request, res: Response) => {
+  const { code, userId } = req.body as { code: string; userId: string };
+  try {
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+
+    const foundUser = await UserModel.findOne(userIdObjectId);
+
+    const idxd = foundUser!._id as ObjectId;
+
+    if (!foundUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired",
+      });
+    }
+
+    if (foundUser.verificationToken === code) {
+      foundUser.verified = true;
+      foundUser.changedEmail = false;
+      foundUser.verificationToken = undefined;
+      foundUser.verificationTokenExpiresAt = undefined;
+      await foundUser.save();
+
+      // await sendWelcomeEmail(foundUser.email, foundUser.name);
+
+      res.status(200).json({
+        success: true,
+        message: "Email verified successfully",
+        user: {
+          ...foundUser.toObject(),
+          password: undefined,
+        },
+      });
+    }
   } catch (error) {
     console.log(error);
 

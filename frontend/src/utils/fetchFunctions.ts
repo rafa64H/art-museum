@@ -334,15 +334,11 @@ export async function uploadImageProfilePicture(formData: FormData) {
 export async function uploadPostImages(formDataToUpload: FormData) {
   const user = store.getState().auth.user;
   const urlPostImages = `${BACKEND_URL}/api/images/postImages`;
-
-  const responsePostImages = await axiosInstance.post(
-    urlPostImages,
-    { formData: formDataToUpload },
-    {
-      headers: {
-        authorization: `Bearer ${user.userData?.accessToken}`,
-      },
-    }
-  );
+  const formData = formDataToUpload;
+  const responsePostImages = await axiosInstance.post(urlPostImages, formData, {
+    headers: {
+      authorization: `Bearer ${user.userData?.accessToken}`,
+    },
+  });
   return responsePostImages;
 }

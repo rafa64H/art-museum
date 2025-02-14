@@ -173,6 +173,14 @@ function ComponentAccountSettings({
                     setSubmitFormLoading(false);
                     return;
                   }
+
+                  if (error.response.status === 400) {
+                    setAlertMessage2(error.response.data.message);
+                    setSubmitFormLoading(false);
+                    return;
+                  }
+                  setAlertMessage2("Internal server error, try again later");
+                  setSubmitFormLoading(false);
                 }
               }
 
@@ -319,6 +327,17 @@ function ComponentAccountSettings({
                   navigate(`/verify-email/${user.userData?.id}`);
                   return;
                 } catch (error) {
+                  if (isAxiosError(error)) {
+                    if (error.response) {
+                      if (error.response.status === 404) {
+                        setAlertMessage(error.response.data.message);
+                        setSendEmailVerificationLinkLoading(false);
+                        return;
+                      }
+                      setAlertMessage("Internal server error, try again later");
+                      setSendEmailVerificationLinkLoading(false);
+                    }
+                  }
                   setAlertMessage("An error occurred, try again later.");
                   setSendEmailVerificationLinkLoading(false);
                   console.log(error);

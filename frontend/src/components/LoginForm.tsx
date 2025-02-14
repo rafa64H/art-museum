@@ -50,7 +50,7 @@ function SignUpForm() {
           if (isAxiosError(error)) {
             if (error.response) {
               if (error.response.status === 400) {
-                setAlertMessage("Invalid email/username or password");
+                setAlertMessage(`${error.response.data.message}`);
                 emailOrUsernameRef.current!.setAttribute(
                   "data-error-input",
                   "true"
@@ -59,11 +59,13 @@ function SignUpForm() {
                 setSubmitFormLoading(false);
                 return;
               }
+              setAlertMessage("Internal server error, try again later");
+              setSubmitFormLoading(false);
+              return;
             }
           }
 
           setAlertMessage("Internal server error, try again later");
-
           setSubmitFormLoading(false);
           console.error(error);
         }

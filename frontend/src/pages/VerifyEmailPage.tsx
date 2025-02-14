@@ -7,12 +7,14 @@ import { BACKEND_URL } from "../constants";
 import { useDispatch } from "react-redux";
 import { setEmailVerified } from "../services/redux-toolkit/auth/authSlice";
 import { verifyEmail } from "../utils/fetchFunctions";
+import { isAxiosError } from "axios";
 
 function VerifyEmailPage() {
   const params = useParams();
   const userIdParam = params.userId;
   const [submitFormLoading, setSubmitFormLoading] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const codeRef = useRef<HTMLInputElement>(null);
 
@@ -39,6 +41,7 @@ function VerifyEmailPage() {
           verifiedEmail ? "hidden" : "block"
         } bg-mainBg text-white py-4 px-2`}
       >
+        <p>{alertMessage}</p>
         <form
           onSubmit={async (e) => {
             try {
@@ -56,6 +59,18 @@ function VerifyEmailPage() {
               dispatch(setEmailVerified(true));
               return;
             } catch (error) {
+              if (isAxiosError(error)) {
+                if (error.response) {
+                  if (error.response.status === 400) {
+                    setAlertMessage(error.response.data.message);
+                    setSubmitFormLoading(false);
+                    return;
+                  }
+                  setAlertMessage("Internal server error, try again later");
+                  setSubmitFormLoading(false);
+                  return;
+                }
+              }
               setSubmitFormLoading(false);
               console.log(error);
             }
