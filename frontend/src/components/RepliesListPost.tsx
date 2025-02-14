@@ -94,16 +94,11 @@ function RepliesListPost({ commentObjProp, postId }: Props) {
                 commentId: commentObjProp._id,
               });
 
-              if (responseGetReplies.ok) {
-                const repliesData = await responseGetReplies.json();
-                setRepliesState(repliesData.replies);
-                setLoadingGetReplies(false);
-                setNoMoreReplies(true);
-                return;
-              }
-              throw new Error(
-                `Could not fetch replies ${responseGetReplies.status}`
-              );
+              const repliesData = await responseGetReplies.data;
+              setRepliesState(repliesData.replies);
+              setLoadingGetReplies(false);
+              setNoMoreReplies(true);
+              return;
             } catch (error) {
               console.log(error);
               setLoadingGetReplies(false);

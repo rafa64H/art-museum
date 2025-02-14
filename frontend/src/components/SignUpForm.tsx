@@ -8,6 +8,7 @@ import checkValidityPassword from "../utils/forms/checkValidityPassword";
 import checkValidityNameOrUsername from "../utils/forms/checkValidityNameUsername";
 import setUserStoreLogin from "../utils/setUserStore";
 import { createAccount } from "../utils/fetchFunctions";
+import { isAxiosError } from "axios";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");
@@ -99,26 +100,25 @@ function SignUpForm() {
           };
           const responseCreateAccount = await createAccount(data);
 
-          if (responseCreateAccount.status === 400) {
-            const responseDataCreateAccount =
-              await responseCreateAccount.json();
-            setAlertMessage(responseDataCreateAccount.message);
-            setSubmitFormLoading(false);
-            return;
-          }
-          if (responseCreateAccount.status !== 201) {
-            setAlertMessage("Internal server error, try again later");
-            setSubmitFormLoading(false);
-            return;
-          }
-          if (responseCreateAccount.ok) {
-            const responseDataCreateAccount =
-              await responseCreateAccount.json();
+          const responseDataCreateAccount = await responseCreateAccount.data;
 
-            setUserStoreLogin(responseDataCreateAccount);
-            navigate("/");
-          }
+          setUserStoreLogin(responseDataCreateAccount);
+          navigate("/");
         } catch (error) {
+          if (isAxiosError(error)) {
+            if (error.response) {
+              if (error.response.status === 400) {
+                setAlertMessage(`${error.response.data.message}`);
+                setSubmitFormLoading(false);
+                return;
+              }
+              if (error.response.status === 201) {
+                setAlertMessage("Internal server error, try again later");
+                setSubmitFormLoading(false);
+                return;
+              }
+            }
+          }
           setAlertMessage("Internal server error, try again later");
           setSubmitFormLoading(false);
           console.log(error);

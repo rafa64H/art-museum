@@ -20,11 +20,6 @@ function ProtectedNoLoginRoute({ children }: ProtectedRouteProps) {
             navigate("/sign-up", { replace: true });
             return;
           }
-
-          if (response.ok) {
-            return;
-          }
-          navigate("/sign-up", { replace: true });
         }
       } catch (error) {
         navigate("/sign-up", { replace: true });

@@ -47,11 +47,7 @@ function PostPage() {
       try {
         const responseGetSinglePost = await getSinglePost(postId);
 
-        if (!responseGetSinglePost.ok) {
-          return;
-        }
-
-        const postData = await responseGetSinglePost.json();
+        const postData = await responseGetSinglePost.data;
 
         setPost(postData.post);
         setLoading(false);
@@ -64,7 +60,7 @@ function PostPage() {
       try {
         const responseGetComments = await getCommentsFromPost(postId);
 
-        const firstCommentsToSet = await responseGetComments.json();
+        const firstCommentsToSet = await responseGetComments.data;
         console.log(await firstCommentsToSet);
         setCommentsState(firstCommentsToSet.comments);
         setLoadingComments(false);
@@ -200,7 +196,7 @@ function PostPage() {
                     commentRef.current!.value
                   );
 
-                  console.log(await responseCreateComment.json());
+                  console.log(await responseCreateComment.data);
                   setCommentSubmitLoading(false);
                 } catch (error) {
                   console.log(error);

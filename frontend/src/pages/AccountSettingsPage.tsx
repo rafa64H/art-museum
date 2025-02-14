@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
 import { UserDataResponse } from "../types/userDataResponse";
 import { getFollowersAndFollowings } from "../utils/fetchFunctions";
+import { isAxiosError } from "axios";
 
 function AccountSettingsPage() {
   const [followersObjects, setFollowersObjects] = useState<
@@ -25,18 +26,19 @@ function AccountSettingsPage() {
           console.log(responseGetFollowersFollowing);
 
           const responseGetFollowersFollowingData =
-            await responseGetFollowersFollowing.json();
+            await responseGetFollowersFollowing.data;
           console.log(responseGetFollowersFollowingData);
-          if (responseGetFollowersFollowing.status === 200) {
-            setFollowersObjects(responseGetFollowersFollowingData.followers);
-            setFollowingObjects(responseGetFollowersFollowingData.following);
-          }
-          if (responseGetFollowersFollowing.status !== 200) {
+
+          setFollowersObjects(responseGetFollowersFollowingData.followers);
+          setFollowingObjects(responseGetFollowersFollowingData.following);
+        }
+      } catch (error) {
+        if (isAxiosError(error)) {
+          if (error.response) {
             setFollowersObjects("Error, try again later or try to reload page");
             setFollowingObjects("Error, try again later or try to reload page");
           }
         }
-      } catch (error) {
         console.log(error);
       }
     };

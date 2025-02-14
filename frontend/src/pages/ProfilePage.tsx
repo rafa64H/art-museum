@@ -96,7 +96,7 @@ function ProfilePage({
                   }
 
                   const responseAddFollow = await addFollow(userProfile?.id);
-                  const responseAddFollowData = await responseAddFollow.json();
+                  const responseAddFollowData = await responseAddFollow.data;
                   dispatch(
                     setUserFollowing(responseAddFollowData.userRequestFollowing)
                   );

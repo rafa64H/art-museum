@@ -47,14 +47,10 @@ function CommentItem({ commentProp, postId }: Props) {
               replyContent: replyRef.current?.value,
             });
 
-            if (responsePostReply.ok) {
-              console.log(await responsePostReply.json());
-              setShowReplyBox(false);
-              setSubmitReplyLoading(false);
-              return;
-            }
-
-            throw new Error("Failed to post reply");
+            console.log(await responsePostReply.data);
+            setShowReplyBox(false);
+            setSubmitReplyLoading(false);
+            return;
           } catch (error) {
             console.log(error);
             setSubmitReplyLoading(false);

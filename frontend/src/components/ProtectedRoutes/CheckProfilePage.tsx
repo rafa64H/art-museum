@@ -20,17 +20,15 @@ function CheckProfilePage() {
       try {
         const responseGetUser = await getUser({ userIdParam });
 
-        if (responseGetUser.ok) {
-          const responseGetUserData = await responseGetUser.json();
-          const userData = {
-            ...responseGetUserData.user,
-            id: responseGetUserData.user._id,
-            _id: undefined,
-          };
+        const responseGetUserData = await responseGetUser.data;
+        const userData = {
+          ...responseGetUserData.user,
+          id: responseGetUserData.user._id,
+          _id: undefined,
+        };
 
-          setUserProfile(userData);
-          setGetUserProfileLoading(false);
-        }
+        setUserProfile(userData);
+        setGetUserProfileLoading(false);
       } catch (error) {
         console.log(error);
       }

@@ -50,16 +50,13 @@ function VerifyEmailPage() {
                 codeToVerifyEmail: codeRef.current?.value,
               });
 
-              if (responseVerifyEmail.ok) {
-                setVerifiedEmail(true);
-                setSubmitFormLoading(false);
-
-                dispatch(setEmailVerified(true));
-                return;
-              }
-
+              setVerifiedEmail(true);
               setSubmitFormLoading(false);
+
+              dispatch(setEmailVerified(true));
+              return;
             } catch (error) {
+              setSubmitFormLoading(false);
               console.log(error);
             }
           }}

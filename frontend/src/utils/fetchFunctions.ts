@@ -211,6 +211,15 @@ export async function resetPassword(dataToResetPassword: {
   return responseResetPassword;
 }
 
+export async function fetchRefreshAuth() {
+  const urlForRefresh = `${BACKEND_URL}/auth/refresh`;
+
+  const responseRefresh = await axiosInstance.get(urlForRefresh, {
+    withCredentials: true,
+  });
+  return responseRefresh;
+}
+
 ////////POSTS RELATED
 export async function createPost(dataToCreatePost: {
   title: string | undefined;

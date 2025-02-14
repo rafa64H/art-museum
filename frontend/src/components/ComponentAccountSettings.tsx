@@ -24,6 +24,7 @@ import {
   undoEmailChange,
   uploadImageProfilePicture,
 } from "../utils/fetchFunctions";
+import { AxiosError, isAxiosError } from "axios";
 
 type Props = {
   followersObjects: UserDataResponse[] | string | null;
@@ -124,39 +125,17 @@ function ComponentAccountSettings({
                   dataToEditAccount
                 );
 
-                if (responseEditAccount.status === 401) {
-                  const responseDataEditAccount =
-                    await responseEditAccount.json();
+                if (imageFile) {
+                  const formData = new FormData();
+                  formData.append("file", imageFile);
 
-                  if (
-                    responseDataEditAccount.message.includes("Unauthorized")
-                  ) {
-                    navigate("/", { replace: true });
-                    return;
-                  }
-
-                  setAlertMessage2(responseDataEditAccount.message);
-                  setSubmitFormLoading(false);
+                  const responseProfilePictureUpload =
+                    await uploadImageProfilePicture(formData);
+                  navigate(0);
                   return;
                 }
-                if (responseEditAccount.status === 500) {
-                  setAlertMessage2("Internal server error, try again later");
-                  setSubmitFormLoading(false);
-                }
 
-                if (responseEditAccount.ok) {
-                  if (imageFile) {
-                    const formData = new FormData();
-                    formData.append("file", imageFile);
-
-                    const responseProfilePictureUpload =
-                      await uploadImageProfilePicture(formData);
-                    navigate(0);
-                    return;
-                  }
-
-                  navigate(0);
-                }
+                navigate(0);
               }
 
               if (selectedOption === 2) {
@@ -172,16 +151,31 @@ function ComponentAccountSettings({
 
                 if (!responseChangePassword) return;
 
-                if (responseChangePassword.ok) {
-                  setAlertMessage("Password changed");
-                  setOpenModal(false);
-                  setSubmitFormLoading(false);
-                }
+                setAlertMessage("Password changed");
+                setOpenModal(false);
+                setSubmitFormLoading(false);
 
                 setAlertMessage2("Internal server error, try again later.");
                 setSubmitFormLoading(false);
               }
             } catch (error) {
+              if (isAxiosError(error)) {
+                if (error.response) {
+                  if (error.response.status === 401) {
+                    const responseDataEditAccount = error.response.data.message;
+
+                    if (error.response.data.message.includes("Unauthorized")) {
+                      navigate("/", { replace: true });
+                      return;
+                    }
+
+                    setAlertMessage2(responseDataEditAccount.message);
+                    setSubmitFormLoading(false);
+                    return;
+                  }
+                }
+              }
+
               setOpenModal(false);
               setAlertMessage("Internal server error, try again later");
               setSubmitFormLoading(false);
@@ -322,13 +316,11 @@ function ComponentAccountSettings({
                   const responseSendVerificationCode =
                     await requestEmailChangeCode(userId);
 
-                  if (responseSendVerificationCode.ok) {
-                    navigate(`/verify-email/${user.userData?.id}`);
-                    return;
-                  }
+                  navigate(`/verify-email/${user.userData?.id}`);
+                  return;
+                } catch (error) {
                   setAlertMessage("An error occurred, try again later.");
                   setSendEmailVerificationLinkLoading(false);
-                } catch (error) {
                   console.log(error);
                 }
               }}
@@ -354,11 +346,8 @@ function ComponentAccountSettings({
                   setUndoChangedEmailLoading(true);
                   const responseUndoEmailChange = await undoEmailChange();
 
-                  if (responseUndoEmailChange.ok) {
-                    setUndoChangedEmailLoading(false);
-                    navigate(0);
-                  }
                   setUndoChangedEmailLoading(false);
+                  navigate(0);
                 } catch (error) {
                   setUndoChangedEmailLoading(false);
                   console.log(error);
@@ -520,7 +509,7 @@ function ComponentAccountSettings({
                       );
 
                       const responseDeleteFollowData =
-                        await responseDeleteFollow.json();
+                        await responseDeleteFollow.data;
 
                       dispatch(
                         setUserFollowing(
@@ -591,7 +580,7 @@ function ComponentAccountSettings({
                       );
 
                       const responseDeleteFollowData =
-                        await responseDeleteFollow.json();
+                        await responseDeleteFollow.data;
 
                       dispatch(
                         setUserFollowers(

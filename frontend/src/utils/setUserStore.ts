@@ -23,7 +23,7 @@ type ResponseDataType = {
   accessToken: string;
 };
 
-//You should send as argument an await response.json()
+//You should send as argument an await response.data
 export default function setUserStore(responseData: ResponseDataType): void {
   const userData = {
     id: responseData.user._id as string,

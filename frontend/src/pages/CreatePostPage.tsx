@@ -10,6 +10,7 @@ import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { v4 as uuidv4 } from "uuid";
 import InputTextArea from "../components/ui/InputTextArea";
 import { createPost, uploadPostImages } from "../utils/fetchFunctions";
+import { isAxiosError } from "axios";
 
 function CreatePostPage() {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -141,9 +142,9 @@ function CreatePostPage() {
               try {
                 const responseAccessTokenRefresh =
                   await requestAccessTokenRefresh();
-                if (!responseAccessTokenRefresh.ok) {
-                  navigate("/login");
-                }
+                // if (!responseAccessTokenRefresh.ok) {
+                //   navigate("/login");
+                // }
 
                 if (!user.userData?.verified) {
                   setAlertMessage("To post you need to verify your email");
@@ -160,18 +161,7 @@ function CreatePostPage() {
 
                   const responsePostImage = await uploadPostImages(formData);
 
-                  if (responsePostImage.status === 400) {
-                    setFormSubmitLoading(false);
-                    setAlertMessage("Invalid image upload");
-                    return;
-                  }
-                  if (!responsePostImage.ok) {
-                    setFormSubmitLoading(false);
-                    setAlertMessage("Error uploading images");
-                    return;
-                  }
-
-                  responsePostImagesData = await responsePostImage.json();
+                  responsePostImagesData = await responsePostImage.data;
                 }
 
                 const imageURLsStrings =
@@ -198,26 +188,7 @@ function CreatePostPage() {
                 };
                 const responsePostModel = await createPost(data);
 
-                const responsePostModelData = await responsePostModel.json();
-
-                if (responsePostModel.status === 400) {
-                  if (
-                    responsePostModelData.message ===
-                    "Title not found, it is required"
-                  ) {
-                    setFormSubmitLoading(false);
-                    setAlertMessage("Title is required");
-                    return;
-                  }
-
-                  setFormSubmitLoading(false);
-                  setAlertMessage("Invalid information to post");
-                }
-                if (!responsePostModel.ok) {
-                  setFormSubmitLoading(false);
-                  setAlertMessage("Error uploading post");
-                  return;
-                }
+                const responsePostModelData = await responsePostModel.data;
 
                 setFormSubmitLoading(false);
                 navigate(`/post/${responsePostModelData.post._id}`, {
@@ -226,6 +197,16 @@ function CreatePostPage() {
 
                 return;
               } catch (error) {
+                if (isAxiosError(error)) {
+                  if (error.response) {
+                    if (error.response.status === 400) {
+                      setAlertMessage(error.response.data.message);
+                    }
+                    setFormSubmitLoading(false);
+                    setAlertMessage("Error uploading post");
+                    return;
+                  }
+                }
                 console.log(error);
               }
             }}

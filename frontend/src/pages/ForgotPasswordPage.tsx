@@ -81,15 +81,12 @@ function ForgotPasswordPage() {
                 emailOrUsername: emailOrUsernameRef.current?.value,
               });
 
-              if (responseResetPassword.ok) {
-                setSubmitFormLoading(false);
-                setChangedPasswordSuccess(true);
-
-                return;
-              }
-
               setSubmitFormLoading(false);
+              setChangedPasswordSuccess(true);
+
+              return;
             } catch (error) {
+              setSubmitFormLoading(false);
               console.log(error);
             }
           }}
@@ -158,15 +155,12 @@ function ForgotPasswordPage() {
                 emailOrUsername: emailOrUsernameRef.current?.value,
               });
 
-              if (responseForgotPassword.ok) {
-                setEmailSent(true);
-                setSubmitFormLoading(false);
-
-                return;
-              }
-
+              setEmailSent(true);
               setSubmitFormLoading(false);
+
+              return;
             } catch (error) {
+              setSubmitFormLoading(false);
               console.log(error);
             }
           }}

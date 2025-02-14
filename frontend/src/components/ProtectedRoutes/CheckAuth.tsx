@@ -20,10 +20,6 @@ function CheckAuth({ children }: ProtectedRouteProps) {
         if (!user.userData && user.isLoading) {
           const responseRequestAccessTokenRefresh =
             await requestAccessTokenRefresh();
-          if (!responseRequestAccessTokenRefresh.ok) {
-            dispatch(setUser(null));
-            dispatch(setUserLoading(false));
-          }
         }
       } catch (error) {
         dispatch(setUser(null));

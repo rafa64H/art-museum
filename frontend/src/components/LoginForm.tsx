@@ -5,6 +5,7 @@ import ButtonComponent from "./ui/ButtonComponent";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import setUserStoreLogin from "../utils/setUserStore";
 import { loginToAccount } from "../utils/fetchFunctions";
+import { isAxiosError } from "axios";
 
 function SignUpForm() {
   const [alertMessage, setAlertMessage] = useState("");
@@ -41,31 +42,26 @@ function SignUpForm() {
           };
           const responseFromLogin = await loginToAccount(data);
 
-          if (
-            responseFromLogin.status !== 200 &&
-            !(responseFromLogin.status === 400)
-          ) {
-            setAlertMessage("Internal server error, try again later");
-            setSubmitFormLoading(false);
-            return;
-          }
-          if (responseFromLogin.status === 400) {
-            setAlertMessage("Invalid email/username or password");
-            emailOrUsernameRef.current!.setAttribute(
-              "data-error-input",
-              "true"
-            );
-            passwordRef.current!.setAttribute("data-error-input", "true");
-            setSubmitFormLoading(false);
-            return;
-          }
-          if (responseFromLogin.ok) {
-            const responseDataFromLogin = await responseFromLogin.json();
+          const responseDataFromLogin = await responseFromLogin.data;
 
-            setUserStoreLogin(responseDataFromLogin);
-            navigate("/");
-          }
+          setUserStoreLogin(responseDataFromLogin);
+          navigate("/");
         } catch (error) {
+          if (isAxiosError(error)) {
+            if (error.response) {
+              if (error.response.status === 400) {
+                setAlertMessage("Invalid email/username or password");
+                emailOrUsernameRef.current!.setAttribute(
+                  "data-error-input",
+                  "true"
+                );
+                passwordRef.current!.setAttribute("data-error-input", "true");
+                setSubmitFormLoading(false);
+                return;
+              }
+            }
+          }
+
           setAlertMessage("Internal server error, try again later");
 
           setSubmitFormLoading(false);
