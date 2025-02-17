@@ -126,11 +126,13 @@ function ComponentAccountSettings({
                 );
 
                 if (imageFile) {
-                  const formData = new FormData();
-                  formData.append("file", imageFile);
+                  const formDataToUploadProfilePicture = new FormData();
+                  formDataToUploadProfilePicture.append("file", imageFile);
 
                   const responseProfilePictureUpload =
-                    await uploadImageProfilePicture(formData);
+                    await uploadImageProfilePicture(
+                      formDataToUploadProfilePicture
+                    );
                   navigate(0);
                   return;
                 }

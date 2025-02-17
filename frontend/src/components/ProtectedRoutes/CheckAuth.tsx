@@ -7,6 +7,7 @@ import {
 } from "../../services/redux-toolkit/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../services/redux-toolkit/store";
+import { isAxiosError } from "axios";
 
 type ProtectedRouteProps = PropsWithChildren;
 function CheckAuth({ children }: ProtectedRouteProps) {
@@ -23,6 +24,9 @@ function CheckAuth({ children }: ProtectedRouteProps) {
       } catch (error) {
         dispatch(setUser(null));
         dispatch(setUserLoading(false));
+        if (isAxiosError(error)) {
+          console.log(`User not logged in`);
+        }
       }
     };
 

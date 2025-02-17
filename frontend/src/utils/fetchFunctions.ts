@@ -317,15 +317,16 @@ export async function getRepliesFromComment(dataToGetRepliesFromComment: {
 }
 
 //////////IMAGES RELATED:
-export async function uploadImageProfilePicture(formData: FormData) {
+export async function uploadImageProfilePicture(
+  formDataToUploadProfilePicture: FormData
+) {
   const user = store.getState().auth.user;
   const urlToUploadProfilePicture = `${BACKEND_URL}/api/images/profilePictures`;
+  const formData = formDataToUploadProfilePicture;
 
   const responseProfilePictureUpload = await axios.post(
     urlToUploadProfilePicture,
-    {
-      formData: formData,
-    },
+    formData,
     {
       withCredentials: true,
       headers: {

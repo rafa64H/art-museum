@@ -104,7 +104,7 @@ function ForgotPasswordPage() {
             }
           }}
         >
-          <p>{alertMessage}</p>
+          <p className="text-lg font-bold text-red-600">{alertMessage}</p>
           <div className="text-xl font-semibold">
             <TextInput
               idFor="resetPasswordToken"
