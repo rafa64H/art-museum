@@ -60,6 +60,7 @@ function MultipleImagesInput({
                 }
               ></img>
               <button
+                type="button"
                 onClick={() => {
                   const indexImageURL = imagesURLState.indexOf(imageURL);
                   const imageFileToRemove = imagesFileState![indexImageURL];
@@ -72,11 +73,6 @@ function MultipleImagesInput({
                   setImagesURLState((prevValue) =>
                     prevValue?.filter((url) => url !== imageURL)
                   );
-
-                  setTimeout(() => {
-                    console.log(imagesFileState);
-                    console.log(imagesURLState);
-                  }, 3000);
                 }}
                 className="absolute top-0 right-0 text-3xl px-2  bg-firstBrown hover:bg-firstGreen duration-150 transition-all rounded-full w-fit "
               >

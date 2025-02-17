@@ -31,7 +31,6 @@ function CreatePostPage() {
   const navigate = useNavigate();
 
   function handleTagInputKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
-    console.log(event.key);
     if (event.key === "Delete" || event.key === "Backspace") {
       //To not trigger re-render each time pressing "Backspace" or "Delete"
       if (tagRef.current!.value.length <= 1) {
@@ -46,7 +45,6 @@ function CreatePostPage() {
     }
 
     if (event.key === "Enter" && tagRef.current!.value !== "") {
-      event.preventDefault();
       const newTagValue = tagRef.current!.value;
       const newTagValueModified = newTagValue
         .split(" ")
