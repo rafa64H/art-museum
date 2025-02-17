@@ -18,13 +18,11 @@ function CheckAuth({ children }: ProtectedRouteProps) {
     const checkAuth = async () => {
       try {
         if (!user.userData && user.isLoading) {
-          const responseRequestAccessTokenRefresh =
-            await requestAccessTokenRefresh();
+          await requestAccessTokenRefresh();
         }
       } catch (error) {
         dispatch(setUser(null));
         dispatch(setUserLoading(false));
-        console.error(error);
       }
     };
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import { RootState } from "../services/redux-toolkit/store";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,6 +21,7 @@ function ProfilePage({
   getUserProfileLoading,
 }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
+  const [followOrUnfollowLoading, setFollowOrUnfollowLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -70,7 +71,9 @@ function ProfilePage({
                   ? "Unfollow"
                   : "Follow"
               }
+              loadingDisabled={followOrUnfollowLoading}
               onClickFunction={async () => {
+                setFollowOrUnfollowLoading(true);
                 try {
                   if (!user.userData || !userProfile) {
                     navigate("/sign-up");
@@ -85,13 +88,14 @@ function ProfilePage({
                       userProfile?.id
                     );
                     const responseDeleteFollowData =
-                      await responseDeleteFollow.json();
+                      await responseDeleteFollow.data;
 
                     dispatch(
                       setUserFollowing(
                         responseDeleteFollowData.userRequestFollowing
                       )
                     );
+                    setFollowOrUnfollowLoading(false);
                     return;
                   }
 
@@ -100,7 +104,9 @@ function ProfilePage({
                   dispatch(
                     setUserFollowing(responseAddFollowData.userRequestFollowing)
                   );
+                  setFollowOrUnfollowLoading(false);
                 } catch (error) {
+                  setFollowOrUnfollowLoading(false);
                   console.log(error);
                 }
               }}

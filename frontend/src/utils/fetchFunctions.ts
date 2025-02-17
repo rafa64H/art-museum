@@ -108,11 +108,16 @@ export async function addFollow(userProfileId: string | undefined) {
   const user = store.getState().auth.user;
   const urlToAddFollow = `${BACKEND_URL}/api/users/followers/${userProfileId}`;
 
-  const responseAddFollow = await axiosInstance.post(urlToAddFollow, {
-    headers: {
-      authorization: `Bearer ${user.userData?.accessToken}`,
-    },
-  });
+  const responseAddFollow = await axiosInstance.post(
+    urlToAddFollow,
+    {},
+    {
+      withCredentials: true,
+      headers: {
+        authorization: `Bearer ${user.userData?.accessToken}`,
+      },
+    }
+  );
 
   return responseAddFollow;
 }

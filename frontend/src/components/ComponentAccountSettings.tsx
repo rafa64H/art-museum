@@ -24,7 +24,7 @@ import {
   undoEmailChange,
   uploadImageProfilePicture,
 } from "../utils/fetchFunctions";
-import { AxiosError, isAxiosError } from "axios";
+import { isAxiosError } from "axios";
 
 type Props = {
   followersObjects: UserDataResponse[] | string | null;
@@ -153,9 +153,6 @@ function ComponentAccountSettings({
 
                 setAlertMessage("Password changed");
                 setOpenModal(false);
-                setSubmitFormLoading(false);
-
-                setAlertMessage2("Internal server error, try again later.");
                 setSubmitFormLoading(false);
               }
             } catch (error) {
@@ -520,15 +517,18 @@ function ComponentAccountSettings({
                 onClick={async () => {
                   try {
                     const isUserFollowing = user.userData?.following.some(
-                      (id) => id === userObject.id
+                      (id) => id === userObject._id
                     );
+
                     if (isUserFollowing) {
                       const responseDeleteFollow = await deleteFollow(
-                        userObject?.id
+                        userObject._id
                       );
 
                       const responseDeleteFollowData =
                         await responseDeleteFollow.data;
+
+                      console.log(responseDeleteFollowData);
 
                       dispatch(
                         setUserFollowing(
@@ -595,7 +595,7 @@ function ComponentAccountSettings({
                     );
                     if (isUserFollowing) {
                       const responseDeleteFollow = await deleteFollow(
-                        userObject?.id
+                        userObject._id
                       );
 
                       const responseDeleteFollowData =
