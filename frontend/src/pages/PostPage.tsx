@@ -17,6 +17,7 @@ import {
   getCommentsFromPost,
   getSinglePost,
 } from "../utils/fetchFunctions";
+import { isAxiosError } from "axios";
 
 type postDataResponse = {
   authorId: string;
@@ -189,7 +190,15 @@ function PostPage() {
                 e.preventDefault();
                 setCommentSubmitLoading(true);
                 try {
-                  checkEmptyFieldsForm([commentRef.current!], setAlertMessage);
+                  const validate = checkEmptyFieldsForm(
+                    [commentRef.current!],
+                    setAlertMessage
+                  );
+                  if (!validate) {
+                    setCommentSubmitLoading(false);
+
+                    return;
+                  }
 
                   const responseCreateComment = await createComment(
                     postId,
@@ -199,11 +208,27 @@ function PostPage() {
                   console.log(await responseCreateComment.data);
                   setCommentSubmitLoading(false);
                 } catch (error) {
-                  console.log(error);
+                  if (isAxiosError(error)) {
+                    if (error.response) {
+                      if (error.response.status === 404) {
+                        setAlertMessage(
+                          `${error.response.data.message}, maybe it was deleted recently or try reloading the page`
+                        );
+                        setCommentSubmitLoading(false);
+                        return;
+                      }
+                      setAlertMessage("Internal server error, try again later");
+                      setCommentSubmitLoading(false);
+                    }
+                  }
                   setCommentSubmitLoading(false);
+                  setAlertMessage(
+                    "There was an error with the client try reloading the page"
+                  );
                 }
               }}
             >
+              <p className="text-lg font-bold text-red-600">{alertMessage}</p>
               <div className="flex flex-col w-[min(45rem,70%)]">
                 <InputTextArea
                   refProp={commentRef}

@@ -7,12 +7,15 @@ import ReplyBtn from "./ui/ReplyBtn";
 import InputTextArea from "./ui/InputTextArea";
 import ButtonComponent from "./ui/ButtonComponent";
 import { createReplyToComment } from "../utils/fetchFunctions";
+import { isAxiosError } from "axios";
+import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 
 type Props = {
   commentProp: commentObjPost;
   postId: string | undefined;
 };
 function CommentItem({ commentProp, postId }: Props) {
+  const [alertMessage, setAlertMessage] = useState("");
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [submitReplyLoading, setSubmitReplyLoading] = useState(false);
   const replyRef = useRef<HTMLTextAreaElement>(null);
@@ -40,7 +43,16 @@ function CommentItem({ commentProp, postId }: Props) {
           e.preventDefault();
           setSubmitReplyLoading(true);
           try {
-            console.log(replyRef.current);
+            const validate = checkEmptyFieldsForm(
+              [replyRef.current!],
+              setAlertMessage
+            );
+            if (!validate) {
+              setSubmitReplyLoading(false);
+
+              return;
+            }
+
             const responsePostReply = await createReplyToComment({
               postId: postId,
               commentId: commentProp._id,
@@ -52,12 +64,28 @@ function CommentItem({ commentProp, postId }: Props) {
             setSubmitReplyLoading(false);
             return;
           } catch (error) {
-            console.log(error);
+            if (isAxiosError(error)) {
+              if (error.response) {
+                if (error.response.status === 404) {
+                  setAlertMessage(
+                    `${error.response.data.message}, maybe it was deleted recently or try reloading the page`
+                  );
+                  setSubmitReplyLoading(false);
+                  return;
+                }
+                setAlertMessage("Internal server error, try again later");
+                setSubmitReplyLoading(false);
+              }
+            }
+            setAlertMessage(
+              "There was an error with the client try reloading the page"
+            );
             setSubmitReplyLoading(false);
           }
         }}
         className={`${showReplyBox ? "block" : "hidden"} ml-[min(7rem,7%)]`}
       >
+        <p className="text-lg font-bold text-red-600">{alertMessage}</p>
         <div className="flex flex-col w-[min(45rem,25vw)]">
           <InputTextArea
             refProp={replyRef}
