@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 
 interface ImageDocument extends mongoose.Document {
   uploaderId: ObjectId;
+  postId?: ObjectId;
   filename: string;
   imageURL: string;
   fileRefFirebaseStorage: string;
@@ -13,6 +14,11 @@ const ImageSchema = new Schema<ImageDocument>({
   filename: {
     required: true,
     type: String,
+  },
+  postId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Post",
+    default: null,
   },
   uploaderId: {
     type: mongoose.Schema.Types.ObjectId,

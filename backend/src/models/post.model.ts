@@ -4,8 +4,10 @@ export interface PostDocument extends mongoose.Document {
   authorId: ObjectId;
   title: string;
   content: string;
-  imageURLs?: string[] | null;
-  imageIds?: ObjectId[] | null;
+
+  //This will be used with React to do a .map() to render an animation
+  //While requesting the post images from the images routes, os it has to be a number[]
+  amountOfImages?: number[];
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -25,13 +27,8 @@ const PostSchema = new mongoose.Schema<PostDocument>({
     type: String,
     required: true,
   },
-  imageURLs: {
-    type: [String],
-    default: null,
-  },
-  imageIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: "Image",
+  amountOfImages: {
+    type: [Number],
     default: null,
   },
   createdAt: {

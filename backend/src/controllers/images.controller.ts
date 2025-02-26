@@ -86,6 +86,7 @@ export async function uploadImagesPostHandler(
   try {
     const userId = req.userId!;
     const files = req.files as Express.Multer.File[];
+    const postIds = req.body.postIds as string[];
     if (!files)
       return res
         .status(400)
@@ -94,6 +95,28 @@ export async function uploadImagesPostHandler(
       return res
         .status(400)
         .json({ success: false, message: "No file provided" });
+    if (!postIds)
+      return res
+        .status(400)
+        .json({ success: false, message: "Problem with post IDs" });
+
+    const thereIsDifferentIdInPostIds = postIds.some(
+      (postId) => postId !== postIds[0]
+    );
+
+    if (thereIsDifferentIdInPostIds)
+      return res.status(400).json({
+        success: false,
+        message: "There is a different post id in the request",
+      });
+
+    const postIdObjectId = ObjectId.createFromHexString(postIds[0]);
+    const postOfTheImages = await PostModel.findOne(postIdObjectId);
+
+    if (!postOfTheImages)
+      return res
+        .status(400)
+        .json({ success: false, message: "Problem with the postId" });
 
     const userIdObjectId = ObjectId.createFromHexString(userId);
     const foundUser = await UserModel.findOne(userIdObjectId);
@@ -101,7 +124,7 @@ export async function uploadImagesPostHandler(
       return res.status(401).json({ success: false, message: "Unauhtorized" });
 
     const arrayOfImagesIdsAndURLs = await Promise.all(
-      files.map(async (file) => {
+      files.map(async (file, index) => {
         const fileName = `${Date.now()}-${file.originalname}`;
         const fileRef = `postsImages/${userId}/${fileName}`;
         const fileUpload = bucket.file(fileRef);
@@ -128,6 +151,7 @@ export async function uploadImagesPostHandler(
                 uploaderId: userIdObjectId,
                 filename: fileName,
                 imageURL: downloadURL[0],
+                postId: postIdObjectId,
                 fileRefFirebaseStorage: fileRef,
               });
 
@@ -146,6 +170,9 @@ export async function uploadImagesPostHandler(
         });
       })
     );
+
+    postOfTheImages.amountOfImages = files.map((_, index) => index + 1);
+    await postOfTheImages.save();
 
     res.status(200).json({
       success: true,
