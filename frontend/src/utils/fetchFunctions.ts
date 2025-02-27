@@ -229,8 +229,6 @@ export async function fetchRefreshAuth() {
 export async function createPost(dataToCreatePost: {
   title: string | undefined;
   content: string | undefined;
-  imageURLs: string[];
-  imageIds: string[];
   tags: string[] | [];
 }) {
   const user = store.getState().auth.user;
@@ -347,4 +345,11 @@ export async function uploadPostImages(formDataToUpload: FormData) {
     },
   });
   return responsePostImages;
+}
+
+export async function getPostImages(postId: string | undefined) {
+  const urlPostImages = `${BACKEND_URL}/api/images/postImages/${postId}`;
+  const responseGetPostImages = await axiosInstance.get(urlPostImages, {});
+
+  return responseGetPostImages;
 }

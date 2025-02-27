@@ -1,5 +1,5 @@
 import { MONGO_URI } from "../constants/env";
-import crypto from "crypto";
+import crypto, { verify } from "crypto";
 import path from "path";
 import mongoose from "mongoose";
 import express from "express";
@@ -10,6 +10,7 @@ import multer from "multer";
 import { bucket } from "../db/connectDB";
 import verifyJWT from "../middleware/verifyJWT";
 import {
+  getPostImagesHandler,
   uploadImagesPostHandler,
   uploadProfilePictureHandler,
 } from "../controllers/images.controller";
@@ -23,18 +24,22 @@ const upload = multer({
 
 const imagesRoutes = express.Router();
 
-imagesRoutes.use(verifyJWT as express.RequestHandler);
-
 imagesRoutes.post(
   "/profilePictures",
+  verifyJWT as express.RequestHandler,
   upload.single("file"),
   uploadProfilePictureHandler as express.RequestHandler
 );
 
 imagesRoutes.post(
   "/postImages",
+  verifyJWT as express.RequestHandler,
   upload.array("files"),
   uploadImagesPostHandler as express.RequestHandler
 );
+
+imagesRoutes.get("/postImages/:postId", async (req, res) => {
+  await getPostImagesHandler(req, res);
+});
 
 export default imagesRoutes;

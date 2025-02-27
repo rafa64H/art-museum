@@ -86,7 +86,7 @@ export async function uploadImagesPostHandler(
   try {
     const userId = req.userId!;
     const files = req.files as Express.Multer.File[];
-    const postIds = req.body.postIds as string[];
+    const postId = req.body.postId;
     if (!files)
       return res
         .status(400)
@@ -95,22 +95,12 @@ export async function uploadImagesPostHandler(
       return res
         .status(400)
         .json({ success: false, message: "No file provided" });
-    if (!postIds)
+    if (!postId)
       return res
         .status(400)
-        .json({ success: false, message: "Problem with post IDs" });
+        .json({ success: false, message: "Problem with postId" });
 
-    const thereIsDifferentIdInPostIds = postIds.some(
-      (postId) => postId !== postIds[0]
-    );
-
-    if (thereIsDifferentIdInPostIds)
-      return res.status(400).json({
-        success: false,
-        message: "There is a different post id in the request",
-      });
-
-    const postIdObjectId = ObjectId.createFromHexString(postIds[0]);
+    const postIdObjectId = ObjectId.createFromHexString(postId);
     const postOfTheImages = await PostModel.findOne(postIdObjectId);
 
     if (!postOfTheImages)
@@ -182,6 +172,39 @@ export async function uploadImagesPostHandler(
   } catch (error) {
     console.log(error);
 
+    res.status(500).json({ success: false, message: error });
+  }
+}
+
+export async function getPostImagesHandler(req: Request, res: Response) {
+  try {
+    const postId = req.params.postId;
+    console.log(postId);
+    if (!postId)
+      return res.status(400).json({
+        success: false,
+        message: "Problem with postId, no postId in request",
+      });
+
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const postOfTheImages = await PostModel.findOne(postIdObjectId);
+    if (!postOfTheImages)
+      return res.status(400).json({
+        success: false,
+        message: "Problem with the postId, No post found with such id",
+      });
+
+    const postImages = await ImageModel.find({ postId: postIdObjectId });
+
+    const imagesIdsAndImagesURLs = postImages.map((imageDocument) => {
+      return {
+        imageId: imageDocument._id,
+        imageURL: imageDocument.imageURL,
+      };
+    });
+
+    return res.status(200).json({ success: true, imagesIdsAndImagesURLs });
+  } catch (error) {
     res.status(500).json({ success: false, message: error });
   }
 }

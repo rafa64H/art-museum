@@ -15,6 +15,7 @@ import RepliesListPost from "../components/RepliesListPost";
 import {
   createComment,
   getCommentsFromPost,
+  getPostImages,
   getSinglePost,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
@@ -33,6 +34,8 @@ function PostPage() {
   const [post, setPost] = useState<postDataResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingComments, setLoadingComments] = useState(true);
+  const [imagesIds, setImagesIds] = useState([]);
+  const [imagesURLs, setImagesURLs] = useState([]);
   const [fullViewImage, setFullViewImage] = useState(false);
   const [selectedViewImage, setSelectedViewImage] = useState(0);
   const [alertMessage, setAlertMessage] = useState("");
@@ -57,6 +60,29 @@ function PostPage() {
       }
     };
 
+    const getImagesIdsAndUrls = async () => {
+      try {
+        const responseGetPostImages = await getPostImages(postId);
+
+        const responseGetPostImagesData = await responseGetPostImages.data;
+
+        const imagesIds = responseGetPostImagesData.imagesIdsAndImagesURLs.map(
+          (idURLObject: { imageId: string; imageURL: string }) =>
+            idURLObject.imageId
+        );
+
+        const imagesURLs = responseGetPostImagesData.imagesIdsAndImagesURLs.map(
+          (idURLObject: { imageId: string; imageURL: string }) =>
+            idURLObject.imageURL
+        );
+
+        setImagesIds(imagesIds);
+        setImagesURLs(imagesURLs);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     const getFirstComments = async () => {
       try {
         const responseGetComments = await getCommentsFromPost(postId);
@@ -71,8 +97,11 @@ function PostPage() {
     };
 
     getPost();
+    getImagesIdsAndUrls();
     getFirstComments();
-  }, [postId]);
+
+    return () => {};
+  }, []);
   return (
     <>
       <Header></Header>
@@ -86,7 +115,7 @@ function PostPage() {
             <h1 className="text-4xl font-semibold text-center">{post.title}</h1>
 
             <div className="flex flex-wrap gap-7 py-4">
-              {post.imageURLs?.map((imageURL, index) => {
+              {imagesURLs?.map((imageURL, index) => {
                 return (
                   <div
                     key={uuidv4()}
@@ -114,7 +143,7 @@ function PostPage() {
             >
               <div>
                 <ol className="absolute">
-                  {post.imageURLs?.map((imageURL, index) => {
+                  {imagesURLs?.map((imageURL, index) => {
                     return (
                       <li className="my-2" key={uuidv4()}>
                         <button
@@ -132,7 +161,7 @@ function PostPage() {
                   })}
                 </ol>
 
-                <img src={post.imageURLs![selectedViewImage]}></img>
+                <img src={imagesURLs![selectedViewImage]}></img>
                 <button
                   onClick={() => {
                     setFullViewImage(false);
@@ -143,7 +172,7 @@ function PostPage() {
                 <a
                   target="_blank"
                   className="hover:underline"
-                  href={post.imageURLs![selectedViewImage]}
+                  href={imagesURLs![selectedViewImage]}
                 >
                   See image in a new window
                 </a>

@@ -135,8 +135,6 @@ function CreatePostPage() {
             onClickFunction={async () => {
               setFormSubmitLoading(true);
 
-              let responsePostImagesData = null;
-
               try {
                 const responseAccessTokenRefresh =
                   await requestAccessTokenRefresh();
@@ -151,42 +149,25 @@ function CreatePostPage() {
                   return;
                 }
 
-                if (imageFiles) {
-                  const formData = new FormData();
-                  imageFiles.forEach((file) => {
-                    formData.append("files", file);
-                  });
-
-                  const responsePostImage = await uploadPostImages(formData);
-
-                  responsePostImagesData = await responsePostImage.data;
-                }
-
-                const imageURLsStrings =
-                  responsePostImagesData.imageIdsAndUrls.map(
-                    (obj: { imageURL: string; imageId: string }) => {
-                      return obj.imageURL;
-                    }
-                  ) as string[];
-
-                const imageIdsStrings =
-                  responsePostImagesData.imageIdsAndUrls.map(
-                    (obj: { imageId: string; imageURL: string }) => {
-                      return obj.imageId;
-                    }
-                  ) as string[];
-
                 // //Post model
                 const data = {
                   title: titleRef.current?.value,
                   content: contentRef.current?.value,
-                  imageURLs: imageURLsStrings,
-                  imageIds: imageIdsStrings,
                   tags: tagsState,
                 };
                 const responsePostModel = await createPost(data);
 
                 const responsePostModelData = await responsePostModel.data;
+
+                if (imageFiles) {
+                  const formData = new FormData();
+                  imageFiles.forEach((file) => {
+                    formData.append("files", file);
+                  });
+                  formData.append("postId", responsePostModelData.post._id);
+
+                  const responsePostImage = await uploadPostImages(formData);
+                }
 
                 setFormSubmitLoading(false);
                 navigate(`/post/${responsePostModelData.post._id}`, {
