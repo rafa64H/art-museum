@@ -9,6 +9,8 @@ export interface PostDocument extends mongoose.Document {
   //While requesting the post images from the images routes, os it has to be a number[]
   amountOfImages?: number[];
   tags: string[];
+  likes: string[];
+  dislikes: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +38,14 @@ const PostSchema = new mongoose.Schema<PostDocument>({
     default: Date.now,
   },
   tags: {
+    type: [String],
+    default: [],
+  },
+  likes: {
+    type: [String],
+    default: [],
+  },
+  dislikes: {
     type: [String],
     default: [],
   },

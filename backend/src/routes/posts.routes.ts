@@ -9,6 +9,8 @@ import {
   getAllCommentsHandler,
   getAllRepliesHandler,
   getSinglePostHandler,
+  likePostHandler,
+  dislikePostHandler,
 } from "../controllers/posts.controller";
 
 const postsRoutes = express.Router();
@@ -19,6 +21,22 @@ postsRoutes.get("/:postId", async (req, res) => {
 postsRoutes.post("/", verifyJWT as RequestHandler, async (req, res) => {
   await createPostHandler(req, res);
 });
+
+postsRoutes.post(
+  "/:postId/likes",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await likePostHandler(req, res);
+  }
+);
+
+postsRoutes.post(
+  "/:postId/dislikes",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await dislikePostHandler(req, res);
+  }
+);
 
 postsRoutes.get("/:postId/comments", async (req, res) => {
   await getAllCommentsHandler(req, res);

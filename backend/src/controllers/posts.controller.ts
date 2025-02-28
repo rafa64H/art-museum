@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
-import { ObjectId } from "mongodb";
 import { UserModel } from "../models/user.model";
 import { PostModel } from "../models/post.model";
 import { CommentDocument, CommentModel } from "../models/comment.model";
 import { ReplyModel } from "../models/reply.model";
+import { ObjectId } from "mongodb";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -82,6 +82,95 @@ export async function getSinglePostHandler(req: Request, res: Response) {
     };
 
     res.status(200).json({ success: true, post: postObjectToReturn });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+  }
+}
+
+export async function likePostHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized to add like to post" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const postId = req.params.postId;
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found with such id" });
+
+    const findIfUserDislikedPost = foundPost.likes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
+    if (findIfUserDislikedPost) {
+      foundPost.dislikes = foundPost.likes.filter(
+        (dislikeUserId) => dislikeUserId !== userId
+      );
+    }
+
+    foundPost.likes = [...foundPost.likes, userId];
+
+    await foundPost.save();
+
+    res.status(200).json({ success: true, message: "Like added successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+  }
+}
+
+export async function dislikePostHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized to add like to post" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const postId = req.params.postId;
+    const postIdObjectId = ObjectId.createFromHexString(userId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found with such id" });
+
+    const findIfUserLikedPost = foundPost.likes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
+    if (findIfUserLikedPost) {
+      foundPost.likes = foundPost.likes.filter(
+        (likeUserId) => likeUserId !== userId
+      );
+    }
+    foundPost.dislikes = [...foundPost.dislikes, userId];
+
+    await foundPost.save();
+
+    res.status(200).json({ success: true, message: "Like added successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: "internal server error" });
   }
