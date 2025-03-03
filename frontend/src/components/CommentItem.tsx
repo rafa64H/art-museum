@@ -6,7 +6,11 @@ import DislikeBtn from "./ui/DislikeBtn";
 import ReplyBtn from "./ui/ReplyBtn";
 import InputTextArea from "./ui/InputTextArea";
 import ButtonComponent from "./ui/ButtonComponent";
-import { createReplyToComment } from "../utils/fetchFunctions";
+import {
+  createReplyToComment,
+  dislikeComment,
+  likeComment,
+} from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 
@@ -27,9 +31,34 @@ function CommentItem({ commentProp, postId }: Props) {
       ></UserPictureAndUsername>
       <p className="mt-2 ml-[min(7rem,7%)]">{commentProp.content}</p>
       <div className="w-fit ml-[min(7rem,7%)]  flex gap-4 my-2">
-        <LikeBtn smallOrLarge="small"></LikeBtn>
+        <LikeBtn
+          onClickFunction={async () => {
+            try {
+              const responseLikeComment = await likeComment(
+                postId,
+                commentProp._id
+              );
+            } catch (error) {
+              console.log(error);
+            }
+          }}
+          smallOrLarge="small"
+        ></LikeBtn>
 
-        <DislikeBtn smallOrLarge="small"></DislikeBtn>
+        <DislikeBtn
+          onClickFunction={async () => {
+            try {
+              console.log(postId, commentProp._id);
+              const responseDislikeComment = await dislikeComment(
+                postId,
+                commentProp._id
+              );
+            } catch (error) {
+              console.log(error);
+            }
+          }}
+          smallOrLarge="small"
+        ></DislikeBtn>
 
         <ReplyBtn
           onClickFunction={() => {

@@ -6,7 +6,12 @@ import LikeBtn from "./ui/LikeBtn";
 import DislikeBtn from "./ui/DislikeBtn";
 import ReplyBtn from "./ui/ReplyBtn";
 import InputTextArea from "./ui/InputTextArea";
-import { getRepliesFromComment } from "../utils/fetchFunctions";
+import {
+  dislikeReply,
+  getRepliesFromComment,
+  likeReply,
+} from "../utils/fetchFunctions";
+import { v4 as uuidv4 } from "uuid";
 
 type Props = {
   commentObjProp: commentObjPost;
@@ -14,6 +19,7 @@ type Props = {
 };
 
 type ReplyObjPost = {
+  _id: string;
   authorId: string;
   postId: string;
   content: string;
@@ -34,15 +40,41 @@ function RepliesListPost({ commentObjProp, postId }: Props) {
       <ul>
         {repliesState.map((reply) => {
           return (
-            <li className="relative w-fit">
+            <li key={uuidv4()} className="relative w-fit">
               <UserPictureAndUsername
                 userId={reply.authorId}
               ></UserPictureAndUsername>
               <p className="ml-[min(7rem,7%)]">{reply.content}</p>
               <div className="w-fit ml-[min(7rem,7%)]  flex gap-4 my-2">
-                <LikeBtn smallOrLarge="small"></LikeBtn>
+                <LikeBtn
+                  onClickFunction={async () => {
+                    try {
+                      const responseLikeReply = await likeReply(
+                        postId,
+                        commentObjProp._id,
+                        reply._id
+                      );
+                    } catch (error) {
+                      console.log(error);
+                    }
+                  }}
+                  smallOrLarge="small"
+                ></LikeBtn>
 
-                <DislikeBtn smallOrLarge="small"></DislikeBtn>
+                <DislikeBtn
+                  onClickFunction={async () => {
+                    try {
+                      const responseDislikeReply = await dislikeReply(
+                        postId,
+                        commentObjProp._id,
+                        reply._id
+                      );
+                    } catch (error) {
+                      console.log(error);
+                    }
+                  }}
+                  smallOrLarge="small"
+                ></DislikeBtn>
 
                 <ReplyBtn
                   onClickFunction={() => {

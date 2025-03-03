@@ -129,7 +129,7 @@ export async function likePostHandler(
         .status(400)
         .json({ success: false, message: "Post already liked by user" });
 
-    foundPost.likes = [...foundPost.likes, userId];
+    foundPost.likes.push(userId);
 
     await foundPost.save();
 
@@ -182,7 +182,7 @@ export async function dislikePostHandler(
         .status(400)
         .json({ success: false, message: "Post already disliked by user" });
     }
-    foundPost.dislikes = [...foundPost.dislikes, userId];
+    foundPost.dislikes.push(userId);
 
     await foundPost.save();
 
@@ -536,7 +536,7 @@ export async function likeCommentHandler(
     );
 
     if (findIfUserDislikedComment) {
-      foundPost.dislikes = foundComment.dislikes.filter(
+      foundComment.dislikes = foundComment.dislikes.filter(
         (likeUserId) => likeUserId !== userId
       );
     }
@@ -546,7 +546,8 @@ export async function likeCommentHandler(
         .status(400)
         .json({ success: false, message: "Comment already liked by user" });
 
-    foundPost.likes = [...foundComment.likes, userId];
+    foundComment.likes.push(userId);
+    await foundComment.save();
 
     res.status(201).json({
       success: true,
@@ -622,7 +623,8 @@ export async function dislikeCommentHandler(
         .status(400)
         .json({ success: false, message: "Comment already disliked by user" });
 
-    foundComment.dislikes = [...foundComment.dislikes, userId];
+    foundComment.dislikes.push(userId);
+    await foundComment.save();
 
     res.status(201).json({
       success: true,
@@ -712,7 +714,8 @@ export async function likeReplyHandler(
         .status(400)
         .json({ success: false, message: "Reply already liked by user" });
 
-    foundReply.likes = [...foundReply.likes, userId];
+    foundReply.likes.push(userId);
+    await foundReply.save();
 
     res.status(201).json({
       success: true,
@@ -801,7 +804,9 @@ export async function dislikeReplyHandler(
         .status(400)
         .json({ success: false, message: "Reply already liked by user" });
 
-    foundReply.dislikes = [...foundReply.dislikes, userId];
+    foundReply.dislikes.push(userId);
+
+    await foundReply.save();
 
     res.status(201).json({
       success: true,
