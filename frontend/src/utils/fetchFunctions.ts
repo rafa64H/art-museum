@@ -254,6 +254,7 @@ export async function getSinglePost(postId: string | undefined) {
 }
 
 export async function likePost(postId: string | undefined) {
+  console.log(postId);
   const urlToLikePost = `${BACKEND_URL}/api/posts/${postId}/likes`;
   const user = store.getState().auth.user;
 
@@ -271,6 +272,7 @@ export async function likePost(postId: string | undefined) {
 }
 
 export async function dislikePost(postId: string | undefined) {
+  console.log(postId);
   const urlToDislikePost = `${BACKEND_URL}/api/posts/${postId}/dislikes`;
   const user = store.getState().auth.user;
 

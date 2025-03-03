@@ -14,9 +14,11 @@ import CommentItem from "../components/CommentItem";
 import RepliesListPost from "../components/RepliesListPost";
 import {
   createComment,
+  dislikePost,
   getCommentsFromPost,
   getPostImages,
   getSinglePost,
+  likePost,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
 
@@ -203,9 +205,27 @@ function PostPage() {
             ) : null}
 
             <div className="flex gap-4 my-4">
-              <LikeBtn smallOrLarge="large"></LikeBtn>
+              <LikeBtn
+                smallOrLarge="large"
+                onClickFunction={async () => {
+                  try {
+                    await likePost(postId);
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }}
+              ></LikeBtn>
 
-              <DislikeBtn smallOrLarge="large"></DislikeBtn>
+              <DislikeBtn
+                smallOrLarge="large"
+                onClickFunction={async () => {
+                  try {
+                    await dislikePost(postId);
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }}
+              ></DislikeBtn>
             </div>
           </section>
 

@@ -116,11 +116,18 @@ export async function likePostHandler(
       (likeUserId) => likeUserId === userId
     );
 
+    const findIfUserLikedPost = foundPost.likes.find(
+      (likeUserId) => likeUserId === userId
+    );
     if (findIfUserDislikedPost) {
       foundPost.dislikes = foundPost.dislikes.filter(
         (dislikeUserId) => dislikeUserId !== userId
       );
     }
+    if (findIfUserLikedPost)
+      return res
+        .status(400)
+        .json({ success: false, message: "Post already liked by user" });
 
     foundPost.likes = [...foundPost.likes, userId];
 
@@ -150,7 +157,7 @@ export async function dislikePostHandler(
         .json({ success: false, message: "User not found" });
 
     const postId = req.params.postId;
-    const postIdObjectId = ObjectId.createFromHexString(userId);
+    const postIdObjectId = ObjectId.createFromHexString(postId);
     const foundPost = await PostModel.findOne(postIdObjectId);
     if (!foundPost)
       return res
@@ -161,10 +168,19 @@ export async function dislikePostHandler(
       (likeUserId) => likeUserId === userId
     );
 
+    const findIfUserDislikedPost = foundPost.dislikes.find(
+      (dislikeUserId) => dislikeUserId === userId
+    );
+
     if (findIfUserLikedPost) {
       foundPost.likes = foundPost.likes.filter(
         (likeUserId) => likeUserId !== userId
       );
+    }
+    if (findIfUserDislikedPost) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Post already disliked by user" });
     }
     foundPost.dislikes = [...foundPost.dislikes, userId];
 
@@ -515,11 +531,20 @@ export async function likeCommentHandler(
       (likeUserId) => likeUserId === userId
     );
 
+    const findIfUserLikedComment = foundComment.likes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
     if (findIfUserDislikedComment) {
       foundPost.dislikes = foundComment.dislikes.filter(
         (likeUserId) => likeUserId !== userId
       );
     }
+
+    if (findIfUserLikedComment)
+      return res
+        .status(400)
+        .json({ success: false, message: "Comment already liked by user" });
 
     foundPost.likes = [...foundComment.likes, userId];
 
@@ -582,11 +607,20 @@ export async function dislikeCommentHandler(
       (likeUserId) => likeUserId === userId
     );
 
+    const findIfUserDislikedComment = foundComment.dislikes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
     if (findIfUserLikedComment) {
       foundComment.likes = foundComment.likes.filter(
         (likeUserId) => likeUserId !== userId
       );
     }
+
+    if (findIfUserDislikedComment)
+      return res
+        .status(400)
+        .json({ success: false, message: "Comment already disliked by user" });
 
     foundComment.dislikes = [...foundComment.dislikes, userId];
 
@@ -656,9 +690,14 @@ export async function likeReplyHandler(
     if (!foundReply)
       return res
         .status(404)
+
         .json({ success: false, message: "Reply not found" });
 
     const findIfUserDislikedReply = foundReply.dislikes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
+    const findIfUserLikedReply = foundReply.likes.find(
       (likeUserId) => likeUserId === userId
     );
 
@@ -667,6 +706,11 @@ export async function likeReplyHandler(
         (likeUserId) => likeUserId !== userId
       );
     }
+
+    if (findIfUserLikedReply)
+      return res
+        .status(400)
+        .json({ success: false, message: "Reply already liked by user" });
 
     foundReply.likes = [...foundReply.likes, userId];
 
@@ -742,11 +786,20 @@ export async function dislikeReplyHandler(
       (likeUserId) => likeUserId === userId
     );
 
+    const findIfUserDislikedReply = foundReply.dislikes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
     if (findIfUserLikedReply) {
       foundReply.likes = foundReply.likes.filter(
         (likeUserId) => likeUserId !== userId
       );
     }
+
+    if (findIfUserDislikedReply)
+      return res
+        .status(400)
+        .json({ success: false, message: "Reply already liked by user" });
 
     foundReply.dislikes = [...foundReply.dislikes, userId];
 
