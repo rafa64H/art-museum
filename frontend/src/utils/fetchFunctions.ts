@@ -252,6 +252,40 @@ export async function getSinglePost(postId: string | undefined) {
   const responseGetSinglePost = await axiosInstance.get(urlGetSinglePost);
   return responseGetSinglePost;
 }
+
+export async function likePost(postId: string | undefined) {
+  const urlToLikePost = `${BACKEND_URL}/api/posts/${postId}/likes`;
+  const user = store.getState().auth.user;
+
+  const responseLikePost = await axiosInstance.post(
+    urlToLikePost,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${user.userData?.accessToken}`,
+      },
+    }
+  );
+
+  return responseLikePost;
+}
+
+export async function dislikePost(postId: string | undefined) {
+  const urlToDislikePost = `${BACKEND_URL}/api/posts/${postId}/dislikes`;
+  const user = store.getState().auth.user;
+
+  const responseDislikePost = await axiosInstance.post(
+    urlToDislikePost,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${user.userData?.accessToken}`,
+      },
+    }
+  );
+
+  return responseDislikePost;
+}
 export async function getCommentsFromPost(postId: string | undefined) {
   const urlGetComments = `${BACKEND_URL}/api/posts/${postId}/comments`;
 
@@ -278,6 +312,47 @@ export async function createComment(
   );
 
   return responseCreateComment;
+}
+
+export async function likeComment(
+  postId: string | undefined,
+  commentId: string | undefined
+) {
+  const urlToLikeComment = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/likes/`;
+  const user = store.getState().auth.user;
+
+  const responseLikeComment = await axiosInstance.post(
+    urlToLikeComment,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${user.userData?.accessToken}`,
+      },
+    }
+  );
+
+  return responseLikeComment;
+}
+
+export async function dislikeComment(
+  postId: string | undefined,
+  commentId: string | undefined
+) {
+  const urlToDisikeComment = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/dislikes/`;
+
+  const user = store.getState().auth.user;
+
+  const responseDislikeComment = await axiosInstance.post(
+    urlToDisikeComment,
+    {},
+    {
+      headers: {
+        authorization: `Bearer ${user.userData?.accessToken}`,
+      },
+    }
+  );
+
+  return responseDislikeComment;
 }
 
 export async function createReplyToComment(dataToCreateReplyToComment: {
@@ -312,6 +387,48 @@ export async function getRepliesFromComment(dataToGetRepliesFromComment: {
 
   const responseGetReplies = await axiosInstance.get(urlToGetReplies);
   return responseGetReplies;
+}
+
+export async function likeReply(
+  postId: string | undefined,
+  commentId: string | undefined,
+  replyId: string | undefined
+) {
+  const urlToLikeReply = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/replies/${replyId}/likes`;
+  const user = store.getState().auth.user;
+
+  const responseLikeReply = await axiosInstance.post(
+    urlToLikeReply,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${user.userData?.accessToken}`,
+      },
+    }
+  );
+
+  return responseLikeReply;
+}
+
+export async function dislikeReply(
+  postId: string | undefined,
+  commentId: string | undefined,
+  replyId: string | undefined
+) {
+  const urlToDislikeReply = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/replies/${replyId}/dislikes`;
+  const user = store.getState().auth.user;
+
+  const responseDislikeReply = await axiosInstance.post(
+    urlToDislikeReply,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${user.userData?.accessToken}`,
+      },
+    }
+  );
+
+  return responseDislikeReply;
 }
 
 //////////IMAGES RELATED:
