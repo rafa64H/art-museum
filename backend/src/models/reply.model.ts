@@ -5,6 +5,8 @@ export interface ReplyDocument extends mongoose.Document {
   commentId: ObjectId;
   postId: ObjectId;
   content: string;
+  likes: string[];
+  dislikes: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +30,14 @@ const ReplySchema = new mongoose.Schema<ReplyDocument>({
   content: {
     type: String,
     required: true,
+  },
+  likes: {
+    type: [String],
+    default: [],
+  },
+  dislikes: {
+    type: [String],
+    default: [],
   },
   createdAt: {
     type: Date,

@@ -11,6 +11,10 @@ import {
   getSinglePostHandler,
   likePostHandler,
   dislikePostHandler,
+  likeCommentHandler,
+  dislikeCommentHandler,
+  likeReplyHandler,
+  dislikeReplyHandler,
 } from "../controllers/posts.controller";
 
 const postsRoutes = express.Router();
@@ -58,6 +62,20 @@ postsRoutes.put(
   }
 );
 
+postsRoutes.post(
+  "/:postId/comments/:commentId/likes",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await likeCommentHandler(req, res);
+  }
+);
+postsRoutes.post(
+  "/:postId/comments/:commentId/dislikes",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await dislikeCommentHandler(req, res);
+  }
+);
 postsRoutes.get("/:postId/comments/:commentId/replies", async (req, res) => {
   await getAllRepliesHandler(req, res);
 });
@@ -75,6 +93,21 @@ postsRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await editReplyHandler(req, res);
+  }
+);
+
+postsRoutes.post(
+  "/:postId/comments/:commentId/replies/:replyId/likes",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await likeReplyHandler(req, res);
+  }
+);
+postsRoutes.post(
+  "/:postId/comments/:commentId/replies/:replyId/dislikes",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await dislikeReplyHandler(req, res);
   }
 );
 

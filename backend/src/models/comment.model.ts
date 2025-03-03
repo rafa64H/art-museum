@@ -4,7 +4,8 @@ export interface CommentDocument extends mongoose.Document {
   authorId: ObjectId;
   postId: ObjectId;
   content: string;
-  repliesIds: ObjectId[];
+  likes: string[];
+  dislikes: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,9 +25,12 @@ const CommentSchema = new mongoose.Schema<CommentDocument>({
     type: String,
     required: true,
   },
-  repliesIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: "Reply",
+  likes: {
+    type: [String],
+    default: [],
+  },
+  dislikes: {
+    type: [String],
     default: [],
   },
   createdAt: {

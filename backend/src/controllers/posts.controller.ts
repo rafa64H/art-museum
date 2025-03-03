@@ -117,7 +117,7 @@ export async function likePostHandler(
     );
 
     if (findIfUserDislikedPost) {
-      foundPost.dislikes = foundPost.likes.filter(
+      foundPost.dislikes = foundPost.dislikes.filter(
         (dislikeUserId) => dislikeUserId !== userId
       );
     }
@@ -463,5 +463,299 @@ export async function editReplyHandler(
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "internal server error" });
+  }
+}
+
+export async function likeCommentHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized to create comment" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const { postId } = req.params;
+
+    if (!postId)
+      return res
+        .status(400)
+        .json({ success: false, message: "postId not added" });
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const { commentId } = req.params;
+    if (!commentId)
+      return res
+        .status(400)
+        .json({ success: false, message: "commentId not added" });
+    const commentIdObjectId = ObjectId.createFromHexString(commentId);
+
+    const foundComment = await CommentModel.findOne(commentIdObjectId);
+
+    if (!foundComment)
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
+
+    const findIfUserDislikedComment = foundComment.dislikes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
+    if (findIfUserDislikedComment) {
+      foundPost.dislikes = foundComment.dislikes.filter(
+        (likeUserId) => likeUserId !== userId
+      );
+    }
+
+    foundPost.likes = [...foundComment.likes, userId];
+
+    res.status(201).json({
+      success: true,
+      message: "Comment liked successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+    console.log(error);
+  }
+}
+
+export async function dislikeCommentHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized to create comment" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const { postId } = req.params;
+
+    if (!postId)
+      return res
+        .status(400)
+        .json({ success: false, message: "postId not added" });
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const { commentId } = req.params;
+    if (!commentId)
+      return res
+        .status(400)
+        .json({ success: false, message: "commentId not added" });
+    const commentIdObjectId = ObjectId.createFromHexString(commentId);
+
+    const foundComment = await CommentModel.findOne(commentIdObjectId);
+
+    if (!foundComment)
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
+
+    const findIfUserLikedComment = foundComment.likes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
+    if (findIfUserLikedComment) {
+      foundComment.likes = foundComment.likes.filter(
+        (likeUserId) => likeUserId !== userId
+      );
+    }
+
+    foundComment.dislikes = [...foundComment.dislikes, userId];
+
+    res.status(201).json({
+      success: true,
+      message: "Comment disliked successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+    console.log(error);
+  }
+}
+
+export async function likeReplyHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized to create comment" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const { postId } = req.params;
+
+    if (!postId)
+      return res
+        .status(400)
+        .json({ success: false, message: "postId not added" });
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const { commentId } = req.params;
+    if (!commentId)
+      return res
+        .status(400)
+        .json({ success: false, message: "commentId not added" });
+    const commentIdObjectId = ObjectId.createFromHexString(commentId);
+
+    const foundComment = await CommentModel.findOne(commentIdObjectId);
+
+    if (!foundComment)
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
+
+    const { replyId } = req.params;
+    if (!replyId)
+      return res
+        .status(400)
+        .json({ success: false, message: "replyId not added" });
+
+    const replyIdObjectId = ObjectId.createFromHexString(replyId);
+    const foundReply = await ReplyModel.findOne(replyIdObjectId);
+    if (!foundReply)
+      return res
+        .status(404)
+        .json({ success: false, message: "Reply not found" });
+
+    const findIfUserDislikedReply = foundReply.dislikes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
+    if (findIfUserDislikedReply) {
+      foundReply.dislikes = foundReply.dislikes.filter(
+        (likeUserId) => likeUserId !== userId
+      );
+    }
+
+    foundReply.likes = [...foundReply.likes, userId];
+
+    res.status(201).json({
+      success: true,
+      message: "Comment liked successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+    console.log(error);
+  }
+}
+
+export async function dislikeReplyHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    if (!userId)
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized to create comment" });
+    const userIdObjectId = ObjectId.createFromHexString(userId);
+    const foundUser = await UserModel.findOne(userIdObjectId);
+    if (!foundUser)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const { postId } = req.params;
+
+    if (!postId)
+      return res
+        .status(400)
+        .json({ success: false, message: "postId not added" });
+    const postIdObjectId = ObjectId.createFromHexString(postId);
+    const foundPost = await PostModel.findOne(postIdObjectId);
+
+    if (!foundPost)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+
+    const { commentId } = req.params;
+    if (!commentId)
+      return res
+        .status(400)
+        .json({ success: false, message: "commentId not added" });
+    const commentIdObjectId = ObjectId.createFromHexString(commentId);
+
+    const foundComment = await CommentModel.findOne(commentIdObjectId);
+
+    if (!foundComment)
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
+
+    const { replyId } = req.params;
+    if (!replyId)
+      return res
+        .status(400)
+        .json({ success: false, message: "replyId not added" });
+
+    const replyIdObjectId = ObjectId.createFromHexString(replyId);
+    const foundReply = await ReplyModel.findOne(replyIdObjectId);
+    if (!foundReply)
+      return res
+        .status(404)
+        .json({ success: false, message: "Reply not found" });
+
+    const findIfUserLikedReply = foundReply.likes.find(
+      (likeUserId) => likeUserId === userId
+    );
+
+    if (findIfUserLikedReply) {
+      foundReply.likes = foundReply.likes.filter(
+        (likeUserId) => likeUserId !== userId
+      );
+    }
+
+    foundReply.dislikes = [...foundReply.dislikes, userId];
+
+    res.status(201).json({
+      success: true,
+      message: "Comment liked successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "internal server error" });
+    console.log(error);
   }
 }
