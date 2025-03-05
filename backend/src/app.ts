@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.routes";
 import imagesRoutes from "./routes/images.routes";
 import usersRoutes from "./routes/users.routes";
 import postsRoutes from "./routes/posts.routes";
+import { errorHandler } from "./middleware/errorHandler";
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
@@ -31,6 +32,8 @@ app.use("/api/users", usersRoutes);
 app.use("/api/images", imagesRoutes);
 
 app.use("/api/posts", postsRoutes);
+
+app.use(errorHandler);
 
 app.listen(port, async () => {
   console.log("listening on port", port);
