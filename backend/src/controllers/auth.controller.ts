@@ -37,19 +37,16 @@ export const signUpHandler = async (req: Request, res: Response) => {
     throw new CustomError(400, "Email Already in use");
   }
   if (alreadyUsedUsername) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Username already in use" });
+    throw new CustomError(400, "Username already in use");
   }
 
   if (!backendCheckValidityEmail(email))
-    return res.status(400).json({ success: false, message: "Invalid Email" });
+    throw new CustomError(400, "Invalid email");
   if (!backendCheckValidityNameOrUsername(name))
-    return res.status(400).json({ success: false, message: "Invalid Name" });
+    throw new CustomError(400, "Invalid name");
+
   if (!backendCheckValidityNameOrUsername(username))
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid Username" });
+    throw new CustomError(400, "Invalid username");
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const verificationToken = Math.floor(
@@ -110,16 +107,12 @@ export const loginHandler = async (req: Request, res: Response) => {
     user = await UserModel.findOne({ username: usernameWithAt });
   }
   if (!user) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid credentials" });
+    throw new CustomError(400, "Invalid credentials");
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid credentials" });
+    throw new CustomError(400, "Invalid credentials");
   }
 
   const userId = (user._id as ObjectId).toString();
@@ -163,10 +156,7 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
   const idxd = foundUser!._id as ObjectId;
 
   if (!foundUser) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid or expired",
-    });
+    throw new CustomError(400, "Invalid or expired");
   }
 
   if (foundUser.verificationToken === code) {
@@ -205,7 +195,7 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
     user = await UserModel.findOne({ email: emailOrUsername });
   }
   if (!user) {
-    return res.status(400).json({ success: false, message: "User not found" });
+    throw new CustomError(400, "Invalid username or email input");
   }
 
   // Generate reset token
@@ -243,7 +233,7 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
     user = await UserModel.findOne({ email: emailOrUsername });
   }
   if (!user) {
-    return res.status(400).json({ success: false, message: "User not found" });
+    throw new CustomError(400, "Invalid username or email input");
   }
 
   const resetPasswordExpiresAtDate = user.resetPasswordExpiresAt!;
@@ -252,13 +242,9 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
   console.log(user.resetPasswordToken);
 
   if (resetPasswordExpiresAtDate < new Date())
-    return res
-      .status(400)
-      .json({ success: false, message: "Verification token expired" });
+    throw new CustomError(400, "Verification token expired");
   if (token !== user.resetPasswordToken)
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid verification token" });
+    throw new CustomError(400, "Invalid verification token");
 
   // update password
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -275,21 +261,20 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
 export const refreshHandler = async (req: Request, res: Response) => {
   const cookies = req.cookies;
   if (!cookies.jwt) {
-    return res.status(401).json({ success: false, message: "Unauthorized d" });
+    throw new CustomError(401, "Unauthorized d");
   }
 
   const refreshToken = cookies.jwt;
 
   const decodedJwt = jwt.verify(refreshToken, JWT_SECRET_REFRESH);
   if (typeof decodedJwt !== "object")
-    return res.status(401).json({ success: false, message: "Unauthorized e" });
+    throw new CustomError(401, "Unauthorized e");
 
   const userId = decodedJwt.userId as string;
   const userIdObjectId = ObjectId.createFromHexString(userId);
   const foundUser = await UserModel.findOne(userIdObjectId);
 
-  if (!foundUser)
-    return res.status(401).json({ success: false, message: "Unauthorized f" });
+  if (!foundUser) throw new CustomError(401, "Unauthorized f");
 
   const role = foundUser.role;
 
@@ -312,8 +297,7 @@ export async function sendEmailVerificationCodeHandler(
   const userIdObjectId = ObjectId.createFromHexString(userId);
 
   const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser)
-    return res.status(404).json({ success: false, message: "No user found" });
+  if (!foundUser) throw new CustomError(404, "No user found");
 
   const verificationToken = Math.floor(
     1000000 + Math.random() * 9000000

@@ -6,6 +6,7 @@ import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
 import { ProfilePictureModel } from "../models/profilePicture.model";
 import { PostModel } from "../models/post.model";
 import { ImageModel } from "../models/image.model";
+import CustomError from "../constants/customError";
 
 export async function uploadProfilePictureHandler(
   req: AuthMiddlewareRequest,
@@ -14,14 +15,12 @@ export async function uploadProfilePictureHandler(
   const userId = req.userId!;
   const file = req.file;
   if (!file) {
-    return res
-      .status(400)
-      .json({ success: false, message: "No file provided" });
+    throw new CustomError(400, "No file provided");
   }
   const userIdObjectId = ObjectId.createFromHexString(userId);
   const foundUser = await UserModel.findOne(userIdObjectId);
   if (!foundUser) {
-    return res.status(401).json({ success: false, message: "Unauhtorized" });
+    throw new CustomError(401, "Unauthorized");
   }
 
   const profilePictureId = foundUser.profilePictureId;
@@ -40,9 +39,7 @@ export async function uploadProfilePictureHandler(
     },
   });
   stream.on("error", async (error) => {
-    return res
-      .status(500)
-      .json({ success: false, message: "Error uploading file" });
+    throw new CustomError(500, "Error uploading file");
   });
   stream.on("finish", async () => {
     const downloadURL = await fileUpload.getSignedUrl({
@@ -80,31 +77,17 @@ export async function uploadImagesPostHandler(
   const userId = req.userId!;
   const files = req.files as Express.Multer.File[];
   const postId = req.body.postId;
-  if (!files)
-    return res
-      .status(400)
-      .json({ success: false, message: "No file provided" });
-  if ((files.length as number) <= 0)
-    return res
-      .status(400)
-      .json({ success: false, message: "No file provided" });
-  if (!postId)
-    return res
-      .status(400)
-      .json({ success: false, message: "Problem with postId" });
+  if (!files) throw new CustomError(400, "No file provided");
+  if (!postId) throw new CustomError(400, "Problem with postId");
 
   const postIdObjectId = ObjectId.createFromHexString(postId);
   const postOfTheImages = await PostModel.findOne(postIdObjectId);
 
-  if (!postOfTheImages)
-    return res
-      .status(400)
-      .json({ success: false, message: "Problem with the postId" });
+  if (!postOfTheImages) throw new CustomError(400, "Problem with the postId");
 
   const userIdObjectId = ObjectId.createFromHexString(userId);
   const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser)
-    return res.status(401).json({ success: false, message: "Unauhtorized" });
+  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
   const arrayOfImagesIdsAndURLs = await Promise.all(
     files.map(async (file, index) => {
@@ -120,7 +103,7 @@ export async function uploadImagesPostHandler(
 
       return new Promise((resolve, reject) => {
         stream.on("error", (error) => {
-          reject(error);
+          throw new CustomError(500, "Error uploading file");
         });
 
         stream.on("finish", async () => {
@@ -145,7 +128,7 @@ export async function uploadImagesPostHandler(
               imageURL: newPostImage.imageURL,
             });
           } catch (error) {
-            reject(error);
+            throw new CustomError(400, "No file provided");
           }
         });
 
@@ -166,19 +149,12 @@ export async function uploadImagesPostHandler(
 export async function getPostImagesHandler(req: Request, res: Response) {
   const postId = req.params.postId;
   console.log(postId);
-  if (!postId)
-    return res.status(400).json({
-      success: false,
-      message: "Problem with postId, no postId in request",
-    });
+  if (!postId) throw new CustomError(400, "No postId provided");
 
   const postIdObjectId = ObjectId.createFromHexString(postId);
   const postOfTheImages = await PostModel.findOne(postIdObjectId);
   if (!postOfTheImages)
-    return res.status(400).json({
-      success: false,
-      message: "Problem with the postId, No post found with such id",
-    });
+    throw new CustomError(400, "No post found with such id");
 
   const postImages = await ImageModel.find({ postId: postIdObjectId });
 

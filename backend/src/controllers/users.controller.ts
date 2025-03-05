@@ -5,6 +5,7 @@ import { UserModel } from "../models/user.model";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
 import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
 import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
+import CustomError from "../constants/customError";
 
 export async function getAllUsersHandler(
   req: AuthMiddlewareRequest,
@@ -24,10 +25,9 @@ export async function getUserHandler(req: Request, res: Response) {
   const userIdObjectId = ObjectId.createFromHexString(userId);
   const foundUser = await UserModel.findOne(userIdObjectId);
 
-  if (!foundUser)
-    return res.status(404).json({ success: false, message: "User not found" });
+  if (!foundUser) throw new CustomError(404, "User not found");
 
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     user: { ...foundUser.toObject(), password: undefined },
   });
@@ -37,18 +37,13 @@ export async function editUserHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  if (!req.userId)
-    return res.status(401).json({
-      success: false,
-      message: "Error editing account: Unauthorized",
-    });
+  if (!req.userId) throw new CustomError(401, "Unauthorized");
 
   const userIdObjectId = ObjectId.createFromHexString(req.userId);
 
   const foundUser = await UserModel.findOne(userIdObjectId);
 
-  if (!foundUser)
-    return res.status(404).json({ success: false, message: "User not found" });
+  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
   const { password, newEmail, newName, newUsername } = req.body as {
     password: string | null;
@@ -57,24 +52,19 @@ export async function editUserHandler(
     newUsername: string | null;
   };
 
-  if (!password)
-    return res
-      .status(401)
-      .json({ success: false, message: "Wrong current password" });
+  if (!password) throw new CustomError(401, "Wrong password");
 
   const validDialogPassword = await bcrypt.compare(
     password,
     foundUser.password
   );
   if (!validDialogPassword) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Wrong current password" });
+    throw new CustomError(401, "Wrong password");
   }
 
   if (newEmail && newEmail !== foundUser.email) {
     if (!backendCheckValidityEmail(newEmail))
-      return res.status(400).json({ success: false, message: "Invalid Email" });
+      throw new CustomError(400, "Invalid email");
 
     if (!(newEmail === foundUser.email) && !foundUser.changedEmail) {
       foundUser.previousEmail = foundUser.email;
@@ -87,16 +77,14 @@ export async function editUserHandler(
 
   if (newName && newName !== foundUser.name) {
     if (!backendCheckValidityNameOrUsername(foundUser.name))
-      return res.status(400).json({ success: false, message: "Invalid Name" });
+      throw new CustomError(401, "Invalid name");
 
     foundUser.name = newName;
   }
 
   if (newUsername && newUsername !== foundUser.username) {
     if (!backendCheckValidityNameOrUsername(foundUser.username))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid Username" });
+      throw new CustomError(401, "Invalid username");
 
     foundUser.username = `@${newUsername}`;
   }
@@ -117,17 +105,11 @@ export async function changePasswordHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  if (!req.userId)
-    return res.status(401).json({
-      success: false,
-      message: "Error editing account: Unauthorized",
-    });
-
+  if (!req.userId) throw new CustomError(401, "Unauthorized");
   const userIdObjectId = ObjectId.createFromHexString(req.userId);
 
   const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser)
-    return res.status(404).json({ success: false, message: "User not found" });
+  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
   const { password, newPassword } = req.body as {
     password: string;
@@ -142,11 +124,7 @@ export async function changePasswordHandler(
       foundUser.password
     );
 
-    if (!validDialogPassword) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Wrong current password" });
-    }
+    if (!validDialogPassword) throw new CustomError(401, "Wrong password");
 
     hashedPassword = await bcrypt.hash(newPassword, 10);
     foundUser.password = hashedPassword ? hashedPassword : foundUser.password;
@@ -161,22 +139,18 @@ export async function getFollowersFollowingFromUser(
   res: Response
 ) {
   const userIdMiddleware = req.userId;
-  if (!userIdMiddleware)
-    return res.status(401).json({
-      success: true,
-      message: "Unauthorized to get followers and following",
-    });
+  if (!userIdMiddleware) throw new CustomError(401, "Unauthorized");
   const userId = req.params.userId;
   const userIdObjectId = ObjectId.createFromHexString(userId);
   const foundUser = await UserModel.findOne(userIdObjectId);
 
-  if (!foundUser)
-    return res.status(404).json({ success: false, message: "User not found" });
+  if (!foundUser) throw new CustomError(404, "User not found with such id");
 
   if (!((foundUser._id as string).toString() === userIdMiddleware))
-    return res
-      .status(400)
-      .json({ success: false, message: "Not the same user" });
+    throw new CustomError(
+      401,
+      "Not the same authenticated user as the user in param"
+    );
 
   const objectUser = foundUser.toObject();
 
@@ -229,12 +203,8 @@ export async function addFollowerHandler(
   const foundUser = await UserModel.findOne(userIdObjectId);
   const userRequest = await UserModel.findOne(userIdObjectIdRequest);
 
-  if (!foundUser)
-    return res.status(404).json({ success: false, message: "User not found" });
-  if (!userRequest)
-    return res
-      .status(404)
-      .json({ success: false, message: "User doing request not found" });
+  if (!foundUser) throw new CustomError(404, "User not found with such id");
+  if (!userRequest) throw new CustomError(401, "Unauthorized");
 
   foundUser.followers = [...foundUser.followers, userIdRequest];
   userRequest.following = [...foundUser.following, userId];
@@ -242,7 +212,7 @@ export async function addFollowerHandler(
   await foundUser.save();
   await userRequest.save();
 
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     message: `${userRequest.username} now following ${foundUser.username}`,
     userRequestFollowing: userRequest.following,
@@ -263,18 +233,14 @@ export async function deleteFollowerHandler(
   const foundUser = await UserModel.findOne(userIdObjectId);
   const userRequest = await UserModel.findOne(userIdObjectIdRequest);
 
-  if (!foundUser)
-    return res.status(404).json({ success: false, message: "User not found" });
-  if (!userRequest)
-    return res
-      .status(404)
-      .json({ success: false, message: "User doing request not found" });
+  if (!foundUser) throw new CustomError(404, "User not found with such id");
+  if (!userRequest) throw new CustomError(401, "Unauthorized");
 
   const indexFollower = foundUser.followers.indexOf(userIdRequest);
   const indexFollowing = userRequest.following.indexOf(userId);
 
   if (indexFollower === -1 || indexFollowing === -1) {
-    return res.status(404).json({ success: false, message: "User not found" });
+    throw new CustomError(404, "User not found as follower or follow");
   }
 
   foundUser.followers.splice(indexFollower, 1);
@@ -282,7 +248,7 @@ export async function deleteFollowerHandler(
   await foundUser.save();
   await userRequest.save();
 
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     message: `${userRequest.username} unfollowed ${foundUser.username}`,
     userRequestFollowing: userRequest.following,
@@ -296,20 +262,15 @@ export async function undoEmailChangeHandler(
 ) {
   const userId = req.userId;
   console.log(userId);
-  if (!userId)
-    return res.status(401).json({ success: false, message: "Unauthorized" });
+  if (!userId) throw new CustomError(401, "Unauthorized");
   const userIdObjectId = ObjectId.createFromHexString(userId);
 
   const foundUser = await UserModel.findOne(userIdObjectId);
   console.log(foundUser);
-  if (!foundUser)
-    return res.status(404).json({ success: false, message: "User not found" });
+  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
   if (!foundUser.previousEmail)
-    return res.status(400).json({
-      success: false,
-      message: "User does not have a previous email",
-    });
+    throw new CustomError(400, "User does not have previous email");
 
   foundUser.email = foundUser.previousEmail;
   foundUser.verified = foundUser.previousEmailVerified;
@@ -317,7 +278,7 @@ export async function undoEmailChangeHandler(
   foundUser.previousEmail = null;
   await foundUser.save();
 
-  return res
+  res
     .status(200)
     .json({ success: true, message: "Email change undid successfully" });
 }
