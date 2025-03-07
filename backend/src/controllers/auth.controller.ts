@@ -23,8 +23,8 @@ import backendCheckValidityNameOrUsername from "../utils/form-input-validations/
 import CustomError from "../constants/customError";
 import { validateSignUpRequest } from "../utils/validation/joi/signUpHandlerValidator";
 import signUpDatabaseValidator from "../utils/validation/database/signUpDatabaseValidator";
-import createEmailVerificationToken from "../utils/createEmailVerificationToken";
 import {
+  create1HourFromNowDate,
   create24HoursFromNowDate,
   create30DaysNumber,
 } from "../utils/createDates";
@@ -32,6 +32,9 @@ import { validateLoginRequest } from "../utils/validation/joi/loginHandlerValida
 import loginDatabaseValidator from "../utils/validation/database/loginDatabaseValidator";
 import { validateVerifyEmailRequest } from "../utils/validation/joi/verifyEmailHandlerValidator";
 import verifyEmailDatabaseValidator from "../utils/validation/database/verifyEmailDatabaseValidator";
+import createEmailToken from "../utils/createToken";
+import { validateForgotPasswordRequest } from "../utils/validation/joi/forgotPasswordHandlerValidator";
+import forgotPasswordDatabaseValidator from "../utils/validation/database/forgotPasswordDatabaseValidator";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
@@ -67,7 +70,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
     throw new CustomError(400, databaseSignUpValidationError);
 
   const hashedPassword = await bcrypt.hash(validatedPassword, 10);
-  const verificationToken = createEmailVerificationToken();
+  const verificationToken = createEmailToken();
   const userDocument = new UserModel({
     email: validatedEmail,
     password: hashedPassword,
@@ -197,32 +200,35 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
 };
 
 export const logoutHandler = async (req: Request, res: Response) => {
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  res.clearCookie("jwt");
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
 export const forgotPasswordHandler = async (req: Request, res: Response) => {
-  const { emailOrUsername } = req.body as { emailOrUsername: string };
+  const { emailOrUsername } = req.body as { emailOrUsername: unknown };
 
-  let user = null;
-  if (emailOrUsername.startsWith("@")) {
-    user = await UserModel.findOne({ username: emailOrUsername });
-  } else {
-    user = await UserModel.findOne({ email: emailOrUsername });
-  }
-  if (!user) {
-    throw new CustomError(400, "Invalid username or email input");
-  }
+  const forgotPasswordValidationError = validateForgotPasswordRequest({
+    emailOrUsername,
+  });
+  if (forgotPasswordValidationError)
+    throw new CustomError(400, forgotPasswordValidationError);
+
+  const validatedEmailOrUsername = emailOrUsername as string;
+
+  const userOrDatabaseValidationError = await forgotPasswordDatabaseValidator({
+    emailOrUsername: validatedEmailOrUsername,
+  });
+
+  if (typeof userOrDatabaseValidationError === "string")
+    throw new CustomError(400, userOrDatabaseValidationError);
+
+  const user = userOrDatabaseValidationError;
 
   // Generate reset token
-  const resetPasswordToken = Math.floor(
-    1000000 + Math.random() * 9000000
-  ).toString();
-  const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
-  const resetTokenExpiresAtDate = new Date(resetTokenExpiresAt);
+  const resetPasswordToken = createEmailToken();
+  const resetTokenExpiresAt = create1HourFromNowDate(); // 1 hour
   user.resetPasswordToken = resetPasswordToken;
-  user.resetPasswordExpiresAt = resetTokenExpiresAtDate;
+  user.resetPasswordExpiresAt = resetTokenExpiresAt;
   await user.save();
 
   // send email

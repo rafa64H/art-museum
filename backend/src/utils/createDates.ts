@@ -5,3 +5,7 @@ export function create24HoursFromNowDate() {
 export function create30DaysNumber() {
   return 30 * 24 * 60 * 60 * 1000;
 }
+
+export function create1HourFromNowDate() {
+  return new Date(Date.now() + 1 * 60 * 60 * 1000);
+}

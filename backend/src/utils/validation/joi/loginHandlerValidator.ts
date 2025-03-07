@@ -1,10 +1,9 @@
 import Joi from "joi";
-import { regexAtLeastOneSymbolLetterAndNumber } from "./regularExpressions";
 
 const loginSchemaFirstStep = Joi.object({
-  emailOrUsername: Joi.string(),
+  emailOrUsername: Joi.string().required(),
 
-  password: Joi.string(),
+  password: Joi.string().required(),
 }).options({ abortEarly: true });
 
 export function validateLoginRequest({
