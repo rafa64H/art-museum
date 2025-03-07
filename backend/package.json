@@ -20,6 +20,7 @@
     "dotenv": "^16.4.5",
     "express": "^5.0.1",
     "firebase-admin": "^12.7.0",
+    "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mailtrap": "^3.4.0",
     "mongodb": "^6.9.0",

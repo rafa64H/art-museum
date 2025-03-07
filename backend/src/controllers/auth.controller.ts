@@ -2,7 +2,12 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { UserModel } from "../models/user.model";
 import { Request, Response } from "express";
-import { RefreshTokenPayload, verifyToken } from "../utils/jwtFunctions";
+import {
+  createAccessToken,
+  createRefreshToken,
+  RefreshTokenPayload,
+  verifyToken,
+} from "../utils/jwtFunctions";
 import {
   sendPasswordResetEmail,
   sendResetSuccessEmail,
@@ -16,6 +21,13 @@ import jwt from "jsonwebtoken";
 import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
 import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 import CustomError from "../constants/customError";
+import { validateSignUpRequest } from "../utils/validation/joi/signUpValidator";
+import signUpDatabaseValidator from "../utils/validation/database/signUpDatabaseValidator";
+import createEmailVerificationToken from "../utils/createEmailVerificationToken";
+import {
+  create24HoursFromNowDate,
+  create30DaysNumber,
+} from "../utils/createDates";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
@@ -25,33 +37,28 @@ export const signUpHandler = async (req: Request, res: Response) => {
     username: string;
   };
 
-  if (!email || !password || !name || !username) {
-    throw new CustomError(400, "Email, password, name and uesrname needed");
-  }
+  const validationError = validateSignUpRequest({
+    email,
+    password,
+    name,
+    username,
+  });
+  if (validationError) throw new CustomError(400, validationError);
 
-  const usernameWithAt = `@${username}`;
+  const usernameWithoutSpaces = username.replace(/\s/g, "");
+  let usernameWithAt = usernameWithoutSpaces;
+  const doesUsernameHasAt = usernameWithoutSpaces.startsWith("@");
+  if (!doesUsernameHasAt) usernameWithAt = `@${usernameWithoutSpaces}`;
 
-  const alreadyUsedEmail = await UserModel.findOne({ email });
-  const alreadyUsedUsername = await UserModel.findOne({ usernameWithAt });
-  if (alreadyUsedEmail) {
-    throw new CustomError(400, "Email Already in use");
-  }
-  if (alreadyUsedUsername) {
-    throw new CustomError(400, "Username already in use");
-  }
-
-  if (!backendCheckValidityEmail(email))
-    throw new CustomError(400, "Invalid email");
-  if (!backendCheckValidityNameOrUsername(name))
-    throw new CustomError(400, "Invalid name");
-
-  if (!backendCheckValidityNameOrUsername(username))
-    throw new CustomError(400, "Invalid username");
+  const databaseValidationError = await signUpDatabaseValidator({
+    email,
+    usernameWithAt,
+  });
+  if (databaseValidationError)
+    throw new CustomError(400, databaseValidationError);
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const verificationToken = Math.floor(
-    1000000 + Math.random() * 9000000
-  ).toString();
+  const verificationToken = createEmailVerificationToken();
 
   const role = "user";
   const user = new UserModel({
@@ -61,19 +68,15 @@ export const signUpHandler = async (req: Request, res: Response) => {
     username: usernameWithAt,
     role,
     verificationToken,
-    verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    verificationTokenExpiresAt: create24HoursFromNowDate(),
   });
   await user.save();
 
   const userId = (user._id as ObjectId).toString();
   // jwt
-  const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
-    expiresIn: "15m",
-  });
+  const accessToken = createAccessToken({ userId, role });
 
-  const refreshToken = jwt.sign({ userId, role }, JWT_SECRET_REFRESH, {
-    expiresIn: "30d",
-  });
+  const refreshToken = createRefreshToken({ userId, role });
   res.cookie("jwt", refreshToken, {
     httpOnly: true,
     secure: true,
@@ -129,7 +132,7 @@ export const loginHandler = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    maxAge: create30DaysNumber(),
   });
 
   user.lastLogin = new Date();

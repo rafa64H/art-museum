@@ -1,7 +1,7 @@
 export default function backendCheckValidityPasswordBackend(
   password: string
 ): boolean {
-  const regexPassword = /^(?=.*[0-9])(?=.*[\W_])[\w\W]{6,}$/;
+  const regexPassword = /(?=.*[a-zA-Z])(?=.*\d)(?=.*[^\w\s])/;
   if (!regexPassword.test(password)) {
     return false;
   }
