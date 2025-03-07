@@ -12,7 +12,8 @@ const sender = {
 
 export const sendVerificationEmail = async (
   email: string,
-  verificationToken: string
+  verificationToken: string,
+  userId: string
 ) => {
   const recipient = [{ email }];
 
@@ -24,7 +25,7 @@ export const sendVerificationEmail = async (
       html: VERIFICATION_EMAIL_TEMPLATE.replace(
         "{verificationCode}",
         verificationToken
-      ),
+      ).replace("{userId}", userId),
       category: "Email Verification",
     });
 
@@ -117,9 +118,9 @@ export const VERIFICATION_EMAIL_TEMPLATE = `<!DOCTYPE html>
       <h1 style="font-size:2rem; text-align: center; color: white; font-family: sans-serif;">Verify your email</h1>
     </div>
     <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
-      Your code to verify your email is this:
+      Your link to verify your email is this:
     </p>
-    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;">{verificationCode}</h2>
+    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;"><a href="http://localhost:5000/verify-email/{userId}/{verificationCode}">Click here to verify email</a></h2>
     <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
       If you didn't use this email for an account in our page, then ignore this
       email.

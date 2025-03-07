@@ -22,7 +22,7 @@ authRoutes.get("/refresh", async (req, res) => {
   await refreshHandler(req, res);
 });
 authRoutes.get("/logout", logoutHandler);
-authRoutes.post("/verify-email", async (req, res) => {
+authRoutes.post("/verify-email/:userId/:code", async (req, res) => {
   await verifyEmailHandler(req, res);
 });
 

@@ -5,16 +5,23 @@ import {
 } from "./regularExpressions";
 
 const signUpSchema = Joi.object({
-  email: Joi.string().email({
-    minDomainSegments: 2,
-    tlds: { allow: ["com", "net"] },
-  }),
+  email: Joi.string()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ["com", "net"] },
+    })
+    .required(),
   password: Joi.string()
     .min(7)
     .max(100)
-    .pattern(regexAtLeastOneSymbolLetterAndNumber),
-  name: Joi.string().min(3).max(50).pattern(regexAtLeastThreeCharacters),
-  username: Joi.string().min(3).alphanum(),
+    .pattern(regexAtLeastOneSymbolLetterAndNumber)
+    .required(),
+  name: Joi.string()
+    .min(3)
+    .max(50)
+    .pattern(regexAtLeastThreeCharacters)
+    .required(),
+  username: Joi.string().min(3).alphanum().required(),
 }).options({ abortEarly: true });
 
 export function validateSignUpRequest({
@@ -23,10 +30,10 @@ export function validateSignUpRequest({
   name,
   username,
 }: {
-  email: string;
-  password: string;
-  name: string;
-  username: string;
+  email: unknown;
+  password: unknown;
+  name: unknown;
+  username: unknown;
 }): string | null {
   let usernameWithoutSpaces = "";
   if (typeof username === "string")

@@ -21,67 +21,75 @@ import jwt from "jsonwebtoken";
 import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
 import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 import CustomError from "../constants/customError";
-import { validateSignUpRequest } from "../utils/validation/joi/signUpValidator";
+import { validateSignUpRequest } from "../utils/validation/joi/signUpHandlerValidator";
 import signUpDatabaseValidator from "../utils/validation/database/signUpDatabaseValidator";
 import createEmailVerificationToken from "../utils/createEmailVerificationToken";
 import {
   create24HoursFromNowDate,
   create30DaysNumber,
 } from "../utils/createDates";
+import { validateLoginRequest } from "../utils/validation/joi/loginHandlerValidator";
+import loginDatabaseValidator from "../utils/validation/database/loginDatabaseValidator";
+import { validateVerifyEmailRequest } from "../utils/validation/joi/verifyEmailHandlerValidator";
+import verifyEmailDatabaseValidator from "../utils/validation/database/verifyEmailDatabaseValidator";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
-    email: string;
-    password: string;
-    name: string;
-    username: string;
+    email: unknown;
+    password: unknown;
+    name: unknown;
+    username: unknown;
   };
-
-  const validationError = validateSignUpRequest({
+  const signUpValidationError = validateSignUpRequest({
     email,
     password,
     name,
     username,
   });
-  if (validationError) throw new CustomError(400, validationError);
+  if (signUpValidationError) throw new CustomError(400, signUpValidationError);
 
-  const usernameWithoutSpaces = username.replace(/\s/g, "");
+  const validatedEmail = email as string;
+  const validatedPassword = password as string;
+  const validatedName = name as string;
+  const validatedUsername = username as string;
+
+  const usernameWithoutSpaces = validatedUsername.replace(/\s/g, "");
+  //If username doesn't have @ it will be added otherwise the username already has @
   let usernameWithAt = usernameWithoutSpaces;
   const doesUsernameHasAt = usernameWithoutSpaces.startsWith("@");
   if (!doesUsernameHasAt) usernameWithAt = `@${usernameWithoutSpaces}`;
 
-  const databaseValidationError = await signUpDatabaseValidator({
-    email,
+  const databaseSignUpValidationError = await signUpDatabaseValidator({
+    email: validatedEmail,
     usernameWithAt,
   });
-  if (databaseValidationError)
-    throw new CustomError(400, databaseValidationError);
+  if (databaseSignUpValidationError)
+    throw new CustomError(400, databaseSignUpValidationError);
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(validatedPassword, 10);
   const verificationToken = createEmailVerificationToken();
-
-  const role = "user";
-  const user = new UserModel({
-    email,
+  const userDocument = new UserModel({
+    email: validatedEmail,
     password: hashedPassword,
-    name,
+    name: validatedName,
     username: usernameWithAt,
-    role,
+    role: "user",
     verificationToken,
     verificationTokenExpiresAt: create24HoursFromNowDate(),
   });
-  await user.save();
+  await userDocument.save();
 
-  const userId = (user._id as ObjectId).toString();
+  const userId = (userDocument._id as ObjectId).toString();
+  const role = userDocument.role;
+
   // jwt
   const accessToken = createAccessToken({ userId, role });
-
   const refreshToken = createRefreshToken({ userId, role });
   res.cookie("jwt", refreshToken, {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    maxAge: create30DaysNumber(),
   });
 
   // await sendVerificationEmail(user.email, verificationToken);
@@ -90,7 +98,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
     success: true,
     message: "User created successfully",
     user: {
-      ...user.toObject(),
+      ...userDocument.toObject(),
       password: undefined,
     },
     accessToken,
@@ -99,35 +107,33 @@ export const signUpHandler = async (req: Request, res: Response) => {
 
 export const loginHandler = async (req: Request, res: Response) => {
   const { emailOrUsername, password } = req.body as {
-    emailOrUsername: string;
-    password: string;
+    emailOrUsername: unknown;
+    password: unknown;
   };
+  const loginValidationError = validateLoginRequest({
+    emailOrUsername,
+    password,
+  });
+  if (loginValidationError) throw new CustomError(400, loginValidationError);
 
-  let user = null;
-  user = await UserModel.findOne({ email: emailOrUsername });
-  if (!user) {
-    const usernameWithAt = `@${emailOrUsername}`;
-    user = await UserModel.findOne({ username: usernameWithAt });
-  }
-  if (!user) {
-    throw new CustomError(400, "Invalid credentials");
-  }
+  const validatedEmailOrUsername = emailOrUsername as string;
+  const validatedPassword = password as string;
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new CustomError(400, "Invalid credentials");
-  }
+  const loginUserOrDatabaseValidationError = await loginDatabaseValidator({
+    emailOrUsername: validatedEmailOrUsername,
+    password: validatedPassword,
+  });
+  if (typeof loginUserOrDatabaseValidationError === "string")
+    throw new CustomError(400, loginUserOrDatabaseValidationError);
 
-  const userId = (user._id as ObjectId).toString();
-  const role = user.role;
+  const userDocument = loginUserOrDatabaseValidationError;
+
+  const userId = (userDocument._id as ObjectId).toString();
+  const role = userDocument.role;
+
   // jwt
-  const accessToken = jwt.sign({ userId, role }, JWT_SECRET_ACCESS, {
-    expiresIn: "1m",
-  });
-
-  const refreshToken = jwt.sign({ userId, role }, JWT_SECRET_REFRESH, {
-    expiresIn: "30d",
-  });
+  const accessToken = createAccessToken({ userId, role });
+  const refreshToken = createRefreshToken({ userId, role });
   res.cookie("jwt", refreshToken, {
     httpOnly: true,
     secure: true,
@@ -135,14 +141,14 @@ export const loginHandler = async (req: Request, res: Response) => {
     maxAge: create30DaysNumber(),
   });
 
-  user.lastLogin = new Date();
-  await user.save();
+  userDocument.lastLogin = new Date();
+  await userDocument.save();
 
   res.status(200).json({
     success: true,
     message: "Logged in successfully",
     user: {
-      ...user.toObject(),
+      ...userDocument.toObject(),
       password: undefined,
     },
     accessToken,
@@ -150,36 +156,44 @@ export const loginHandler = async (req: Request, res: Response) => {
 };
 
 export const verifyEmailHandler = async (req: Request, res: Response) => {
-  const { code, userId } = req.body as { code: string; userId: string };
+  const userId = req.params.userId;
+  const code = req.params.code;
+  const verifyEmailValidationError = validateVerifyEmailRequest({
+    code,
+    userId,
+  });
+  if (verifyEmailValidationError)
+    throw new CustomError(400, verifyEmailValidationError);
 
-  const userIdObjectId = ObjectId.createFromHexString(userId);
+  const validatedCode = code as string;
+  const validatedUserId = userId as string;
 
-  const foundUser = await UserModel.findOne(userIdObjectId);
+  const userOrDatabaseValidationError = await verifyEmailDatabaseValidator({
+    code: validatedCode,
+    userId: validatedUserId,
+  });
 
-  const idxd = foundUser!._id as ObjectId;
+  if (typeof userOrDatabaseValidationError === "string")
+    throw new CustomError(400, userOrDatabaseValidationError);
 
-  if (!foundUser) {
-    throw new CustomError(400, "Invalid or expired");
-  }
+  const userDocument = userOrDatabaseValidationError;
 
-  if (foundUser.verificationToken === code) {
-    foundUser.verified = true;
-    foundUser.changedEmail = false;
-    foundUser.verificationToken = undefined;
-    foundUser.verificationTokenExpiresAt = undefined;
-    await foundUser.save();
+  userDocument.verified = true;
+  userDocument.changedEmail = false;
+  userDocument.verificationToken = undefined;
+  userDocument.verificationTokenExpiresAt = undefined;
+  await userDocument.save();
 
-    // await sendWelcomeEmail(foundUser.email, foundUser.name);
+  // await sendWelcomeEmail(userDocument.email, userDocument.name);
 
-    res.status(200).json({
-      success: true,
-      message: "Email verified successfully",
-      user: {
-        ...foundUser.toObject(),
-        password: undefined,
-      },
-    });
-  }
+  res.status(200).json({
+    success: true,
+    message: "Email verified successfully",
+    user: {
+      ...userDocument.toObject(),
+      password: undefined,
+    },
+  });
 };
 
 export const logoutHandler = async (req: Request, res: Response) => {
@@ -311,7 +325,7 @@ export async function sendEmailVerificationCodeHandler(
     Date.now() + 24 * 60 * 60 * 1000
   );
   await foundUser.save();
-  await sendVerificationEmail(foundUser.email, verificationToken);
+  await sendVerificationEmail(foundUser.email, verificationToken, userId);
 
   return res.status(200).json({
     success: true,
