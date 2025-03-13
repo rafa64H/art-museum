@@ -35,15 +35,12 @@ export async function createPostHandler(
   const validatedContent = content as string;
   const validatedTags = tags as string[];
 
-  const databaseCreatePostValidationError = createPostDatabaseValidator({
+  await createPostDatabaseValidator({
     userId: validatedUserId,
     title: validatedTitle,
     content: validatedContent,
     tags: validatedTags,
   });
-
-  if (typeof databaseCreatePostValidationError === "string")
-    throw new CustomError(400, databaseCreatePostValidationError);
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
@@ -138,40 +135,33 @@ export async function dislikePostHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedpostId);
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
-  const postOrDislikePostValidationError = await likeOrDislikeDatabaseValidator(
-    {
-      postId: postIdObjectId,
-      userId: userIdObjectId,
-    }
-  );
+  const postDocument = await likeOrDislikeDatabaseValidator({
+    postId: postIdObjectId,
+    userId: userIdObjectId,
+  });
 
-  if (typeof postOrDislikePostValidationError === "string")
-    throw new CustomError(400, postOrDislikePostValidationError);
-
-  const foundPost = postOrDislikePostValidationError;
-
-  const findIfUserLikedPost = foundPost.likes.find(
+  const findIfUserLikedPost = postDocument.likes.find(
     (likeUserId) => likeUserId === validatedUserId
   );
 
-  const findIfUserDislikedPost = foundPost.dislikes.find(
+  const findIfUserDislikedPost = postDocument.dislikes.find(
     (dislikeUserId) => dislikeUserId === validatedUserId
   );
 
   if (findIfUserLikedPost) {
-    foundPost.likes = foundPost.likes.filter(
+    postDocument.likes = postDocument.likes.filter(
       (likeUserId) => likeUserId !== validatedUserId
     );
   }
   if (findIfUserDislikedPost) {
-    foundPost.dislikes = foundPost.dislikes.filter(
+    postDocument.dislikes = postDocument.dislikes.filter(
       (dislikeUserId) => dislikeUserId !== userId
     );
     return res.status(200).json({ success: false, message: "Dislike removed" });
   }
-  foundPost.dislikes.push(userId);
+  postDocument.dislikes.push(userId);
 
-  await foundPost.save();
+  await postDocument.save();
 
   res.status(200).json({ success: true, message: "Like added successfully" });
 }

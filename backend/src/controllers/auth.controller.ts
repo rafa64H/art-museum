@@ -61,12 +61,10 @@ export const signUpHandler = async (req: Request, res: Response) => {
   const doesUsernameHasAt = usernameWithoutSpaces.startsWith("@");
   if (!doesUsernameHasAt) usernameWithAt = `@${usernameWithoutSpaces}`;
 
-  const databaseSignUpValidationError = await signUpDatabaseValidator({
+  await signUpDatabaseValidator({
     email: validatedEmail,
     usernameWithAt,
   });
-  if (databaseSignUpValidationError)
-    throw new CustomError(400, databaseSignUpValidationError);
 
   const hashedPassword = await bcrypt.hash(validatedPassword, 10);
   const verificationToken = createEmailToken();
@@ -120,14 +118,10 @@ export const loginHandler = async (req: Request, res: Response) => {
   const validatedEmailOrUsername = emailOrUsername as string;
   const validatedPassword = password as string;
 
-  const loginUserOrDatabaseValidationError = await loginDatabaseValidator({
+  const userDocument = await loginDatabaseValidator({
     emailOrUsername: validatedEmailOrUsername,
     password: validatedPassword,
   });
-  if (typeof loginUserOrDatabaseValidationError === "string")
-    throw new CustomError(400, loginUserOrDatabaseValidationError);
-
-  const userDocument = loginUserOrDatabaseValidationError;
 
   const userId = (userDocument._id as ObjectId).toString();
   const role = userDocument.role;
@@ -167,15 +161,10 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
   const validatedCode = code as string;
   const validatedUserId = userId as string;
 
-  const userOrDatabaseValidationError = await verifyEmailDatabaseValidator({
+  const userDocument = await verifyEmailDatabaseValidator({
     code: validatedCode,
     userId: validatedUserId,
   });
-
-  if (typeof userOrDatabaseValidationError === "string")
-    throw new CustomError(400, userOrDatabaseValidationError);
-
-  const userDocument = userOrDatabaseValidationError;
 
   userDocument.verified = true;
   userDocument.changedEmail = false;
@@ -209,24 +198,19 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
 
   const validatedEmailOrUsername = emailOrUsername as string;
 
-  const userOrDatabaseValidationError = await forgotPasswordDatabaseValidator({
+  const userDocument = await forgotPasswordDatabaseValidator({
     emailOrUsername: validatedEmailOrUsername,
   });
-
-  if (typeof userOrDatabaseValidationError === "string")
-    throw new CustomError(400, userOrDatabaseValidationError);
-
-  const user = userOrDatabaseValidationError;
 
   // Generate reset token
   const resetPasswordToken = createEmailToken();
   const resetTokenExpiresAt = create1HourFromNowDate(); // 1 hour
-  user.resetPasswordToken = resetPasswordToken;
-  user.resetPasswordExpiresAt = resetTokenExpiresAt;
-  await user.save();
+  userDocument.resetPasswordToken = resetPasswordToken;
+  userDocument.resetPasswordExpiresAt = resetTokenExpiresAt;
+  await userDocument.save();
 
   // send email
-  await sendPasswordResetEmail(user.email, resetPasswordToken);
+  await sendPasswordResetEmail(userDocument.email, resetPasswordToken);
 
   res.status(200).json({
     success: true,

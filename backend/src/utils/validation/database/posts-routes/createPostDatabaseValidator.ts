@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { UserModel } from "../../../../models/user.model";
 import { PostDocument, PostModel } from "../../../../models/post.model";
+import CustomError from "../../../../constants/customError";
 
 export default async function createPostDatabaseValidator({
   userId,
@@ -12,10 +13,8 @@ export default async function createPostDatabaseValidator({
   title: string;
   content: string;
   tags: string[];
-}): Promise<string | null> {
+}) {
   const userIdObjectId = ObjectId.createFromHexString(userId);
   const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) return "User not found with such id";
-
-  return null;
+  if (!foundUser) throw new CustomError(404, "User not found with such id");
 }
