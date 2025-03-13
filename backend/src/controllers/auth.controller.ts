@@ -21,20 +21,20 @@ import jwt from "jsonwebtoken";
 import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
 import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 import CustomError from "../constants/customError";
-import { validateSignUpRequest } from "../utils/validation/joi/signUpHandlerValidator";
-import signUpDatabaseValidator from "../utils/validation/database/signUpDatabaseValidator";
+import { validateSignUpRequest } from "../utils/validation/joi/auth-routes/signUpHandlerValidator";
+import signUpDatabaseValidator from "../utils/validation/database/auth-routes/signUpDatabaseValidator";
 import {
   create1HourFromNowDate,
   create24HoursFromNowDate,
   create30DaysNumber,
 } from "../utils/createDates";
-import { validateLoginRequest } from "../utils/validation/joi/loginHandlerValidator";
-import loginDatabaseValidator from "../utils/validation/database/loginDatabaseValidator";
-import { validateVerifyEmailRequest } from "../utils/validation/joi/verifyEmailHandlerValidator";
-import verifyEmailDatabaseValidator from "../utils/validation/database/verifyEmailDatabaseValidator";
+import { validateLoginRequest } from "../utils/validation/joi/auth-routes/loginHandlerValidator";
+import loginDatabaseValidator from "../utils/validation/database/auth-routes/loginDatabaseValidator";
+import { validateVerifyEmailRequest } from "../utils/validation/joi/auth-routes/verifyEmailHandlerValidator";
+import verifyEmailDatabaseValidator from "../utils/validation/database/auth-routes/verifyEmailDatabaseValidator";
 import createEmailToken from "../utils/createToken";
-import { validateForgotPasswordRequest } from "../utils/validation/joi/forgotPasswordHandlerValidator";
-import forgotPasswordDatabaseValidator from "../utils/validation/database/forgotPasswordDatabaseValidator";
+import { validateForgotPasswordRequest } from "../utils/validation/joi/auth-routes/forgotPasswordHandlerValidator";
+import forgotPasswordDatabaseValidator from "../utils/validation/database/auth-routes/forgotPasswordDatabaseValidator";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
@@ -43,13 +43,12 @@ export const signUpHandler = async (req: Request, res: Response) => {
     name: unknown;
     username: unknown;
   };
-  const signUpValidationError = validateSignUpRequest({
+  validateSignUpRequest({
     email,
     password,
     name,
     username,
   });
-  if (signUpValidationError) throw new CustomError(400, signUpValidationError);
 
   const validatedEmail = email as string;
   const validatedPassword = password as string;
@@ -113,11 +112,10 @@ export const loginHandler = async (req: Request, res: Response) => {
     emailOrUsername: unknown;
     password: unknown;
   };
-  const loginValidationError = validateLoginRequest({
+  validateLoginRequest({
     emailOrUsername,
     password,
   });
-  if (loginValidationError) throw new CustomError(400, loginValidationError);
 
   const validatedEmailOrUsername = emailOrUsername as string;
   const validatedPassword = password as string;
@@ -161,12 +159,10 @@ export const loginHandler = async (req: Request, res: Response) => {
 export const verifyEmailHandler = async (req: Request, res: Response) => {
   const userId = req.params.userId;
   const code = req.params.code;
-  const verifyEmailValidationError = validateVerifyEmailRequest({
+  validateVerifyEmailRequest({
     code,
     userId,
   });
-  if (verifyEmailValidationError)
-    throw new CustomError(400, verifyEmailValidationError);
 
   const validatedCode = code as string;
   const validatedUserId = userId as string;
@@ -207,11 +203,9 @@ export const logoutHandler = async (req: Request, res: Response) => {
 export const forgotPasswordHandler = async (req: Request, res: Response) => {
   const { emailOrUsername } = req.body as { emailOrUsername: unknown };
 
-  const forgotPasswordValidationError = validateForgotPasswordRequest({
+  validateForgotPasswordRequest({
     emailOrUsername,
   });
-  if (forgotPasswordValidationError)
-    throw new CustomError(400, forgotPasswordValidationError);
 
   const validatedEmailOrUsername = emailOrUsername as string;
 

@@ -1,5 +1,5 @@
-import { UserDocument, UserModel } from "../../../models/user.model";
 import bcrypt from "bcrypt";
+import { UserDocument, UserModel } from "../../../../models/user.model";
 export default async function loginDatabaseValidator({
   emailOrUsername,
   password,

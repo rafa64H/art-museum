@@ -1,4 +1,5 @@
 import Joi from "joi";
+import CustomError from "../../../../constants/customError";
 
 const verifyEmailSchema = Joi.object({
   code: Joi.string().required(),
@@ -11,9 +12,8 @@ export function validateVerifyEmailRequest({
 }: {
   code: unknown;
   userId: unknown;
-}): string | null {
+}) {
   const { error } = verifyEmailSchema.validate({ code, userId });
 
-  if (error) return error.details[0].message;
-  return null;
+  if (error) throw new CustomError(400, error.details[0].message);
 }

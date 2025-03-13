@@ -1,4 +1,5 @@
 import Joi from "joi";
+import CustomError from "../../../../constants/customError";
 
 const createPostSchema = Joi.object({
   userId: Joi.string().hex().length(24).required(),
@@ -25,7 +26,5 @@ export function validateCreatePostRequest({
     tags,
   });
 
-  if (error) return error.details[0].message;
-
-  return null;
+  if (error) throw new CustomError(400, error.details[0].message);
 }

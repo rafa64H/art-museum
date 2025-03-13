@@ -6,9 +6,11 @@ import { CommentDocument, CommentModel } from "../models/comment.model";
 import { ReplyModel } from "../models/reply.model";
 import { ObjectId } from "mongodb";
 import CustomError from "../constants/customError";
-import { validateCreatePostRequest } from "../utils/validation/joi/createPostHandlerValidator";
-import createPostDatabaseValidator from "../utils/validation/database/createPostDatabaseValidator";
-import { validateGetSinlePost } from "../utils/validation/joi/getSinglePostHandlerValidator";
+import { validateCreatePostRequest } from "../utils/validation/joi/posts-routes/createPostHandlerValidator";
+import createPostDatabaseValidator from "../utils/validation/database/posts-routes/createPostDatabaseValidator";
+import { validateGetSinlePostRequest } from "../utils/validation/joi/posts-routes/getSinglePostHandlerValidator";
+import { validateLikeOrDislikePostRequest } from "../utils/validation/joi/posts-routes/likeOrDislikePostHandlersValidator";
+import likeOrDislikeDatabaseValidator from "../utils/validation/database/posts-routes/likeOrDislikeDatabaseValidator";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -21,14 +23,12 @@ export async function createPostHandler(
     tags: unknown;
   };
 
-  const createPostValidationError = validateCreatePostRequest({
+  validateCreatePostRequest({
     userId,
     title,
     content,
     tags,
   });
-  if (createPostValidationError)
-    throw new CustomError(400, createPostValidationError);
 
   const validatedUserId = userId as string;
   const validatedTitle = title as string;
@@ -65,10 +65,7 @@ export async function createPostHandler(
 export async function getSinglePostHandler(req: Request, res: Response) {
   const { postId } = req.params;
 
-  const getSinglePostValidationError = validateGetSinlePost(postId);
-
-  if (getSinglePostValidationError)
-    throw new CustomError(400, getSinglePostValidationError);
+  validateGetSinlePostRequest({ postId });
 
   const validatedPostId = postId as string;
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
@@ -127,26 +124,43 @@ export async function dislikePostHandler(
 ) {
   const userId = req.userId;
   if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
   const postId = req.params.postId;
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+
+  validateLikeOrDislikePostRequest({
+    postId,
+    userId,
+  });
+
+  const validatedUserId = userId as string;
+  const validatedpostId = postId as string;
+
+  const postIdObjectId = ObjectId.createFromHexString(validatedpostId);
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+
+  const postOrDislikePostValidationError = await likeOrDislikeDatabaseValidator(
+    {
+      postId: postIdObjectId,
+      userId: userIdObjectId,
+    }
+  );
+
+  if (typeof postOrDislikePostValidationError === "string")
+    throw new CustomError(400, postOrDislikePostValidationError);
+
+  const foundPost = postOrDislikePostValidationError;
 
   const findIfUserLikedPost = foundPost.likes.find(
-    (likeUserId) => likeUserId === userId
+    (likeUserId) => likeUserId === validatedUserId
   );
 
   const findIfUserDislikedPost = foundPost.dislikes.find(
-    (dislikeUserId) => dislikeUserId === userId
+    (dislikeUserId) => dislikeUserId === validatedUserId
   );
 
   if (findIfUserLikedPost) {
     foundPost.likes = foundPost.likes.filter(
-      (likeUserId) => likeUserId !== userId
+      (likeUserId) => likeUserId !== validatedUserId
     );
   }
   if (findIfUserDislikedPost) {

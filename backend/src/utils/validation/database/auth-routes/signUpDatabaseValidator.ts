@@ -1,5 +1,5 @@
-import CustomError from "../../../constants/customError";
-import { UserModel } from "../../../models/user.model";
+import CustomError from "../../../../constants/customError";
+import { UserModel } from "../../../../models/user.model";
 
 export default async function signUpDatabaseValidator({
   email,

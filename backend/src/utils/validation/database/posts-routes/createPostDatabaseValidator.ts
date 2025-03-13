@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
-import { UserModel } from "../../../models/user.model";
-import { PostDocument, PostModel } from "../../../models/post.model";
+import { UserModel } from "../../../../models/user.model";
+import { PostDocument, PostModel } from "../../../../models/post.model";
 
 export default async function createPostDatabaseValidator({
   userId,

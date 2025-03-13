@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { UserDocument, UserModel } from "../../../models/user.model";
+import { UserDocument, UserModel } from "../../../../models/user.model";
 
 export default async function verifyEmailDatabaseValidator({
   userId,

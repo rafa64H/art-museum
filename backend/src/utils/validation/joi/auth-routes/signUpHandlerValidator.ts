@@ -2,7 +2,8 @@ import Joi from "joi";
 import {
   regexAtLeastOneSymbolLetterAndNumber,
   regexAtLeastThreeCharacters,
-} from "./regularExpressions";
+} from "../regularExpressions";
+import CustomError from "../../../../constants/customError";
 
 const signUpSchema = Joi.object({
   email: Joi.string()
@@ -34,7 +35,7 @@ export function validateSignUpRequest({
   password: unknown;
   name: unknown;
   username: unknown;
-}): string | null {
+}) {
   let usernameWithoutSpaces = "";
   if (typeof username === "string")
     usernameWithoutSpaces = username.replace(/\s/g, "");
@@ -51,9 +52,11 @@ export function validateSignUpRequest({
       error.details[0].message.includes("password") &&
       error.details[0].message.includes("pattern")
     ) {
-      return "Password must contain at least one symbol, one letter, and one number";
+      throw new CustomError(
+        400,
+        "Password must contain at least one symbol, one letter, and one number"
+      );
     }
-    return error.details[0].message;
+    throw new CustomError(400, error.details[0].message);
   }
-  return null;
 }

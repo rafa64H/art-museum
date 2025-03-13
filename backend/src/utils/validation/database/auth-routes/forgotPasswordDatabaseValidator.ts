@@ -1,4 +1,4 @@
-import { UserDocument, UserModel } from "../../../models/user.model";
+import { UserDocument, UserModel } from "../../../../models/user.model";
 
 export default async function forgotPasswordDatabaseValidator({
   emailOrUsername,
