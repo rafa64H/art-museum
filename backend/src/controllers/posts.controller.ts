@@ -6,24 +6,45 @@ import { CommentDocument, CommentModel } from "../models/comment.model";
 import { ReplyModel } from "../models/reply.model";
 import { ObjectId } from "mongodb";
 import CustomError from "../constants/customError";
+import { validateCreatePostRequest } from "../utils/validation/joi/createPostHandlerValidator";
+import createPostDatabaseValidator from "../utils/validation/database/createPostDatabaseValidator";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
-
-  const { title, content, tags } = req.body as {
-    title: string;
-    content: string | null;
-    tags: string[];
+  const { userId, title, content, tags } = req.body as {
+    userId: unknown;
+    title: unknown;
+    content: unknown;
+    tags: unknown;
   };
 
-  if (!title) throw new CustomError(400, "Title not provided, it is required");
+  const createPostValidationError = validateCreatePostRequest({
+    userId,
+    title,
+    content,
+    tags,
+  });
+  if (createPostValidationError)
+    throw new CustomError(400, createPostValidationError);
+
+  const validatedUserId = userId as string;
+  const validatedTitle = title as string;
+  const validatedContent = content as string;
+  const validatedTags = tags as string[];
+
+  const databaseCreatePostValidationError = createPostDatabaseValidator({
+    userId: validatedUserId,
+    title: validatedTitle,
+    content: validatedContent,
+    tags: validatedTags,
+  });
+
+  if (typeof databaseCreatePostValidationError === "string")
+    throw new CustomError(400, databaseCreatePostValidationError);
+
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
   const newPost = new PostModel({
     authorId: userIdObjectId,
@@ -33,14 +54,9 @@ export async function createPostHandler(
   });
   await newPost.save();
 
-  const newPostId = newPost._id as ObjectId;
-  const newPostObjectToReturn = {
-    ...newPost.toObject(),
-  };
-
   res.status(201).json({
     success: true,
-    post: newPostObjectToReturn,
+    post: newPost.toObject(),
     message: "Post created successfully",
   });
 }
