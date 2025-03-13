@@ -8,6 +8,7 @@ import { ObjectId } from "mongodb";
 import CustomError from "../constants/customError";
 import { validateCreatePostRequest } from "../utils/validation/joi/createPostHandlerValidator";
 import createPostDatabaseValidator from "../utils/validation/database/createPostDatabaseValidator";
+import { validateGetSinlePost } from "../utils/validation/joi/getSinglePostHandlerValidator";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -64,16 +65,18 @@ export async function createPostHandler(
 export async function getSinglePostHandler(req: Request, res: Response) {
   const { postId } = req.params;
 
-  if (!postId) throw new CustomError(400, "No postId provided");
+  const getSinglePostValidationError = validateGetSinlePost(postId);
 
-  const postIdObjectId = ObjectId.createFromHexString(postId);
+  if (getSinglePostValidationError)
+    throw new CustomError(400, getSinglePostValidationError);
+
+  const validatedPostId = postId as string;
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
   const foundPost = await PostModel.findOne(postIdObjectId);
   if (!foundPost) throw new CustomError(404, "Post not found with such id");
 
   const postObjectToReturn = {
     ...foundPost.toObject(),
-    _id: postId, //To not be an ObjectId but a string
-    authorId: foundPost.authorId.toString(),
   };
 
   res.status(200).json({ success: true, post: postObjectToReturn });
