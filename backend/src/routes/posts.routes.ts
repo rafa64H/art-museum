@@ -7,7 +7,7 @@ import {
   editCommentHandler,
   editReplyHandler,
   getAllCommentsHandler,
-  getAllRepliesHandler,
+  getAllRepliesFromCommentHandler,
   getSinglePostHandler,
   likePostHandler,
   dislikePostHandler,
@@ -77,7 +77,7 @@ postsRoutes.post(
   }
 );
 postsRoutes.get("/:postId/comments/:commentId/replies", async (req, res) => {
-  await getAllRepliesHandler(req, res);
+  await getAllRepliesFromCommentHandler(req, res);
 });
 
 postsRoutes.post(

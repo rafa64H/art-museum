@@ -16,6 +16,8 @@ import { validateCreateCommentRequest } from "../utils/validation/joi/posts-rout
 import createCommentDatabaseValidator from "../utils/validation/database/posts-routes/createCommentDatabaseValidator";
 import { validateEditCommentRequest } from "../utils/validation/joi/posts-routes/editCommentHandlerValidator";
 import { editCommentDatabaseValidator } from "../utils/validation/database/posts-routes/editCommentDatabaseValidator";
+import getAllRepliesFromCommentDatabaseValidator from "../utils/validation/database/posts-routes/getAllRepliesFromCommentDatabaseValidator";
+import { validateGetAllRepliesFromCommentRequest } from "../utils/validation/joi/posts-routes/getAllRepliesHandlerValidator";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -271,19 +273,21 @@ export async function editCommentHandler(
   });
 }
 
-export async function getAllRepliesHandler(req: Request, res: Response) {
+export async function getAllRepliesFromCommentHandler(
+  req: Request,
+  res: Response
+) {
   const { postId, commentId } = req.params;
 
+  validateGetAllRepliesFromCommentRequest({ postId, commentId });
+
   const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
-
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
-
   const commentIdObjectId = ObjectId.createFromHexString(commentId);
-  const foundComment = await CommentModel.findOne(commentIdObjectId);
 
-  if (!foundComment)
-    throw new CustomError(404, "Comment not found with such id");
+  await getAllRepliesFromCommentDatabaseValidator({
+    postId: postIdObjectId,
+    commentId: commentIdObjectId,
+  });
 
   const replies = (await ReplyModel.find({
     commentId: commentIdObjectId,
