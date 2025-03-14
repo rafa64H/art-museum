@@ -11,6 +11,9 @@ import createPostDatabaseValidator from "../utils/validation/database/posts-rout
 import { validateGetSinlePostRequest } from "../utils/validation/joi/posts-routes/getSinglePostHandlerValidator";
 import { validateLikeOrDislikePostRequest } from "../utils/validation/joi/posts-routes/likeOrDislikePostHandlersValidator";
 import likeOrDislikeDatabaseValidator from "../utils/validation/database/posts-routes/likeOrDislikeDatabaseValidator";
+import { validateGetAllCommentsRequest } from "../utils/validation/joi/posts-routes/getAllCommentsHandlerValidator";
+import { validateCreateCommentRequest } from "../utils/validation/joi/posts-routes/createCommentHandlerValidator";
+import createCommentDatabaseValidator from "../utils/validation/database/posts-routes/createCommentDatabaseValidator";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -175,7 +178,10 @@ export async function dislikePostHandler(
 export async function getAllCommentsHandler(req: Request, res: Response) {
   const { postId } = req.params;
 
+  validateGetAllCommentsRequest({ postId });
+
   const postIdObjectId = ObjectId.createFromHexString(postId);
+
   const foundPost = await PostModel.findOne(postIdObjectId);
 
   if (!foundPost) throw new CustomError(404, "Post not found with such id");
@@ -196,24 +202,28 @@ export async function createCommentHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
   const { postId } = req.params;
+  const { content } = req.body as { content: unknown };
 
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
+  validateCreateCommentRequest({ userId, postId, content });
 
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedContent = content as string;
 
-  const { content } = req.body as { content: string };
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+
+  await createCommentDatabaseValidator({
+    userId: userIdObjectId,
+    postId: postIdObjectId,
+  });
 
   const newComment = new CommentModel({
     postId: postIdObjectId,
     authorId: userIdObjectId,
-    content: content,
+    content: validatedContent,
   });
 
   await newComment.save();
