@@ -14,6 +14,8 @@ import likeOrDislikeDatabaseValidator from "../utils/validation/database/posts-r
 import { validateGetAllCommentsRequest } from "../utils/validation/joi/posts-routes/getAllCommentsHandlerValidator";
 import { validateCreateCommentRequest } from "../utils/validation/joi/posts-routes/createCommentHandlerValidator";
 import createCommentDatabaseValidator from "../utils/validation/database/posts-routes/createCommentDatabaseValidator";
+import { validateEditCommentRequest } from "../utils/validation/joi/posts-routes/editCommentHandlerValidator";
+import { editCommentDatabaseValidator } from "../utils/validation/database/posts-routes/editCommentDatabaseValidator";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -240,39 +242,32 @@ export async function editCommentHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
-
   const { postId, commentId } = req.params;
+  const { content } = req.body as { content: unknown };
 
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
+  validateEditCommentRequest({ userId, postId, commentId, content });
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedCommentId = commentId as string;
+  const validatedContent = content as string;
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+  const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
 
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const commentDocument = await editCommentDatabaseValidator({
+    userId: userIdObjectId,
+    postId: postIdObjectId,
+    commentId: commentIdObjectId,
+  });
 
-  const commentIdObjectId = ObjectId.createFromHexString(commentId);
-  const foundComment = (await CommentModel.findOne(
-    commentIdObjectId
-  )) as CommentDocument;
+  commentDocument.content = validatedContent;
 
-  if (!foundComment)
-    throw new CustomError(404, "Comment not found with such id");
-
-  if (foundComment.authorId.toString() !== userId)
-    throw new CustomError(401, "Not same user as comment's author");
-
-  const { content } = req.body as { content: string };
-
-  foundComment.content = content;
-
-  await foundComment.save();
+  await commentDocument.save();
 
   res.status(200).json({
     success: true,
     message: "Comment edited successfully",
-    editedComment: { ...foundComment.toObject() },
+    editedComment: commentDocument.toObject(),
   });
 }
 
