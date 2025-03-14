@@ -81,36 +81,44 @@ export async function likePostHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
-
   const postId = req.params.postId;
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
 
-  const findIfUserDislikedPost = foundPost.likes.find(
+  validateLikeOrDislikePostRequest({
+    postId,
+    userId,
+  });
+
+  const validatedUserId = userId as string;
+  const validatedpostId = postId as string;
+
+  const postIdObjectId = ObjectId.createFromHexString(validatedpostId);
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+
+  const postDocument = await likeOrDislikeDatabaseValidator({
+    postId: postIdObjectId,
+    userId: userIdObjectId,
+  });
+
+  const findIfUserDislikedPost = postDocument.likes.find(
     (likeUserId) => likeUserId === userId
   );
 
-  const findIfUserLikedPost = foundPost.likes.find(
+  const findIfUserLikedPost = postDocument.likes.find(
     (likeUserId) => likeUserId === userId
   );
   if (findIfUserDislikedPost) {
-    foundPost.dislikes = foundPost.dislikes.filter(
+    postDocument.dislikes = postDocument.dislikes.filter(
       (dislikeUserId) => dislikeUserId !== userId
     );
   }
   if (findIfUserLikedPost) {
-    foundPost.likes.filter((likeUserId) => likeUserId !== userId);
+    postDocument.likes.filter((likeUserId) => likeUserId !== userId);
     return res.status(200).json({ success: true, message: "Like removed" });
   }
 
-  foundPost.likes.push(userId);
+  postDocument.likes.push(validatedUserId);
 
-  await foundPost.save();
+  await postDocument.save();
 
   res.status(200).json({ success: true, message: "Like added successfully" });
 }
@@ -120,8 +128,6 @@ export async function dislikePostHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-
   const postId = req.params.postId;
 
   validateLikeOrDislikePostRequest({
@@ -159,7 +165,7 @@ export async function dislikePostHandler(
     );
     return res.status(200).json({ success: false, message: "Dislike removed" });
   }
-  postDocument.dislikes.push(userId);
+  postDocument.dislikes.push(validatedUserId);
 
   await postDocument.save();
 
