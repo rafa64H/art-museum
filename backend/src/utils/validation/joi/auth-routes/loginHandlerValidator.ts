@@ -1,4 +1,5 @@
 import Joi from "joi";
+import CustomError from "../../../../constants/customError";
 
 const loginSchemaFirstStep = Joi.object({
   emailOrUsername: Joi.string().required(),
@@ -12,13 +13,11 @@ export function validateLoginRequest({
 }: {
   emailOrUsername: unknown;
   password: unknown;
-}): string | null {
+}) {
   const { error } = loginSchemaFirstStep.validate({
     emailOrUsername,
     password,
   });
 
-  if (error) return error.details[0].message;
-
-  return null;
+  if (error) throw new CustomError(400, error.details[0].message);
 }
