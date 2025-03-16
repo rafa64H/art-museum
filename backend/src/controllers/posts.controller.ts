@@ -6,18 +6,11 @@ import { CommentDocument, CommentModel } from "../models/comment.model";
 import { ReplyModel } from "../models/reply.model";
 import { ObjectId } from "mongodb";
 import CustomError from "../constants/customError";
-import { validateCreatePostRequest } from "../utils/validation/joi/posts-routes/createPostHandlerValidator";
 import createPostDatabaseValidator from "../utils/validation/database/posts-routes/createPostDatabaseValidator";
-import { validateGetSinlePostRequest } from "../utils/validation/joi/posts-routes/getSinglePostHandlerValidator";
-import { validateLikeOrDislikePostRequest } from "../utils/validation/joi/posts-routes/likeOrDislikePostHandlersValidator";
 import likeOrDislikeDatabaseValidator from "../utils/validation/database/posts-routes/likeOrDislikeDatabaseValidator";
-import { validateGetAllCommentsRequest } from "../utils/validation/joi/posts-routes/getAllCommentsHandlerValidator";
-import { validateCreateCommentRequest } from "../utils/validation/joi/posts-routes/createCommentHandlerValidator";
 import createCommentDatabaseValidator from "../utils/validation/database/posts-routes/createCommentDatabaseValidator";
-import { validateEditCommentRequest } from "../utils/validation/joi/posts-routes/editCommentHandlerValidator";
 import { editCommentDatabaseValidator } from "../utils/validation/database/posts-routes/editCommentDatabaseValidator";
 import getAllRepliesFromCommentDatabaseValidator from "../utils/validation/database/posts-routes/getAllRepliesFromCommentDatabaseValidator";
-import { validateGetAllRepliesFromCommentRequest } from "../utils/validation/joi/posts-routes/getAllRepliesHandlerValidator";
 import { validatePostsRoutesRequest } from "../utils/validation/joi/validatePostsRoutesRequestJoi";
 
 export async function createPostHandler(
