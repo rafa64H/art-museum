@@ -2,8 +2,8 @@ import Joi from "joi";
 import {
   regexAtLeastOneSymbolLetterAndNumber,
   regexAtLeastThreeCharacters,
-} from "../regularExpressions";
-import CustomError from "../../../../constants/customError";
+} from "./regularExpressions";
+import CustomError from "../../../constants/customError";
 
 const emailSchema = Joi.object({
   email: Joi.string().email({
@@ -62,7 +62,7 @@ type ValidateAuthRequestType = {
     userId: unknown;
   };
 };
-export function validateAuthRequest({
+export function validateAuthRoutesRequest({
   email,
   password,
   name,

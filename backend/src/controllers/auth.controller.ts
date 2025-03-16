@@ -31,7 +31,7 @@ import loginDatabaseValidator from "../utils/validation/database/auth-routes/log
 import verifyEmailDatabaseValidator from "../utils/validation/database/auth-routes/verifyEmailDatabaseValidator";
 import createEmailToken from "../utils/createToken";
 import forgotPasswordDatabaseValidator from "../utils/validation/database/auth-routes/forgotPasswordDatabaseValidator";
-import { validateAuthRequest } from "../utils/validation/joi/auth-routes/validateAuthRequestJoi";
+import { validateAuthRoutesRequest } from "../utils/validation/joi/validateAuthRoutesRequestJoi";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
@@ -40,7 +40,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
     name: unknown;
     username: unknown;
   };
-  validateAuthRequest({ email, password, name, username });
+  validateAuthRoutesRequest({ email, password, name, username });
 
   const validatedEmail = email as string;
   const validatedPassword = password as string;
@@ -103,7 +103,7 @@ export const loginHandler = async (req: Request, res: Response) => {
     password: unknown;
   };
 
-  validateAuthRequest({ loginObject: { emailOrUsername, password } });
+  validateAuthRoutesRequest({ loginObject: { emailOrUsername, password } });
 
   const validatedEmailOrUsername = emailOrUsername as string;
   const validatedPassword = password as string;
@@ -143,7 +143,7 @@ export const loginHandler = async (req: Request, res: Response) => {
 export const verifyEmailHandler = async (req: Request, res: Response) => {
   const userId = req.params.userId;
   const code = req.params.code;
-  validateAuthRequest({ verifyEmailObject: { userId, code } });
+  validateAuthRoutesRequest({ verifyEmailObject: { userId, code } });
 
   const validatedCode = code as string;
   const validatedUserId = userId as string;
@@ -179,7 +179,7 @@ export const logoutHandler = async (req: Request, res: Response) => {
 export const forgotPasswordHandler = async (req: Request, res: Response) => {
   const { emailOrUsername } = req.body as { emailOrUsername: unknown };
 
-  validateAuthRequest({ emailOrUsername });
+  validateAuthRoutesRequest({ emailOrUsername });
 
   const validatedEmailOrUsername = emailOrUsername as string;
 

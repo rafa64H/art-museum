@@ -18,6 +18,7 @@ import { validateEditCommentRequest } from "../utils/validation/joi/posts-routes
 import { editCommentDatabaseValidator } from "../utils/validation/database/posts-routes/editCommentDatabaseValidator";
 import getAllRepliesFromCommentDatabaseValidator from "../utils/validation/database/posts-routes/getAllRepliesFromCommentDatabaseValidator";
 import { validateGetAllRepliesFromCommentRequest } from "../utils/validation/joi/posts-routes/getAllRepliesHandlerValidator";
+import { validatePostsRoutesRequest } from "../utils/validation/joi/validatePostsRoutesRequestJoi";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -30,11 +31,11 @@ export async function createPostHandler(
     tags: unknown;
   };
 
-  validateCreatePostRequest({
+  validatePostsRoutesRequest({
     userId,
-    title,
-    content,
-    tags,
+    postTitle: title,
+    postContent: content,
+    postTags: tags,
   });
 
   const validatedUserId = userId as string;
@@ -69,7 +70,7 @@ export async function createPostHandler(
 export async function getSinglePostHandler(req: Request, res: Response) {
   const { postId } = req.params;
 
-  validateGetSinlePostRequest({ postId });
+  validatePostsRoutesRequest({ postId });
 
   const validatedPostId = postId as string;
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
@@ -90,10 +91,7 @@ export async function likePostHandler(
   const userId = req.userId;
   const postId = req.params.postId;
 
-  validateLikeOrDislikePostRequest({
-    postId,
-    userId,
-  });
+  validatePostsRoutesRequest({ userId, postId });
 
   const validatedUserId = userId as string;
   const validatedpostId = postId as string;
@@ -137,10 +135,7 @@ export async function dislikePostHandler(
   const userId = req.userId;
   const postId = req.params.postId;
 
-  validateLikeOrDislikePostRequest({
-    postId,
-    userId,
-  });
+  validatePostsRoutesRequest({ userId, postId });
 
   const validatedUserId = userId as string;
   const validatedpostId = postId as string;
@@ -182,7 +177,7 @@ export async function dislikePostHandler(
 export async function getAllCommentsHandler(req: Request, res: Response) {
   const { postId } = req.params;
 
-  validateGetAllCommentsRequest({ postId });
+  validatePostsRoutesRequest({ postId });
 
   const postIdObjectId = ObjectId.createFromHexString(postId);
 
@@ -210,7 +205,11 @@ export async function createCommentHandler(
   const { postId } = req.params;
   const { content } = req.body as { content: unknown };
 
-  validateCreateCommentRequest({ userId, postId, content });
+  validatePostsRoutesRequest({
+    userId,
+    postId,
+    contentCommentOrReply: content,
+  });
 
   const validatedUserId = userId as string;
   const validatedPostId = postId as string;
@@ -247,7 +246,12 @@ export async function editCommentHandler(
   const { postId, commentId } = req.params;
   const { content } = req.body as { content: unknown };
 
-  validateEditCommentRequest({ userId, postId, commentId, content });
+  validatePostsRoutesRequest({
+    userId,
+    postId,
+    commentId,
+    contentCommentOrReply: content,
+  });
   const validatedUserId = userId as string;
   const validatedPostId = postId as string;
   const validatedCommentId = commentId as string;
@@ -279,7 +283,7 @@ export async function getAllRepliesFromCommentHandler(
 ) {
   const { postId, commentId } = req.params;
 
-  validateGetAllRepliesFromCommentRequest({ postId, commentId });
+  validatePostsRoutesRequest({ postId, commentId });
 
   const postIdObjectId = ObjectId.createFromHexString(postId);
   const commentIdObjectId = ObjectId.createFromHexString(commentId);
