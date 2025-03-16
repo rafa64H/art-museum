@@ -21,19 +21,15 @@ import jwt from "jsonwebtoken";
 import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
 import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 import CustomError from "../constants/customError";
-import { validateSignUpRequest } from "../utils/validation/joi/auth-routes/signUpHandlerValidator";
 import signUpDatabaseValidator from "../utils/validation/database/auth-routes/signUpDatabaseValidator";
 import {
   create1HourFromNowDate,
   create24HoursFromNowDate,
   create30DaysNumber,
 } from "../utils/createDates";
-import { validateLoginRequest } from "../utils/validation/joi/auth-routes/loginHandlerValidator";
 import loginDatabaseValidator from "../utils/validation/database/auth-routes/loginDatabaseValidator";
-import { validateVerifyEmailRequest } from "../utils/validation/joi/auth-routes/verifyEmailHandlerValidator";
 import verifyEmailDatabaseValidator from "../utils/validation/database/auth-routes/verifyEmailDatabaseValidator";
 import createEmailToken from "../utils/createToken";
-import { validateForgotPasswordRequest } from "../utils/validation/joi/auth-routes/forgotPasswordHandlerValidator";
 import forgotPasswordDatabaseValidator from "../utils/validation/database/auth-routes/forgotPasswordDatabaseValidator";
 import { validateAuthRequest } from "../utils/validation/joi/auth-routes/validateAuthRequestJoi";
 
