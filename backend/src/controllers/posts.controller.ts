@@ -1,17 +1,15 @@
 import { Request, Response } from "express";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
 import { UserModel } from "../models/user.model";
-import { PostModel } from "../models/post.model";
+import { PostDocument, PostModel } from "../models/post.model";
 import { CommentDocument, CommentModel } from "../models/comment.model";
 import { ReplyModel } from "../models/reply.model";
 import { ObjectId } from "mongodb";
 import CustomError from "../constants/customError";
-import createPostDatabaseValidator from "../utils/validation/database/posts-routes/createPostDatabaseValidator";
-import likeOrDislikeDatabaseValidator from "../utils/validation/database/posts-routes/likeOrDislikeDatabaseValidator";
-import createCommentDatabaseValidator from "../utils/validation/database/posts-routes/createCommentDatabaseValidator";
-import { editCommentDatabaseValidator } from "../utils/validation/database/posts-routes/editCommentDatabaseValidator";
-import getAllRepliesFromCommentDatabaseValidator from "../utils/validation/database/posts-routes/getAllRepliesFromCommentDatabaseValidator";
 import { validatePostsRoutesRequest } from "../utils/validation/joi/validatePostsRoutesRequestJoi";
+import databaseValidateUserIdFromAuthMiddleware from "../utils/validation/database/posts-routes/databaseValidateUserIdFromAuthMiddleware";
+import databaseValidatePostIdFromParam from "../utils/validation/database/posts-routes/databaseValidatePostIdFromParam";
+import databaseValidateCommentIdFromParam from "../utils/validation/database/posts-routes/databaseValidateCommentIdFromParam";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -35,21 +33,15 @@ export async function createPostHandler(
   const validatedTitle = title as string;
   const validatedContent = content as string;
   const validatedTags = tags as string[];
-
-  await createPostDatabaseValidator({
-    userId: validatedUserId,
-    title: validatedTitle,
-    content: validatedContent,
-    tags: validatedTags,
-  });
-
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+
+  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
 
   const newPost = new PostModel({
     authorId: userIdObjectId,
-    title: title,
-    content: content ? content : "",
-    tags: tags ? tags : [],
+    title: validatedTitle,
+    content: validatedContent,
+    tags: validatedTags,
   });
   await newPost.save();
 
@@ -67,8 +59,10 @@ export async function getSinglePostHandler(req: Request, res: Response) {
 
   const validatedPostId = postId as string;
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const foundPost = (await databaseValidatePostIdFromParam(
+    postIdObjectId,
+    true
+  )) as PostDocument;
 
   const postObjectToReturn = {
     ...foundPost.toObject(),
@@ -92,10 +86,12 @@ export async function likePostHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedpostId);
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
-  const postDocument = await likeOrDislikeDatabaseValidator({
-    postId: postIdObjectId,
-    userId: userIdObjectId,
-  });
+  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+
+  const postDocument = (await databaseValidatePostIdFromParam(
+    postIdObjectId,
+    true
+  )) as PostDocument;
 
   const findIfUserDislikedPost = postDocument.likes.find(
     (likeUserId) => likeUserId === userId
@@ -136,10 +132,12 @@ export async function dislikePostHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedpostId);
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
-  const postDocument = await likeOrDislikeDatabaseValidator({
-    postId: postIdObjectId,
-    userId: userIdObjectId,
-  });
+  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+
+  const postDocument = (await databaseValidatePostIdFromParam(
+    postIdObjectId,
+    true
+  )) as PostDocument;
 
   const findIfUserLikedPost = postDocument.likes.find(
     (likeUserId) => likeUserId === validatedUserId
@@ -174,9 +172,10 @@ export async function getAllCommentsHandler(req: Request, res: Response) {
 
   const postIdObjectId = ObjectId.createFromHexString(postId);
 
-  const foundPost = await PostModel.findOne(postIdObjectId);
-
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const foundPost = (await databaseValidatePostIdFromParam(
+    postIdObjectId,
+    true
+  )) as PostDocument;
 
   const comments = (await CommentModel.find({
     postId: postIdObjectId,
@@ -211,10 +210,8 @@ export async function createCommentHandler(
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
 
-  await createCommentDatabaseValidator({
-    userId: userIdObjectId,
-    postId: postIdObjectId,
-  });
+  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
 
   const newComment = new CommentModel({
     postId: postIdObjectId,
@@ -253,11 +250,13 @@ export async function editCommentHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
 
-  const commentDocument = await editCommentDatabaseValidator({
-    userId: userIdObjectId,
-    postId: postIdObjectId,
-    commentId: commentIdObjectId,
-  });
+  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
+
+  const commentDocument = (await databaseValidateCommentIdFromParam(
+    commentIdObjectId,
+    true
+  )) as CommentDocument;
 
   commentDocument.content = validatedContent;
 
@@ -281,10 +280,8 @@ export async function getAllRepliesFromCommentHandler(
   const postIdObjectId = ObjectId.createFromHexString(postId);
   const commentIdObjectId = ObjectId.createFromHexString(commentId);
 
-  await getAllRepliesFromCommentDatabaseValidator({
-    postId: postIdObjectId,
-    commentId: commentIdObjectId,
-  });
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
 
   const replies = (await ReplyModel.find({
     commentId: commentIdObjectId,
