@@ -1,8 +1,8 @@
 import { ObjectId } from "mongodb";
-import { UserDocument, UserModel } from "../../../../models/user.model";
-import CustomError from "../../../../constants/customError";
+import { UserDocument, UserModel } from "../../../models/user.model";
+import CustomError from "../../../constants/customError";
 
-export default async function databaseValidateUserIdFromAuthMiddleware(
+export default async function databaseValidateUserIdObjectId(
   userId: ObjectId,
   returnUser: boolean
 ): Promise<UserDocument | undefined> {

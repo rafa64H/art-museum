@@ -7,9 +7,9 @@ import { ReplyModel } from "../models/reply.model";
 import { ObjectId } from "mongodb";
 import CustomError from "../constants/customError";
 import { validatePostsRoutesRequest } from "../utils/validation/joi/validatePostsRoutesRequestJoi";
-import databaseValidateUserIdFromAuthMiddleware from "../utils/validation/database/posts-routes/databaseValidateUserIdFromAuthMiddleware";
 import databaseValidatePostIdFromParam from "../utils/validation/database/posts-routes/databaseValidatePostIdFromParam";
 import databaseValidateCommentIdFromParam from "../utils/validation/database/posts-routes/databaseValidateCommentIdFromParam";
+import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -35,7 +35,7 @@ export async function createPostHandler(
   const validatedTags = tags as string[];
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
-  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
 
   const newPost = new PostModel({
     authorId: userIdObjectId,
@@ -86,7 +86,7 @@ export async function likePostHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedpostId);
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
-  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
 
   const postDocument = (await databaseValidatePostIdFromParam(
     postIdObjectId,
@@ -132,7 +132,7 @@ export async function dislikePostHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedpostId);
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
-  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
 
   const postDocument = (await databaseValidatePostIdFromParam(
     postIdObjectId,
@@ -210,7 +210,7 @@ export async function createCommentHandler(
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
 
-  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
   await databaseValidatePostIdFromParam(postIdObjectId, false);
 
   const newComment = new CommentModel({
@@ -250,7 +250,7 @@ export async function editCommentHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
 
-  await databaseValidateUserIdFromAuthMiddleware(userIdObjectId, false);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
   await databaseValidatePostIdFromParam(postIdObjectId, false);
 
   const commentDocument = (await databaseValidateCommentIdFromParam(

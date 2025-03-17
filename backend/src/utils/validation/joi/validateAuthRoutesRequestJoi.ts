@@ -5,6 +5,9 @@ import {
 } from "./regularExpressions";
 import CustomError from "../../../constants/customError";
 
+const userIdSchema = Joi.object({
+  userId: Joi.string().hex().length(24).required(),
+});
 const emailSchema = Joi.object({
   email: Joi.string().email({
     minDomainSegments: 2,
@@ -42,12 +45,13 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 }).options({ abortEarly: true });
 
-const verifyEmailSchema = Joi.object({
+const verifyEmailOrResetPasswordSchema = Joi.object({
   code: Joi.string().required(),
   userId: Joi.string().hex().length(24).required(),
 }).options({ abortEarly: true });
 
 type ValidateAuthRequestType = {
+  userId?: unknown;
   email?: unknown;
   password?: unknown;
   name?: unknown;
@@ -57,20 +61,25 @@ type ValidateAuthRequestType = {
     emailOrUsername: unknown;
     password: unknown;
   };
-  verifyEmailObject?: {
+  verifyEmailOrResetPasswordObject?: {
     code: unknown;
     userId: unknown;
   };
 };
 export function validateAuthRoutesRequest({
+  userId,
   email,
   password,
   name,
   username,
   emailOrUsername,
   loginObject,
-  verifyEmailObject,
+  verifyEmailOrResetPasswordObject,
 }: ValidateAuthRequestType) {
+  if (userId) {
+    const { error } = userIdSchema.validate({ email });
+    if (error) throw new CustomError(400, error.details[0].message);
+  }
   if (email) {
     const { error } = emailSchema.validate({ email });
     if (error) throw new CustomError(400, error.details[0].message);
@@ -95,8 +104,8 @@ export function validateAuthRoutesRequest({
     const { error } = loginSchema.validate(loginObject);
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (verifyEmailObject) {
-    const { error } = verifyEmailSchema.validate(loginObject);
+  if (verifyEmailOrResetPasswordObject) {
+    const { error } = verifyEmailOrResetPasswordSchema.validate(loginObject);
     if (error) throw new CustomError(400, error.details[0].message);
   }
 }

@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { UserModel } from "../models/user.model";
+import { UserDocument, UserModel } from "../models/user.model";
 import { Request, Response } from "express";
 import {
   createAccessToken,
@@ -32,6 +32,8 @@ import verifyEmailDatabaseValidator from "../utils/validation/database/auth-rout
 import createEmailToken from "../utils/createToken";
 import forgotPasswordDatabaseValidator from "../utils/validation/database/auth-routes/forgotPasswordDatabaseValidator";
 import { validateAuthRoutesRequest } from "../utils/validation/joi/validateAuthRoutesRequestJoi";
+import resetPasswordDatabaseValidator from "../utils/validation/database/auth-routes/resetPasswordDatabaseValidator";
+import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
@@ -143,14 +145,22 @@ export const loginHandler = async (req: Request, res: Response) => {
 export const verifyEmailHandler = async (req: Request, res: Response) => {
   const userId = req.params.userId;
   const code = req.params.code;
-  validateAuthRoutesRequest({ verifyEmailObject: { userId, code } });
+  validateAuthRoutesRequest({
+    verifyEmailOrResetPasswordObject: { userId, code },
+  });
 
   const validatedCode = code as string;
   const validatedUserId = userId as string;
 
-  const userDocument = await verifyEmailDatabaseValidator({
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+
+  const userDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
+  await verifyEmailDatabaseValidator({
     code: validatedCode,
-    userId: validatedUserId,
+    userDocument,
   });
 
   userDocument.verified = true;
@@ -204,36 +214,31 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
 };
 
 export const resetPasswordHandler = async (req: Request, res: Response) => {
-  const { password, emailOrUsername, token } = req.body as {
-    password: string;
-    emailOrUsername: string;
-    token: string;
+  const { password } = req.body as {
+    password: unknown;
   };
 
-  console.log(password, emailOrUsername, token);
+  const token = req.params.token;
+  const userId = req.params.token;
 
-  let user = null;
-  if (emailOrUsername.startsWith("@")) {
-    user = await UserModel.findOne({ username: emailOrUsername });
-  } else {
-    user = await UserModel.findOne({ email: emailOrUsername });
-  }
-  if (!user) {
-    throw new CustomError(400, "Invalid username or email input");
-  }
+  validateAuthRoutesRequest({
+    password,
+    verifyEmailOrResetPasswordObject: { userId, code: token },
+  });
 
-  const resetPasswordExpiresAtDate = user.resetPasswordExpiresAt!;
-  console.log(token === user.resetPasswordToken);
-  console.log(token);
-  console.log(user.resetPasswordToken);
+  const validatedPassword = password as string;
 
-  if (resetPasswordExpiresAtDate < new Date())
-    throw new CustomError(400, "Verification token expired");
-  if (token !== user.resetPasswordToken)
-    throw new CustomError(400, "Invalid verification token");
+  const userIdObjectId = ObjectId.createFromHexString(userId);
+
+  const user = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
+
+  await resetPasswordDatabaseValidator(user, token);
 
   // update password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(validatedPassword, 10);
   user.password = hashedPassword;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpiresAt = undefined;
@@ -280,15 +285,15 @@ export async function sendEmailVerificationCodeHandler(
 ) {
   const userId = req.params.userId;
 
+  validateAuthRoutesRequest({ userId });
+
   const userIdObjectId = ObjectId.createFromHexString(userId);
+  const foundUser = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
 
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(404, "No user found");
-
-  const verificationToken = Math.floor(
-    1000000 + Math.random() * 9000000
-  ).toString();
-
+  const verificationToken = createEmailToken();
   foundUser.verificationToken = verificationToken;
   foundUser.verificationTokenExpiresAt = new Date(
     Date.now() + 24 * 60 * 60 * 1000
