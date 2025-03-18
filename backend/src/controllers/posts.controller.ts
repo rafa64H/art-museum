@@ -1,15 +1,16 @@
 import { Request, Response } from "express";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
-import { UserModel } from "../models/user.model";
+import { UserDocument, UserModel } from "../models/user.model";
 import { PostDocument, PostModel } from "../models/post.model";
 import { CommentDocument, CommentModel } from "../models/comment.model";
-import { ReplyModel } from "../models/reply.model";
+import { ReplyDocument, ReplyModel } from "../models/reply.model";
 import { ObjectId } from "mongodb";
 import CustomError from "../constants/customError";
 import { validatePostsRoutesRequest } from "../utils/validation/joi/validatePostsRoutesRequestJoi";
 import databaseValidatePostIdFromParam from "../utils/validation/database/posts-routes/databaseValidatePostIdFromParam";
 import databaseValidateCommentIdFromParam from "../utils/validation/database/posts-routes/databaseValidateCommentIdFromParam";
 import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";
+import databaseValidateReplyIdFromParam from "../utils/validation/database/posts-routes/databaseValidateReplyIdFromParam";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -154,7 +155,7 @@ export async function dislikePostHandler(
   }
   if (findIfUserDislikedPost) {
     postDocument.dislikes = postDocument.dislikes.filter(
-      (dislikeUserId) => dislikeUserId !== userId
+      (dislikeUserId) => dislikeUserId !== validatedUserId
     );
     return res.status(200).json({ success: false, message: "Dislike removed" });
   }
@@ -300,29 +301,31 @@ export async function createReplyHandler(
 ) {
   const userId = req.userId;
   const { postId, commentId } = req.params;
+  const { content } = req.body as { content: unknown };
 
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
+  validatePostsRoutesRequest({
+    userId,
+    postId,
+    commentId,
+    contentCommentOrReply: content,
+  });
 
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedCommentId = commentId as string;
+  const validatedContent = content as string;
 
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
-
-  const commentIdObjectId = ObjectId.createFromHexString(commentId);
-  const foundComment = await CommentModel.findOne(commentIdObjectId);
-
-  if (!foundComment)
-    throw new CustomError(404, "Comment not found with such id");
-
-  const { content } = req.body as { content: string };
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
+  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
 
   const newReply = new ReplyModel({
     postId: postIdObjectId,
     authorId: userIdObjectId,
-    content: content,
+    content: validatedContent,
     commentId: commentIdObjectId,
   });
 
@@ -340,43 +343,47 @@ export async function editReplyHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
-
   const { postId, commentId, replyId } = req.params;
+  const { content } = req.body as { content: unknown };
 
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
+  validatePostsRoutesRequest({
+    userId,
+    postId,
+    commentId,
+    replyId,
+    contentCommentOrReply: content,
+  });
 
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedCommentId = commentId as string;
+  const validatedReplyId = replyId as string;
+  const validatedContent = content as string;
 
-  const commentIdObjectId = ObjectId.createFromHexString(commentId);
-  const foundComment = (await CommentModel.findOne(
-    commentIdObjectId
-  )) as CommentDocument;
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
+  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
 
-  if (!foundComment)
-    throw new CustomError(404, "Comment not found with such id");
-
-  const replyIdObjectId = ObjectId.createFromHexString(replyId);
-  const foundReply = await ReplyModel.findOne(replyIdObjectId);
-  if (!foundReply) throw new CustomError(404, "Reply not found with such id");
+  const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
+  const foundReply = (await databaseValidateReplyIdFromParam(
+    replyIdObjectId,
+    true
+  )) as ReplyDocument;
 
   if (foundReply.authorId.toString() !== userId)
     throw new CustomError(401, "Not same user as reply's author");
 
-  const { content } = req.body as { content: string };
+  foundReply.content = validatedContent;
 
-  foundReply.content = content;
-
-  await foundComment.save();
+  await foundReply.save();
 
   res.status(200).json({
     success: true,
     message: "Reply edited successfully",
-    editedComment: { ...foundReply.toObject() },
+    editedReply: { ...foundReply.toObject() },
   });
 }
 
@@ -385,27 +392,25 @@ export async function likeCommentHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
-  const { postId } = req.params;
+  const { postId, commentId } = req.params;
 
-  if (!postId) throw new CustomError(400, "No postId provided");
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
+  validatePostsRoutesRequest({ userId, postId, commentId });
 
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedCommentId = commentId as string;
 
-  const { commentId } = req.params;
-  if (!commentId) throw new CustomError(404, "No commentId provided");
-  const commentIdObjectId = ObjectId.createFromHexString(commentId);
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
 
-  const foundComment = await CommentModel.findOne(commentIdObjectId);
-
-  if (!foundComment)
-    throw new CustomError(404, "Comment not found with such id");
+  const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
+  const foundComment = (await databaseValidateCommentIdFromParam(
+    commentIdObjectId,
+    true
+  )) as CommentDocument;
 
   const findIfUserDislikedComment = foundComment.dislikes.find(
     (likeUserId) => likeUserId === userId
@@ -421,12 +426,16 @@ export async function likeCommentHandler(
     );
   }
 
-  if (findIfUserLikedComment)
+  if (findIfUserLikedComment) {
+    foundComment.dislikes = foundComment.likes.filter(
+      (likeUserId) => likeUserId !== validatedUserId
+    );
     return res
-      .status(400)
-      .json({ success: false, message: "Comment already liked by user" });
+      .status(200)
+      .json({ success: true, message: "Like removed from comment" });
+  }
 
-  foundComment.likes.push(userId);
+  foundComment.likes.push(validatedUserId);
   await foundComment.save();
 
   res.status(201).json({
@@ -440,27 +449,25 @@ export async function dislikeCommentHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
-  const { postId } = req.params;
+  const { postId, commentId } = req.params;
 
-  if (!postId) throw new CustomError(400, "No postId provided");
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
+  validatePostsRoutesRequest({ userId, postId, commentId });
 
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedCommentId = commentId as string;
 
-  const { commentId } = req.params;
-  if (!commentId) throw new CustomError(400, "No commentId provided");
-  const commentIdObjectId = ObjectId.createFromHexString(commentId);
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
 
-  const foundComment = await CommentModel.findOne(commentIdObjectId);
-
-  if (!foundComment)
-    throw new CustomError(404, "Comment not found with such id");
+  const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
+  const foundComment = (await databaseValidateCommentIdFromParam(
+    commentIdObjectId,
+    true
+  )) as CommentDocument;
 
   const findIfUserLikedComment = foundComment.likes.find(
     (likeUserId) => likeUserId === userId
@@ -476,12 +483,16 @@ export async function dislikeCommentHandler(
     );
   }
 
-  if (findIfUserDislikedComment)
+  if (findIfUserDislikedComment) {
+    foundComment.dislikes.filter(
+      (dislikeUserId) => dislikeUserId !== validatedUserId
+    );
     return res
-      .status(400)
-      .json({ success: false, message: "Comment already disliked by user" });
+      .status(200)
+      .json({ success: true, message: "Dislike removed from comment" });
+  }
 
-  foundComment.dislikes.push(userId);
+  foundComment.dislikes.push(validatedUserId);
   await foundComment.save();
 
   res.status(201).json({
@@ -495,34 +506,28 @@ export async function likeReplyHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
-  const { postId } = req.params;
+  const { postId, commentId, replyId } = req.params;
 
-  if (!postId) throw new CustomError(400, "No postId provided");
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
+  validatePostsRoutesRequest({ userId, postId, commentId, replyId });
 
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedCommentId = commentId as string;
+  const validatedReplyId = replyId as string;
 
-  const { commentId } = req.params;
-  if (!commentId) throw new CustomError(400, "No commentId provided");
-  const commentIdObjectId = ObjectId.createFromHexString(commentId);
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
+  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
 
-  const foundComment = await CommentModel.findOne(commentIdObjectId);
-
-  if (!foundComment)
-    throw new CustomError(404, "Comment not found with such id");
-
-  const { replyId } = req.params;
-  if (!replyId) throw new CustomError(400, "No replyId provided");
-
-  const replyIdObjectId = ObjectId.createFromHexString(replyId);
-  const foundReply = await ReplyModel.findOne(replyIdObjectId);
-  if (!foundReply) throw new CustomError(404, "Reply not found with such id");
+  const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
+  const foundReply = (await databaseValidateReplyIdFromParam(
+    replyIdObjectId,
+    true
+  )) as ReplyDocument;
 
   const findIfUserDislikedReply = foundReply.dislikes.find(
     (likeUserId) => likeUserId === userId
@@ -538,12 +543,17 @@ export async function likeReplyHandler(
     );
   }
 
-  if (findIfUserLikedReply)
-    return res
-      .status(400)
-      .json({ success: false, message: "Reply already liked by user" });
+  if (findIfUserLikedReply) {
+    foundReply.likes = foundReply.likes.filter(
+      (likeUserId) => likeUserId !== validatedUserId
+    );
 
-  foundReply.likes.push(userId);
+    return res
+      .status(200)
+      .json({ success: true, message: "Like removed from reply" });
+  }
+
+  foundReply.likes.push(validatedUserId);
   await foundReply.save();
 
   res.status(201).json({
@@ -557,34 +567,28 @@ export async function dislikeReplyHandler(
   res: Response
 ) {
   const userId = req.userId;
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
 
-  const { postId } = req.params;
+  const { postId, commentId, replyId } = req.params;
 
-  if (!postId) throw new CustomError(400, "No postId provided");
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const foundPost = await PostModel.findOne(postIdObjectId);
+  validatePostsRoutesRequest({ userId, postId, commentId, replyId });
 
-  if (!foundPost) throw new CustomError(404, "Post not found with such id");
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedCommentId = commentId as string;
+  const validatedReplyId = replyId as string;
 
-  const { commentId } = req.params;
-  if (!commentId) throw new CustomError(400, "No commentId provided");
-  const commentIdObjectId = ObjectId.createFromHexString(commentId);
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
+  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
 
-  const foundComment = await CommentModel.findOne(commentIdObjectId);
-
-  if (!foundComment)
-    throw new CustomError(404, "Comment not found with such id");
-
-  const { replyId } = req.params;
-  if (!replyId) throw new CustomError(400, "No replyId provided");
-
-  const replyIdObjectId = ObjectId.createFromHexString(replyId);
-  const foundReply = await ReplyModel.findOne(replyIdObjectId);
-  if (!foundReply) throw new CustomError(404, "Reply not found with such id");
+  const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
+  const foundReply = (await databaseValidateReplyIdFromParam(
+    replyIdObjectId,
+    true
+  )) as ReplyDocument;
 
   const findIfUserLikedReply = foundReply.likes.find(
     (likeUserId) => likeUserId === userId
@@ -600,12 +604,13 @@ export async function dislikeReplyHandler(
     );
   }
 
-  if (findIfUserDislikedReply)
-    return res
-      .status(400)
-      .json({ success: false, message: "Reply already liked by user" });
+  if (findIfUserDislikedReply) {
+    foundReply.dislikes = foundReply.dislikes.filter(
+      (dislikeUserId) => dislikeUserId !== validatedUserId
+    );
+  }
 
-  foundReply.dislikes.push(userId);
+  foundReply.dislikes.push(validatedUserId);
 
   await foundReply.save();
 
