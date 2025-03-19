@@ -27,7 +27,7 @@ const PostSchema = new mongoose.Schema<PostDocument>({
   },
   content: {
     type: String,
-    required: true,
+    default: "",
   },
   amountOfImages: {
     type: [Number],

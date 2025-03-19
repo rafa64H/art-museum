@@ -16,8 +16,8 @@ export async function createPostHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  const { userId, title, content, tags } = req.body as {
-    userId: unknown;
+  const userId = req.userId;
+  const { title, content, tags } = req.body as {
     title: unknown;
     content: unknown;
     tags: unknown;
@@ -32,7 +32,7 @@ export async function createPostHandler(
 
   const validatedUserId = userId as string;
   const validatedTitle = title as string;
-  const validatedContent = content as string;
+  const validatedContent = content as string | null;
   const validatedTags = tags as string[];
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
@@ -41,7 +41,7 @@ export async function createPostHandler(
   const newPost = new PostModel({
     authorId: userIdObjectId,
     title: validatedTitle,
-    content: validatedContent,
+    content: validatedContent ? validatedContent : "",
     tags: validatedTags,
   });
   await newPost.save();
@@ -94,26 +94,22 @@ export async function likePostHandler(
     true
   )) as PostDocument;
 
-  const findIfUserDislikedPost = postDocument.likes.find(
-    (likeUserId) => likeUserId === userId
+  await PostModel.findOneAndUpdate(
+    { _id: postIdObjectId },
+    { $pull: { dislikes: validatedUserId }, $push: { likes: validatedUserId } }
   );
 
-  const findIfUserLikedPost = postDocument.likes.find(
-    (likeUserId) => likeUserId === userId
-  );
+  const findIfUserDislikedPost = postDocument.likes.includes(validatedUserId);
+
+  const findIfUserLikedPost = postDocument.likes.includes(validatedUserId);
+
   if (findIfUserDislikedPost) {
-    postDocument.dislikes = postDocument.dislikes.filter(
-      (dislikeUserId) => dislikeUserId !== userId
-    );
+    await postDocument.updateOne({ $pull: { dislikes: validatedUserId } });
   }
   if (findIfUserLikedPost) {
-    postDocument.likes.filter((likeUserId) => likeUserId !== userId);
+    await postDocument.updateOne({ $pull: { likes: validatedUserId } });
     return res.status(200).json({ success: true, message: "Like removed" });
   }
-
-  postDocument.likes.push(validatedUserId);
-
-  await postDocument.save();
 
   res.status(200).json({ success: true, message: "Like added successfully" });
 }

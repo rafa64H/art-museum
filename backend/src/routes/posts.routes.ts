@@ -26,7 +26,7 @@ postsRoutes.post("/", verifyJWT as RequestHandler, async (req, res) => {
   await createPostHandler(req, res);
 });
 
-postsRoutes.post(
+postsRoutes.put(
   "/:postId/likes",
   verifyJWT as RequestHandler,
   async (req, res) => {
@@ -34,7 +34,7 @@ postsRoutes.post(
   }
 );
 
-postsRoutes.post(
+postsRoutes.put(
   "/:postId/dislikes",
   verifyJWT as RequestHandler,
   async (req, res) => {
