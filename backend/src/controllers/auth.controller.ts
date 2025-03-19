@@ -128,8 +128,7 @@ export const loginHandler = async (req: Request, res: Response) => {
     maxAge: create30DaysNumber(),
   });
 
-  userDocument.lastLogin = new Date();
-  await userDocument.save();
+  await userDocument.updateOne({ $set: { lastLogin: new Date() } });
 
   res.status(200).json({
     success: true,
@@ -163,11 +162,14 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
     userDocument,
   });
 
-  userDocument.verified = true;
-  userDocument.changedEmail = false;
-  userDocument.verificationToken = undefined;
-  userDocument.verificationTokenExpiresAt = undefined;
-  await userDocument.save();
+  await userDocument.updateOne({
+    $set: {
+      verified: true,
+      changedEmail: true,
+      verificationToken: undefined,
+      verificationTokenExpiresAt: undefined,
+    },
+  });
 
   // await sendWelcomeEmail(userDocument.email, userDocument.name);
 
@@ -197,14 +199,15 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
     emailOrUsername: validatedEmailOrUsername,
   });
 
-  // Generate reset token
   const resetPasswordToken = createEmailToken();
-  const resetTokenExpiresAt = create1HourFromNowDate(); // 1 hour
-  userDocument.resetPasswordToken = resetPasswordToken;
-  userDocument.resetPasswordExpiresAt = resetTokenExpiresAt;
-  await userDocument.save();
+  const resetTokenExpiresAt = create1HourFromNowDate();
+  await userDocument.updateOne({
+    $set: {
+      resetPasswordToken: resetPasswordToken,
+      resetPasswordExpiresAt: resetTokenExpiresAt,
+    },
+  });
 
-  // send email
   await sendPasswordResetEmail(userDocument.email, resetPasswordToken);
 
   res.status(200).json({
@@ -239,10 +242,13 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
 
   // update password
   const hashedPassword = await bcrypt.hash(validatedPassword, 10);
-  user.password = hashedPassword;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpiresAt = undefined;
-  await user.save();
+  user.updateOne({
+    $set: {
+      password: hashedPassword,
+      resetPasswordToken: undefined,
+      resetPasswordExpiresAt: undefined,
+    },
+  });
 
   await sendResetSuccessEmail(user.email);
 
@@ -294,11 +300,14 @@ export async function sendEmailVerificationCodeHandler(
   )) as UserDocument;
 
   const verificationToken = createEmailToken();
-  foundUser.verificationToken = verificationToken;
-  foundUser.verificationTokenExpiresAt = new Date(
-    Date.now() + 24 * 60 * 60 * 1000
-  );
-  await foundUser.save();
+  const verificationTokenExpiresAt = create24HoursFromNowDate();
+  await foundUser.updateOne({
+    $set: {
+      verificationToken: verificationToken,
+      verificationTokenExpiresAt: verificationTokenExpiresAt,
+    },
+  });
+
   await sendVerificationEmail(foundUser.email, verificationToken, userId);
 
   return res.status(200).json({
