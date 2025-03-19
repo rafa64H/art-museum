@@ -94,13 +94,7 @@ export async function likePostHandler(
     true
   )) as PostDocument;
 
-  await PostModel.findOneAndUpdate(
-    { _id: postIdObjectId },
-    { $pull: { dislikes: validatedUserId }, $push: { likes: validatedUserId } }
-  );
-
   const findIfUserDislikedPost = postDocument.likes.includes(validatedUserId);
-
   const findIfUserLikedPost = postDocument.likes.includes(validatedUserId);
 
   if (findIfUserDislikedPost) {
@@ -108,10 +102,14 @@ export async function likePostHandler(
   }
   if (findIfUserLikedPost) {
     await postDocument.updateOne({ $pull: { likes: validatedUserId } });
-    return res.status(200).json({ success: true, message: "Like removed" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Removed like from post" });
   }
 
-  res.status(200).json({ success: true, message: "Like added successfully" });
+  await postDocument.updateOne({ $push: { likes: validatedUserId } });
+
+  res.status(200).json({ success: true, message: "Post liked" });
 }
 
 export async function dislikePostHandler(
@@ -136,30 +134,24 @@ export async function dislikePostHandler(
     true
   )) as PostDocument;
 
-  const findIfUserLikedPost = postDocument.likes.find(
-    (likeUserId) => likeUserId === validatedUserId
-  );
-
-  const findIfUserDislikedPost = postDocument.dislikes.find(
-    (dislikeUserId) => dislikeUserId === validatedUserId
-  );
+  const findIfUserLikedPost = postDocument.likes.includes(validatedUserId);
+  const findIfUserDislikedPost =
+    postDocument.dislikes.includes(validatedUserId);
 
   if (findIfUserLikedPost) {
-    postDocument.likes = postDocument.likes.filter(
-      (likeUserId) => likeUserId !== validatedUserId
-    );
+    await postDocument.updateOne({ $pull: { likes: validatedUserId } });
   }
   if (findIfUserDislikedPost) {
-    postDocument.dislikes = postDocument.dislikes.filter(
-      (dislikeUserId) => dislikeUserId !== validatedUserId
-    );
-    return res.status(200).json({ success: false, message: "Dislike removed" });
+    await postDocument.updateOne({ $pull: { dislikes: validatedUserId } });
+    return res
+      .status(200)
+      .json({ success: false, message: "Dislike removed from post" });
   }
-  postDocument.dislikes.push(validatedUserId);
+  await postDocument.updateOne({ $push: { dislikes: validatedUserId } });
 
   await postDocument.save();
 
-  res.status(200).json({ success: true, message: "Like added successfully" });
+  res.status(200).json({ success: true, message: "Post disliked" });
 }
 
 export async function getAllCommentsHandler(req: Request, res: Response) {
@@ -255,9 +247,7 @@ export async function editCommentHandler(
     true
   )) as CommentDocument;
 
-  commentDocument.content = validatedContent;
-
-  await commentDocument.save();
+  await commentDocument.updateOne({ $set: { content: validatedContent } });
 
   res.status(200).json({
     success: true,
@@ -372,9 +362,7 @@ export async function editReplyHandler(
   if (foundReply.authorId.toString() !== userId)
     throw new CustomError(401, "Not same user as reply's author");
 
-  foundReply.content = validatedContent;
-
-  await foundReply.save();
+  await foundReply.updateOne({ $set: { content: validatedContent } });
 
   res.status(200).json({
     success: true,
@@ -408,35 +396,26 @@ export async function likeCommentHandler(
     true
   )) as CommentDocument;
 
-  const findIfUserDislikedComment = foundComment.dislikes.find(
-    (likeUserId) => likeUserId === userId
-  );
-
-  const findIfUserLikedComment = foundComment.likes.find(
-    (likeUserId) => likeUserId === userId
-  );
+  const findIfUserDislikedComment =
+    foundComment.dislikes.includes(validatedUserId);
+  const findIfUserLikedComment = foundComment.likes.includes(validatedUserId);
 
   if (findIfUserDislikedComment) {
-    foundComment.dislikes = foundComment.dislikes.filter(
-      (likeUserId) => likeUserId !== userId
-    );
+    await foundComment.updateOne({ $pull: { dislikes: validatedUserId } });
   }
 
   if (findIfUserLikedComment) {
-    foundComment.dislikes = foundComment.likes.filter(
-      (likeUserId) => likeUserId !== validatedUserId
-    );
+    await foundComment.updateOne({ $pull: { likes: validatedUserId } });
     return res
       .status(200)
       .json({ success: true, message: "Like removed from comment" });
   }
 
-  foundComment.likes.push(validatedUserId);
-  await foundComment.save();
+  await foundComment.updateOne({ $push: { likes: validatedUserId } });
 
   res.status(201).json({
     success: true,
-    message: "Comment liked successfully",
+    message: "Comment liked",
   });
 }
 
@@ -465,35 +444,26 @@ export async function dislikeCommentHandler(
     true
   )) as CommentDocument;
 
-  const findIfUserLikedComment = foundComment.likes.find(
-    (likeUserId) => likeUserId === userId
-  );
-
-  const findIfUserDislikedComment = foundComment.dislikes.find(
-    (likeUserId) => likeUserId === userId
-  );
+  const findIfUserLikedComment = foundComment.likes.includes(validatedUserId);
+  const findIfUserDislikedComment =
+    foundComment.dislikes.includes(validatedUserId);
 
   if (findIfUserLikedComment) {
-    foundComment.likes = foundComment.likes.filter(
-      (likeUserId) => likeUserId !== userId
-    );
+    await foundComment.updateOne({ $pull: { likes: validatedUserId } });
   }
 
   if (findIfUserDislikedComment) {
-    foundComment.dislikes.filter(
-      (dislikeUserId) => dislikeUserId !== validatedUserId
-    );
+    await foundComment.updateOne({ $pull: { dislikes: validatedUserId } });
     return res
       .status(200)
       .json({ success: true, message: "Dislike removed from comment" });
   }
 
-  foundComment.dislikes.push(validatedUserId);
-  await foundComment.save();
+  await foundComment.updateOne({ $push: { dislikes: validatedUserId } });
 
   res.status(201).json({
     success: true,
-    message: "Comment disliked successfully",
+    message: "Comment disliked",
   });
 }
 
@@ -525,36 +495,26 @@ export async function likeReplyHandler(
     true
   )) as ReplyDocument;
 
-  const findIfUserDislikedReply = foundReply.dislikes.find(
-    (likeUserId) => likeUserId === userId
-  );
-
-  const findIfUserLikedReply = foundReply.likes.find(
-    (likeUserId) => likeUserId === userId
-  );
+  const findIfUserDislikedReply = foundReply.dislikes.includes(validatedUserId);
+  const findIfUserLikedReply = foundReply.likes.includes(validatedUserId);
 
   if (findIfUserDislikedReply) {
-    foundReply.dislikes = foundReply.dislikes.filter(
-      (likeUserId) => likeUserId !== userId
-    );
+    await foundReply.updateOne({ $pull: { dislikes: validatedUserId } });
   }
 
   if (findIfUserLikedReply) {
-    foundReply.likes = foundReply.likes.filter(
-      (likeUserId) => likeUserId !== validatedUserId
-    );
+    await foundReply.updateOne({ $pull: { likes: validatedUserId } });
 
     return res
       .status(200)
       .json({ success: true, message: "Like removed from reply" });
   }
 
-  foundReply.likes.push(validatedUserId);
-  await foundReply.save();
+  await foundReply.updateOne({ $push: { likes: validatedUserId } });
 
   res.status(201).json({
     success: true,
-    message: "Comment liked successfully",
+    message: "Reply liked",
   });
 }
 
@@ -586,32 +546,24 @@ export async function dislikeReplyHandler(
     true
   )) as ReplyDocument;
 
-  const findIfUserLikedReply = foundReply.likes.find(
-    (likeUserId) => likeUserId === userId
-  );
-
-  const findIfUserDislikedReply = foundReply.dislikes.find(
-    (likeUserId) => likeUserId === userId
-  );
+  const findIfUserLikedReply = foundReply.likes.includes(validatedUserId);
+  const findIfUserDislikedReply = foundReply.dislikes.includes(validatedUserId);
 
   if (findIfUserLikedReply) {
-    foundReply.likes = foundReply.likes.filter(
-      (likeUserId) => likeUserId !== userId
-    );
+    await foundReply.updateOne({ $pull: { likes: validatedUserId } });
   }
 
   if (findIfUserDislikedReply) {
-    foundReply.dislikes = foundReply.dislikes.filter(
-      (dislikeUserId) => dislikeUserId !== validatedUserId
-    );
+    await foundReply.updateOne({ $pull: { dislikes: validatedUserId } });
+    return res
+      .status(200)
+      .json({ success: true, message: "Dislike removed from reply" });
   }
 
-  foundReply.dislikes.push(validatedUserId);
-
-  await foundReply.save();
+  await foundReply.updateOne({ $push: { dislikes: validatedUserId } });
 
   res.status(201).json({
     success: true,
-    message: "Comment liked successfully",
+    message: "Reply disliked",
   });
 }
