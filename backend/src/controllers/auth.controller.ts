@@ -34,6 +34,7 @@ import forgotPasswordDatabaseValidator from "../utils/validation/database/auth-r
 import { validateAuthRoutesRequest } from "../utils/validation/joi/validateAuthRoutesRequestJoi";
 import resetPasswordDatabaseValidator from "../utils/validation/database/auth-routes/resetPasswordDatabaseValidator";
 import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";
+import checkOrChangeIfUsernameHasAt from "../utils/checkOrChangeIfUsernameHasAt";
 
 export const signUpHandler = async (req: Request, res: Response) => {
   const { email, password, name, username } = req.body as unknown as {
@@ -49,11 +50,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
   const validatedName = name as string;
   const validatedUsername = username as string;
 
-  const usernameWithoutSpaces = validatedUsername.replace(/\s/g, "");
-  //If username doesn't have @ it will be added otherwise the username already has @
-  let usernameWithAt = usernameWithoutSpaces;
-  const doesUsernameHasAt = usernameWithoutSpaces.startsWith("@");
-  if (!doesUsernameHasAt) usernameWithAt = `@${usernameWithoutSpaces}`;
+  const usernameWithAt = checkOrChangeIfUsernameHasAt(validatedUsername);
 
   await signUpDatabaseValidator({
     email: validatedEmail,

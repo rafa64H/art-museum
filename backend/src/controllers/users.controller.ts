@@ -1,11 +1,15 @@
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
-import { UserModel } from "../models/user.model";
+import { UserDocument, UserModel } from "../models/user.model";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
 import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
 import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 import CustomError from "../constants/customError";
+import { validateUsersRoutesRequest } from "../utils/validation/joi/validateUsersRoutesRequestJoi";
+import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";
+import databaseValidateEditAccountInfo from "../utils/validation/database/users-routes/databaseValidateEditAccountInfo";
+import checkOrChangeIfUsernameHasAt from "../utils/checkOrChangeIfUsernameHasAt";
 
 export async function getAllUsersHandler(
   req: AuthMiddlewareRequest,
@@ -21,11 +25,14 @@ export async function getAllUsersHandler(
 
 export async function getUserHandler(req: Request, res: Response) {
   const userId = req.params.userId;
+  validateUsersRoutesRequest({ userId });
+  const validatedUserId = userId as string;
 
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-
-  if (!foundUser) throw new CustomError(404, "User not found");
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const foundUser = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
 
   res.status(200).json({
     success: true,
@@ -37,62 +44,52 @@ export async function editUserHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  if (!req.userId) throw new CustomError(401, "Unauthorized");
-
-  const userIdObjectId = ObjectId.createFromHexString(req.userId);
-
-  const foundUser = await UserModel.findOne(userIdObjectId);
-
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
-
+  const userId = req.userId;
   const { password, newEmail, newName, newUsername } = req.body as {
-    password: string | null;
-    newEmail: string | null;
-    newName: string | null;
-    newUsername: string | null;
+    password: unknown;
+    newEmail: unknown;
+    newName: unknown;
+    newUsername: unknown;
   };
 
-  if (!password) throw new CustomError(401, "Wrong password");
+  validateUsersRoutesRequest({
+    userId,
+    loginPassword: password,
+    email: newEmail,
+    name: newName,
+    username: newUsername,
+  });
+
+  const validatedUserId = userId as string;
+  const validatedPassword = password as string;
+  const validatedNewEmail = newEmail as string;
+  const validatedNewName = newUsername as string;
+  const validatedNewUsername = newUsername as string;
+
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+
+  const foundUser = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
 
   const validDialogPassword = await bcrypt.compare(
-    password,
+    validatedPassword,
     foundUser.password
   );
   if (!validDialogPassword) {
     throw new CustomError(401, "Wrong password");
   }
 
-  if (newEmail && newEmail !== foundUser.email) {
-    if (!backendCheckValidityEmail(newEmail))
-      throw new CustomError(400, "Invalid email");
+  const newUsernameWithAt = checkOrChangeIfUsernameHasAt(validatedNewUsername);
 
-    if (!(newEmail === foundUser.email) && !foundUser.changedEmail) {
-      foundUser.previousEmail = foundUser.email;
-      foundUser.email = newEmail!;
-      foundUser.previousEmailVerified = foundUser.verified;
-      foundUser.verified = false;
-      foundUser.changedEmail = true;
-    }
-  }
-
-  if (newName && newName !== foundUser.name) {
-    if (!backendCheckValidityNameOrUsername(foundUser.name))
-      throw new CustomError(401, "Invalid name");
-
-    foundUser.name = newName;
-  }
-
-  if (newUsername && newUsername !== foundUser.username) {
-    if (!backendCheckValidityNameOrUsername(foundUser.username))
-      throw new CustomError(401, "Invalid username");
-
-    foundUser.username = `@${newUsername}`;
-  }
-
-  console.log(newName, foundUser.name);
-  console.log(newUsername, foundUser.username);
-
-  await foundUser.save();
+  await databaseValidateEditAccountInfo({
+    userDocument: foundUser,
+    password: validatedPassword,
+    newEmail: validatedNewEmail,
+    newName: validatedNewName,
+    newUsernameWithAt,
+  });
 
   res.status(200).json({
     success: true,
