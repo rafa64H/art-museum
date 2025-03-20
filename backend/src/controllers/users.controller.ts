@@ -102,33 +102,36 @@ export async function changePasswordHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  if (!req.userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(req.userId);
-
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
-
+  const userId = req.userId;
   const { password, newPassword } = req.body as {
-    password: string;
-    newPassword: string;
+    password: unknown;
+    newPassword: unknown;
   };
 
-  let hashedPassword = null;
+  validateUsersRoutesRequest({ userId, loginPassword: password, newPassword });
 
-  if (newPassword) {
-    const validDialogPassword = await bcrypt.compare(
-      password,
-      foundUser.password
-    );
+  const validatedUserId = userId as string;
+  const validatedPassword = password as string;
+  const validatedNewPassword = newPassword as string;
 
-    if (!validDialogPassword) throw new CustomError(401, "Wrong password");
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
 
-    hashedPassword = await bcrypt.hash(newPassword, 10);
-    foundUser.password = hashedPassword ? hashedPassword : foundUser.password;
-    await foundUser.save();
+  const foundUser = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
 
-    res.status(200).json({ success: true, message: "User password changed" });
-  }
+  const validDialogPassword = await bcrypt.compare(
+    validatedPassword,
+    foundUser.password
+  );
+
+  if (!validDialogPassword) throw new CustomError(401, "Wrong password");
+
+  const newHashedPassword = await bcrypt.hash(validatedNewPassword, 10);
+  await foundUser.updateOne({ $set: { password: newHashedPassword } });
+
+  res.status(200).json({ success: true, message: "User password changed" });
 }
 
 export async function getFollowersFollowingFromUser(

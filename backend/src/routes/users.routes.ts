@@ -20,7 +20,15 @@ usersRoutes.get("/:userId", async (req, res) => {
 });
 
 usersRoutes.get(
-  "/followers/:userId",
+  "/:userId/followers",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await getFollowersFollowingFromUser(req, res);
+  }
+);
+
+usersRoutes.get(
+  "/:userId/following",
   verifyJWT as RequestHandler,
   async (req, res) => {
     await getFollowersFollowingFromUser(req, res);
@@ -52,14 +60,28 @@ usersRoutes.put(
 );
 
 usersRoutes.post(
-  "/followers/:userId",
+  "/:userId/followers/",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await addFollowerHandler(req, res);
+  }
+);
+usersRoutes.post(
+  "/:userId/following/",
   verifyJWT as RequestHandler,
   async (req, res) => {
     await addFollowerHandler(req, res);
   }
 );
 usersRoutes.delete(
-  "/followers/:userId",
+  "/:userId/following/",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    deleteFollowerHandler(req, res);
+  }
+);
+usersRoutes.delete(
+  "/:userId/following",
   verifyJWT as RequestHandler,
   async (req, res) => {
     deleteFollowerHandler(req, res);
