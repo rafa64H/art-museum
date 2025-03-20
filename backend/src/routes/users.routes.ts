@@ -1,9 +1,9 @@
 import express, { RequestHandler, Router } from "express";
 import verifyJWT from "../middleware/verifyJWT";
 import {
-  addFollowerHandler,
+  addOrRemoveFollowerHandler,
+  addOrRemoveFollowingHandler,
   changePasswordHandler,
-  deleteFollowerHandler,
   editUserHandler,
   getAllUsersHandler,
   getFollowersFollowingFromUser,
@@ -35,13 +35,9 @@ usersRoutes.get(
   }
 );
 
-usersRoutes.put(
-  "/edit-account",
-  verifyJWT as RequestHandler,
-  async (req, res) => {
-    await editUserHandler(req, res);
-  }
-);
+usersRoutes.put("/:userId", verifyJWT as RequestHandler, async (req, res) => {
+  await editUserHandler(req, res);
+});
 
 usersRoutes.put(
   "/undo-email-change",
@@ -59,32 +55,18 @@ usersRoutes.put(
   }
 );
 
-usersRoutes.post(
+usersRoutes.put(
   "/:userId/followers/",
   verifyJWT as RequestHandler,
   async (req, res) => {
-    await addFollowerHandler(req, res);
+    await addOrRemoveFollowerHandler(req, res);
   }
 );
-usersRoutes.post(
+usersRoutes.put(
   "/:userId/following/",
   verifyJWT as RequestHandler,
   async (req, res) => {
-    await addFollowerHandler(req, res);
-  }
-);
-usersRoutes.delete(
-  "/:userId/following/",
-  verifyJWT as RequestHandler,
-  async (req, res) => {
-    deleteFollowerHandler(req, res);
-  }
-);
-usersRoutes.delete(
-  "/:userId/following",
-  verifyJWT as RequestHandler,
-  async (req, res) => {
-    deleteFollowerHandler(req, res);
+    await addOrRemoveFollowingHandler(req, res);
   }
 );
 

@@ -190,69 +190,115 @@ export async function getFollowersFollowingFromUser(
     .status(200)
     .json({ success: true, following: following, followers: followers });
 }
-export async function addFollowerHandler(
+export async function addOrRemoveFollowerHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
   const userId = req.params.userId;
-  const userIdRequest = req.userId as string;
+  const userIdTheOtherUser = req.userId as unknown;
+  validateUsersRoutesRequest({ userId });
+  validateUsersRoutesRequest({ userId: userIdTheOtherUser });
 
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const userIdObjectIdRequest = ObjectId.createFromHexString(userIdRequest);
+  const validatedUserId = userId as string;
+  const validatedUserIdTheOtherUser = userIdTheOtherUser as string;
 
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  const userRequest = await UserModel.findOne(userIdObjectIdRequest);
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const userIdObjectIdRequest = ObjectId.createFromHexString(
+    validatedUserIdTheOtherUser
+  );
 
-  if (!foundUser) throw new CustomError(404, "User not found with such id");
-  if (!userRequest) throw new CustomError(401, "Unauthorized");
+  const userDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
+  const otherUserDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectIdRequest,
+    true
+  )) as UserDocument;
 
-  foundUser.followers = [...foundUser.followers, userIdRequest];
-  userRequest.following = [...foundUser.following, userId];
+  const userAlreadyIsBeingFollowedByOtherUser = userDocument.followers.includes(
+    validatedUserIdTheOtherUser
+  );
 
-  await foundUser.save();
-  await userRequest.save();
+  if (userAlreadyIsBeingFollowedByOtherUser) {
+    await userDocument.updateOne({
+      $pull: { followers: validatedUserIdTheOtherUser },
+    });
+    await otherUserDocument.updateOne({
+      $pull: { following: validatedUserId },
+    });
+    return res.status(200).json({
+      success: true,
+      message: `${userDocument.username} do not have follower ${otherUserDocument.username}`,
+    });
+  }
+
+  await userDocument.updateOne({
+    $push: { followers: validatedUserIdTheOtherUser },
+  });
+  await otherUserDocument.updateOne({
+    $push: { following: validatedUserId },
+  });
 
   res.status(200).json({
     success: true,
-    message: `${userRequest.username} now following ${foundUser.username}`,
-    userRequestFollowing: userRequest.following,
-    foundUserFollowers: foundUser.followers,
+    message: `${userDocument.username} is being followed by ${otherUserDocument.username}`,
   });
 }
 
-export async function deleteFollowerHandler(
+export async function addOrRemoveFollowingHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
   const userId = req.params.userId;
-  const userIdRequest = req.userId as string;
+  const userIdTheOtherUser = req.userId as unknown;
+  validateUsersRoutesRequest({ userId });
+  validateUsersRoutesRequest({ userId: userIdTheOtherUser });
 
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const userIdObjectIdRequest = ObjectId.createFromHexString(userIdRequest);
+  const validatedUserId = userId as string;
+  const validatedUserIdTheOtherUser = userIdTheOtherUser as string;
 
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  const userRequest = await UserModel.findOne(userIdObjectIdRequest);
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const userIdObjectIdRequest = ObjectId.createFromHexString(
+    validatedUserIdTheOtherUser
+  );
 
-  if (!foundUser) throw new CustomError(404, "User not found with such id");
-  if (!userRequest) throw new CustomError(401, "Unauthorized");
+  const userDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
+  const otherUserDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectIdRequest,
+    true
+  )) as UserDocument;
 
-  const indexFollower = foundUser.followers.indexOf(userIdRequest);
-  const indexFollowing = userRequest.following.indexOf(userId);
+  const userAlreadyFollowingOtherUser = userDocument.followers.includes(
+    validatedUserIdTheOtherUser
+  );
 
-  if (indexFollower === -1 || indexFollowing === -1) {
-    throw new CustomError(404, "User not found as follower or follow");
+  if (userAlreadyFollowingOtherUser) {
+    await userDocument.updateOne({
+      $pull: { following: validatedUserIdTheOtherUser },
+    });
+    await otherUserDocument.updateOne({
+      $pull: { followers: validatedUserId },
+    });
+    return res.status(200).json({
+      success: true,
+      message: `${userDocument.username} is not following ${otherUserDocument.username}`,
+    });
   }
 
-  foundUser.followers.splice(indexFollower, 1);
-  userRequest.following.splice(indexFollowing, 1);
-  await foundUser.save();
-  await userRequest.save();
+  await userDocument.updateOne({
+    $push: { following: validatedUserIdTheOtherUser },
+  });
+  await otherUserDocument.updateOne({
+    $push: { followers: validatedUserId },
+  });
 
   res.status(200).json({
     success: true,
-    message: `${userRequest.username} unfollowed ${foundUser.username}`,
-    userRequestFollowing: userRequest.following,
-    foundUserFollowers: foundUser.followers,
+    message: `${userDocument.username} is following ${otherUserDocument.username}`,
   });
 }
 
