@@ -134,19 +134,29 @@ export async function changePasswordHandler(
   res.status(200).json({ success: true, message: "User password changed" });
 }
 
-export async function getFollowersFollowingFromUser(
+export async function getFollowersFromUser(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  const userIdMiddleware = req.userId;
-  if (!userIdMiddleware) throw new CustomError(401, "Unauthorized");
+  const userIdMiddleware = req.userId as unknown;
   const userId = req.params.userId;
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
 
-  if (!foundUser) throw new CustomError(404, "User not found with such id");
+  validateUsersRoutesRequest({ userId: userId });
+  validateUsersRoutesRequest({ userId: userIdMiddleware });
 
-  if (!((foundUser._id as string).toString() === userIdMiddleware))
+  const validatedUserId = userId as string;
+  const validatedUserIdMiddleware = userIdMiddleware as string;
+
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const userIdMiddlewareObjectId = ObjectId.createFromHexString(
+    validatedUserIdMiddleware
+  );
+  const foundUser = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
+
+  if (validatedUserId === validatedUserIdMiddleware)
     throw new CustomError(
       401,
       "Not the same authenticated user as the user in param"
@@ -154,23 +164,7 @@ export async function getFollowersFollowingFromUser(
 
   const objectUser = foundUser.toObject();
 
-  let following: {}[] = [];
-
   let followers: {}[] = [];
-
-  for (let index = 0; index < objectUser.following.length; index++) {
-    const idFromFollowingObjectId = ObjectId.createFromHexString(
-      objectUser.following[index]
-    );
-
-    const userFromFollowing = await UserModel.findOne(idFromFollowingObjectId);
-
-    if (!userFromFollowing) return null;
-
-    const userFromFollowingObject = userFromFollowing.toObject();
-
-    following.push({ ...userFromFollowingObject, password: undefined });
-  }
 
   for (let index = 0; index < objectUser.followers.length; index++) {
     const idFromFollowersObjectId = ObjectId.createFromHexString(
@@ -186,9 +180,56 @@ export async function getFollowersFollowingFromUser(
     followers.push({ ...userFromFollowersObject, password: undefined });
   }
 
-  res
-    .status(200)
-    .json({ success: true, following: following, followers: followers });
+  res.status(200).json({ success: true, followers });
+}
+
+export async function getFollowingFromUser(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  const userIdMiddleware = req.userId as unknown;
+  const userId = req.params.userId;
+
+  validateUsersRoutesRequest({ userId: userId });
+  validateUsersRoutesRequest({ userId: userIdMiddleware });
+
+  const validatedUserId = userId as string;
+  const validatedUserIdMiddleware = userIdMiddleware as string;
+
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const userIdMiddlewareObjectId = ObjectId.createFromHexString(
+    validatedUserIdMiddleware
+  );
+  const foundUser = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
+
+  if (validatedUserId === validatedUserIdMiddleware)
+    throw new CustomError(
+      401,
+      "Not the same authenticated user as the user in param"
+    );
+
+  const objectUser = foundUser.toObject();
+
+  let following: {}[] = [];
+
+  for (let index = 0; index < objectUser.following.length; index++) {
+    const idFromFollowingObjectId = ObjectId.createFromHexString(
+      objectUser.following[index]
+    );
+
+    const userFromFollowing = await UserModel.findOne(idFromFollowingObjectId);
+
+    if (!userFromFollowing) return null;
+
+    const userFromFollowingObject = userFromFollowing.toObject();
+
+    following.push({ ...userFromFollowingObject, password: undefined });
+  }
+
+  res.status(200).json({ success: true, following });
 }
 export async function addOrRemoveFollowerHandler(
   req: AuthMiddlewareRequest,

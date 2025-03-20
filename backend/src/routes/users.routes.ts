@@ -6,7 +6,8 @@ import {
   changePasswordHandler,
   editUserHandler,
   getAllUsersHandler,
-  getFollowersFollowingFromUser,
+  getFollowersFromUser,
+  getFollowingFromUser,
   getUserHandler,
   undoEmailChangeHandler,
 } from "../controllers/users.controller";
@@ -23,7 +24,7 @@ usersRoutes.get(
   "/:userId/followers",
   verifyJWT as RequestHandler,
   async (req, res) => {
-    await getFollowersFollowingFromUser(req, res);
+    await getFollowersFromUser(req, res);
   }
 );
 
@@ -31,7 +32,7 @@ usersRoutes.get(
   "/:userId/following",
   verifyJWT as RequestHandler,
   async (req, res) => {
-    await getFollowersFollowingFromUser(req, res);
+    await getFollowingFromUser(req, res);
   }
 );
 
