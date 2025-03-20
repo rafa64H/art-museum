@@ -1,7 +1,6 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
 import { JWT_SECRET_ACCESS } from "../constants/env";
-import { verifyToken } from "../utils/jwtFunctions";
 import { ObjectId } from "mongodb";
 import { refreshHandler } from "../controllers/auth.controller";
 

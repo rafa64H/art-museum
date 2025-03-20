@@ -2,12 +2,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { UserDocument, UserModel } from "../models/user.model";
 import { Request, Response } from "express";
-import {
-  createAccessToken,
-  createRefreshToken,
-  RefreshTokenPayload,
-  verifyToken,
-} from "../utils/jwtFunctions";
+import { createAccessToken, createRefreshToken } from "../utils/jwtFunctions";
 import {
   sendPasswordResetEmail,
   sendResetSuccessEmail,
