@@ -53,6 +53,58 @@ export async function createPostHandler(
   });
 }
 
+export async function editPostHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  const userId = req.userId;
+  const postId = req.params.postId;
+  const { title, content, tags } = req.body as {
+    title: unknown;
+    content: unknown;
+    tags: unknown;
+  };
+
+  validatePostsRoutesRequest({
+    userId,
+    postTitle: title,
+    postContent: content,
+    postTags: tags,
+    postId,
+  });
+
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedTitle = title as string;
+  const validatedContent = content as string | null;
+  const validatedTags = tags as string[];
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
+  const postDocument = (await databaseValidatePostIdFromParam(
+    postIdObjectId,
+    true
+  )) as PostDocument;
+
+  const titleCheck =
+    validatedTitle !== postDocument.title ? validatedTitle : postDocument.title;
+  const contentCheck =
+    validatedContent !== postDocument.content
+      ? validatedContent
+      : postDocument.content;
+
+  await postDocument.updateOne({
+    $set: { title: titleCheck, content: contentCheck },
+  });
+
+  res.status(201).json({
+    success: true,
+    post: postDocument.toObject(),
+    message: "Post created successfully",
+  });
+}
+
 export async function getSinglePostHandler(req: Request, res: Response) {
   const { postId } = req.params;
 

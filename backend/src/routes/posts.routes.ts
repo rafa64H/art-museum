@@ -15,6 +15,7 @@ import {
   dislikeCommentHandler,
   likeReplyHandler,
   dislikeReplyHandler,
+  editPostHandler,
 } from "../controllers/posts.controller";
 
 const postsRoutes = express.Router();
@@ -24,6 +25,10 @@ postsRoutes.get("/:postId", async (req, res) => {
 });
 postsRoutes.post("/", verifyJWT as RequestHandler, async (req, res) => {
   await createPostHandler(req, res);
+});
+
+postsRoutes.put("/:postId", verifyJWT as RequestHandler, async (req, res) => {
+  await editPostHandler(req, res);
 });
 
 postsRoutes.put(
