@@ -5,7 +5,7 @@ import {
   CommentModel,
 } from "../../../../models/comment.model";
 
-export default async function databaseValidateCommentIdFromParam(
+export default async function databaseValidateCommentIdObjectId(
   commentId: ObjectId,
   returnComment: boolean
 ): Promise<CommentDocument | undefined> {

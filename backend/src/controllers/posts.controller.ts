@@ -7,10 +7,10 @@ import { ReplyDocument, ReplyModel } from "../models/reply.model";
 import { ObjectId } from "mongodb";
 import CustomError from "../constants/customError";
 import { validatePostsRoutesRequest } from "../utils/validation/joi/validatePostsRoutesRequestJoi";
-import databaseValidatePostIdFromParam from "../utils/validation/database/posts-routes/databaseValidatePostIdFromParam";
-import databaseValidateCommentIdFromParam from "../utils/validation/database/posts-routes/databaseValidateCommentIdFromParam";
 import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";
-import databaseValidateReplyIdFromParam from "../utils/validation/database/posts-routes/databaseValidateReplyIdFromParam";
+import databaseValidatePostIdObjectId from "../utils/validation/database/posts-routes/databaseValidatePostIdObjectId";
+import databaseValidateCommentIdObjectId from "../utils/validation/database/posts-routes/databaseValidateCommentIdObjectId";
+import databaseValidateReplyIdObjectId from "../utils/validation/database/posts-routes/databaseValidateReplyIdObjectId";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -86,7 +86,7 @@ export async function editPostHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
 
   await databaseValidateUserIdObjectId(userIdObjectId, false);
-  const postDocument = (await databaseValidatePostIdFromParam(
+  const postDocument = (await databaseValidatePostIdObjectId(
     postIdObjectId,
     true
   )) as PostDocument;
@@ -121,7 +121,7 @@ export async function getSinglePostHandler(req: Request, res: Response) {
 
   const validatedPostId = postId as string;
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  const foundPost = (await databaseValidatePostIdFromParam(
+  const foundPost = (await databaseValidatePostIdObjectId(
     postIdObjectId,
     true
   )) as PostDocument;
@@ -150,7 +150,7 @@ export async function likePostHandler(
 
   await databaseValidateUserIdObjectId(userIdObjectId, false);
 
-  const postDocument = (await databaseValidatePostIdFromParam(
+  const postDocument = (await databaseValidatePostIdObjectId(
     postIdObjectId,
     true
   )) as PostDocument;
@@ -190,7 +190,7 @@ export async function dislikePostHandler(
 
   await databaseValidateUserIdObjectId(userIdObjectId, false);
 
-  const postDocument = (await databaseValidatePostIdFromParam(
+  const postDocument = (await databaseValidatePostIdObjectId(
     postIdObjectId,
     true
   )) as PostDocument;
@@ -222,7 +222,7 @@ export async function getAllCommentsHandler(req: Request, res: Response) {
 
   const postIdObjectId = ObjectId.createFromHexString(postId);
 
-  const foundPost = (await databaseValidatePostIdFromParam(
+  const foundPost = (await databaseValidatePostIdObjectId(
     postIdObjectId,
     true
   )) as PostDocument;
@@ -261,7 +261,7 @@ export async function createCommentHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
 
   await databaseValidateUserIdObjectId(userIdObjectId, false);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
 
   const newComment = new CommentModel({
     postId: postIdObjectId,
@@ -301,9 +301,9 @@ export async function editCommentHandler(
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
 
   await databaseValidateUserIdObjectId(userIdObjectId, false);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
 
-  const commentDocument = (await databaseValidateCommentIdFromParam(
+  const commentDocument = (await databaseValidateCommentIdObjectId(
     commentIdObjectId,
     true
   )) as CommentDocument;
@@ -328,8 +328,8 @@ export async function getAllRepliesFromCommentHandler(
   const postIdObjectId = ObjectId.createFromHexString(postId);
   const commentIdObjectId = ObjectId.createFromHexString(commentId);
 
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
-  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
+  await databaseValidateCommentIdObjectId(commentIdObjectId, false);
 
   const replies = (await ReplyModel.find({
     commentId: commentIdObjectId,
@@ -365,9 +365,9 @@ export async function createReplyHandler(
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   await databaseValidateUserIdObjectId(userIdObjectId, false);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
-  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
+  await databaseValidateCommentIdObjectId(commentIdObjectId, false);
 
   const newReply = new ReplyModel({
     postId: postIdObjectId,
@@ -410,12 +410,12 @@ export async function editReplyHandler(
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   await databaseValidateUserIdObjectId(userIdObjectId, false);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
-  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
+  await databaseValidateCommentIdObjectId(commentIdObjectId, false);
 
   const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
-  const foundReply = (await databaseValidateReplyIdFromParam(
+  const foundReply = (await databaseValidateReplyIdObjectId(
     replyIdObjectId,
     true
   )) as ReplyDocument;
@@ -449,10 +449,10 @@ export async function likeCommentHandler(
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   await databaseValidateUserIdObjectId(userIdObjectId, false);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
 
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
-  const foundComment = (await databaseValidateCommentIdFromParam(
+  const foundComment = (await databaseValidateCommentIdObjectId(
     commentIdObjectId,
     true
   )) as CommentDocument;
@@ -497,10 +497,10 @@ export async function dislikeCommentHandler(
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   await databaseValidateUserIdObjectId(userIdObjectId, false);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
 
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
-  const foundComment = (await databaseValidateCommentIdFromParam(
+  const foundComment = (await databaseValidateCommentIdObjectId(
     commentIdObjectId,
     true
   )) as CommentDocument;
@@ -546,12 +546,12 @@ export async function likeReplyHandler(
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   await databaseValidateUserIdObjectId(userIdObjectId, false);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
-  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
+  await databaseValidateCommentIdObjectId(commentIdObjectId, false);
 
   const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
-  const foundReply = (await databaseValidateReplyIdFromParam(
+  const foundReply = (await databaseValidateReplyIdObjectId(
     replyIdObjectId,
     true
   )) as ReplyDocument;
@@ -597,12 +597,12 @@ export async function dislikeReplyHandler(
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   await databaseValidateUserIdObjectId(userIdObjectId, false);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
-  await databaseValidateCommentIdFromParam(commentIdObjectId, false);
+  await databaseValidateCommentIdObjectId(commentIdObjectId, false);
 
   const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
-  const foundReply = (await databaseValidateReplyIdFromParam(
+  const foundReply = (await databaseValidateReplyIdObjectId(
     replyIdObjectId,
     true
   )) as ReplyDocument;

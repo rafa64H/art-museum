@@ -9,8 +9,8 @@ import { ImageDocument, ImageModel } from "../models/image.model";
 import CustomError from "../constants/customError";
 import { validateImagesRoutesRequest } from "../utils/validation/joi/validateImagesRoutesRequestJoi";
 import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";
-import databaseValidatePostIdFromParam from "../utils/validation/database/posts-routes/databaseValidatePostIdFromParam";
 import databaseValidateImageIdObjectId from "../utils/validation/database/images-routes/databaseValidateImageIdObjectId";
+import databaseValidatePostIdObjectId from "../utils/validation/database/posts-routes/databaseValidatePostIdObjectId";
 
 export async function uploadProfilePictureHandler(
   req: AuthMiddlewareRequest,
@@ -95,7 +95,7 @@ export async function uploadImagesPostHandler(
   const validatedPostId = postId as string;
 
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
-  const postOfTheImages = (await databaseValidatePostIdFromParam(
+  const postOfTheImages = (await databaseValidatePostIdObjectId(
     postIdObjectId,
     true
   )) as PostDocument;
@@ -200,7 +200,7 @@ export async function deletePostImagesHandler(
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
 
   await databaseValidateUserIdObjectId(userIdObjectId, false);
-  await databaseValidatePostIdFromParam(postIdObjectId, false);
+  await databaseValidatePostIdObjectId(postIdObjectId, false);
 
   validatedImagesIds.map(async (imageId) => {
     const imageIdObjectId = ObjectId.createFromHexString(imageId);

@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import CustomError from "../../../../constants/customError";
 import { ReplyDocument, ReplyModel } from "../../../../models/reply.model";
 
-export default async function databaseValidateReplyIdFromParam(
+export default async function databaseValidateReplyIdObjectId(
   replyId: ObjectId,
   returnReply: boolean
 ): Promise<ReplyDocument | undefined> {
