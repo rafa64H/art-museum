@@ -43,8 +43,12 @@ imagesRoutes.get("/postImages/:postId", async (req, res) => {
   await getPostImagesHandler(req, res);
 });
 
-imagesRoutes.delete("/postImages/:postId", async (req, res) => {
-  await deletePostImagesHandler(req, res);
-});
+imagesRoutes.delete(
+  "/postImages/:postId",
+  verifyJWT as express.RequestHandler,
+  async (req, res) => {
+    await deletePostImagesHandler(req, res);
+  }
+);
 
 export default imagesRoutes;
