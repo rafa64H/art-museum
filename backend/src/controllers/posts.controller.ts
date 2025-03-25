@@ -59,10 +59,11 @@ export async function editPostHandler(
 ) {
   const userId = req.userId;
   const postId = req.params.postId;
-  const { title, content, tags } = req.body as {
+  const { title, content, tags, amountOfImages } = req.body as {
     title: unknown;
     content: unknown;
     tags: unknown;
+    amountOfImages: unknown;
   };
 
   validatePostsRoutesRequest({
@@ -70,6 +71,7 @@ export async function editPostHandler(
     postTitle: title,
     postContent: content,
     postTags: tags,
+    postAmountOfImages: amountOfImages,
     postId,
   });
 
@@ -78,6 +80,8 @@ export async function editPostHandler(
   const validatedTitle = title as string;
   const validatedContent = content as string | null;
   const validatedTags = tags as string[];
+  const validatedAmountOfImages = amountOfImages as number[];
+
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
 
@@ -95,7 +99,12 @@ export async function editPostHandler(
       : postDocument.content;
 
   await postDocument.updateOne({
-    $set: { title: titleCheck, content: contentCheck },
+    $set: {
+      title: titleCheck,
+      content: contentCheck,
+      tags: validatedTags,
+      amountOfImages: validatedAmountOfImages,
+    },
   });
 
   res.status(201).json({

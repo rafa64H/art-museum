@@ -31,7 +31,7 @@ const PostSchema = new mongoose.Schema<PostDocument>({
   },
   amountOfImages: {
     type: [Number],
-    default: null,
+    default: [],
   },
   createdAt: {
     type: Date,

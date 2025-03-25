@@ -16,6 +16,9 @@ const postContentSchema = Joi.object({
 const postTagsSchema = Joi.object({
   tags: Joi.array().items(Joi.string()),
 });
+const postAmountOfImagesSchema = Joi.object({
+  amountOfImages: Joi.array().items(Joi.number()),
+});
 const commentIdSchema = Joi.object({
   commentId: Joi.string().hex().length(24).required(),
 });
@@ -31,6 +34,7 @@ type ValidatePostRequestType = {
   postTitle?: unknown;
   postContent?: unknown;
   postTags?: unknown;
+  postAmountOfImages?: unknown;
   postId?: string;
   commentId?: string;
   replyId?: string;
@@ -41,6 +45,7 @@ export function validatePostsRoutesRequest({
   postTitle,
   postContent,
   postTags,
+  postAmountOfImages,
   postId,
   commentId,
   replyId,
@@ -60,6 +65,12 @@ export function validatePostsRoutesRequest({
   }
   if (postTags) {
     const { error } = postTagsSchema.validate({ tags: postTags });
+    if (error) throw new CustomError(400, error.details[0].message);
+  }
+  if (postAmountOfImages) {
+    const { error } = postAmountOfImagesSchema.validate({
+      amountOfImages: postAmountOfImages,
+    });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (postId) {

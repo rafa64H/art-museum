@@ -3,8 +3,6 @@ import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 import { UserDocument, UserModel } from "../models/user.model";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
-import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
-import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 import CustomError from "../constants/customError";
 import { validateUsersRoutesRequest } from "../utils/validation/joi/validateUsersRoutesRequestJoi";
 import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";

@@ -1,7 +1,7 @@
 import mongoose, { ObjectId } from "mongoose";
 const Schema = mongoose.Schema;
 
-interface ImageDocument extends mongoose.Document {
+export interface ImageDocument extends mongoose.Document {
   uploaderId: ObjectId;
   postId?: ObjectId;
   filename: string;

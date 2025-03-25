@@ -10,6 +10,7 @@ import multer from "multer";
 import { bucket } from "../db/connectDB";
 import verifyJWT from "../middleware/verifyJWT";
 import {
+  deletePostImagesHandler,
   getPostImagesHandler,
   uploadImagesPostHandler,
   uploadProfilePictureHandler,
@@ -40,6 +41,10 @@ imagesRoutes.post(
 
 imagesRoutes.get("/postImages/:postId", async (req, res) => {
   await getPostImagesHandler(req, res);
+});
+
+imagesRoutes.delete("/postImages/:postId", async (req, res) => {
+  await deletePostImagesHandler(req, res);
 });
 
 export default imagesRoutes;

@@ -1,29 +1,38 @@
 import { ObjectId } from "mongodb";
 import { bucket } from "../db/connectDB";
 import { Request, Response } from "express";
-import { UserModel } from "../models/user.model";
+import { UserDocument, UserModel } from "../models/user.model";
 import { AuthMiddlewareRequest } from "../middleware/verifyJWT";
 import { ProfilePictureModel } from "../models/profilePicture.model";
-import { PostModel } from "../models/post.model";
-import { ImageModel } from "../models/image.model";
+import { PostDocument, PostModel } from "../models/post.model";
+import { ImageDocument, ImageModel } from "../models/image.model";
 import CustomError from "../constants/customError";
+import { validateImagesRoutesRequest } from "../utils/validation/joi/validateImagesRoutesRequestJoi";
+import databaseValidateUserIdObjectId from "../utils/validation/database/databaseValidateUserIdObjectId";
+import databaseValidatePostIdFromParam from "../utils/validation/database/posts-routes/databaseValidatePostIdFromParam";
+import databaseValidateImageIdObjectId from "../utils/validation/database/images-routes/databaseValidateImageIdObjectId";
 
 export async function uploadProfilePictureHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  const userId = req.userId!;
+  const userId = req.userId;
   const file = req.file;
   if (!file) {
     throw new CustomError(400, "No file provided");
   }
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) {
-    throw new CustomError(401, "Unauthorized");
-  }
 
-  const profilePictureId = foundUser.profilePictureId;
+  validateImagesRoutesRequest({ userId });
+  const validatedUserId = userId as string;
+
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+
+  const userDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
+
+  const profilePictureId = userDocument.profilePictureId;
   if (profilePictureId) {
     const deletedPreviousProfilePicture =
       await ProfilePictureModel.findOneAndDelete(profilePictureId);
@@ -55,14 +64,16 @@ export async function uploadProfilePictureHandler(
     });
     await newProfilePicture.save();
 
-    foundUser.profilePictureURL = downloadURL[0];
-    const newProfilePictureId = newProfilePicture._id as ObjectId;
-    foundUser.profilePictureId = newProfilePictureId;
-    await foundUser.save();
+    await userDocument.updateOne({
+      $set: {
+        profilePictureURL: downloadURL[0],
+        profilePictureId: newProfilePicture._id,
+      },
+    });
 
     res.status(200).json({
       success: true,
-      user: { ...foundUser.toObject(), password: undefined },
+      user: { ...userDocument.toObject(), password: undefined },
       message: "Upload completed",
     });
   });
@@ -74,20 +85,23 @@ export async function uploadImagesPostHandler(
   req: AuthMiddlewareRequest,
   res: Response
 ) {
-  const userId = req.userId!;
+  const userId = req.userId;
   const files = req.files as Express.Multer.File[];
   const postId = req.body.postId;
   if (!files) throw new CustomError(400, "No file provided");
-  if (!postId) throw new CustomError(400, "Problem with postId");
 
-  const postIdObjectId = ObjectId.createFromHexString(postId);
-  const postOfTheImages = await PostModel.findOne(postIdObjectId);
+  validateImagesRoutesRequest({ userId, postId });
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
 
-  if (!postOfTheImages) throw new CustomError(400, "Problem with the postId");
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+  const postOfTheImages = (await databaseValidatePostIdFromParam(
+    postIdObjectId,
+    true
+  )) as PostDocument;
 
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
 
   const arrayOfImagesIdsAndURLs = await Promise.all(
     files.map(async (file, index) => {
@@ -166,4 +180,39 @@ export async function getPostImagesHandler(req: Request, res: Response) {
   });
 
   return res.status(200).json({ success: true, imagesIdsAndImagesURLs });
+}
+
+export async function deletePostImagesHandler(
+  req: AuthMiddlewareRequest,
+  res: Response
+) {
+  const userId = req.userId;
+  const postId = req.params.postId;
+  const imagesIds = req.query.imageId;
+
+  validateImagesRoutesRequest({ userId, postId, imagesIds });
+
+  const validatedUserId = userId as string;
+  const validatedPostId = postId as string;
+  const validatedImagesIds = imagesIds as string[];
+
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
+
+  await databaseValidateUserIdObjectId(userIdObjectId, false);
+  await databaseValidatePostIdFromParam(postIdObjectId, false);
+
+  validatedImagesIds.map(async (imageId) => {
+    const imageIdObjectId = ObjectId.createFromHexString(imageId);
+    const imageDocument = (await databaseValidateImageIdObjectId(
+      imageIdObjectId,
+      true
+    )) as ImageDocument;
+    const imageRef = imageDocument.fileRefFirebaseStorage;
+    const bucketFile = bucket.file(imageRef!);
+    await bucketFile.delete();
+    await imageDocument.deleteOne();
+  });
+
+  return res.status(200).json({ success: true, message: "well done" });
 }

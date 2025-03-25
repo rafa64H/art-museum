@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import crypto from "crypto";
 import { UserDocument, UserModel } from "../models/user.model";
 import { Request, Response } from "express";
 import { createAccessToken, createRefreshToken } from "../utils/jwtFunctions";
@@ -13,8 +12,6 @@ import { ObjectId } from "mongodb";
 import { JWT_SECRET_ACCESS, JWT_SECRET_REFRESH } from "../constants/env";
 import { thirtyDaysFromNow } from "../utils/date";
 import jwt from "jsonwebtoken";
-import backendCheckValidityEmail from "../utils/form-input-validations/backendCheckValidityEmail";
-import backendCheckValidityNameOrUsername from "../utils/form-input-validations/backendCheckValidityNameUsername";
 import CustomError from "../constants/customError";
 import signUpDatabaseValidator from "../utils/validation/database/auth-routes/signUpDatabaseValidator";
 import {
