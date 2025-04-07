@@ -1,18 +1,15 @@
-import { useRef, useState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import TextInput from "./ui/TextInput";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "./ui/ButtonComponent";
-import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
-import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
-import checkValidityPassword from "../utils/forms/checkValidityPassword";
-import checkValidityNameOrUsername from "../utils/forms/checkValidityNameUsername";
-import setUserStoreLogin from "../utils/setUserStore";
+import setUserStoreLogin, { ResponseDataType } from "../utils/setUserStore";
 import { createAccount } from "../utils/fetchFunctions";
-import { isAxiosError } from "axios";
 
 function SignUpForm() {
-  const [alertMessage, setAlertMessage] = useState("");
-  const [submitFormLoading, setSubmitFormLoading] = useState(false);
+  const [returnData, signUpAction, isPending] = useActionState(
+    createAccount,
+    null
+  );
 
   const emailRef = useRef<HTMLInputElement>(null);
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -22,171 +19,121 @@ function SignUpForm() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (returnData && typeof returnData === "object" && "error" in returnData) {
+      if (returnData.error.includes("email"))
+        emailRef.current?.setAttribute("data-error-input", "true");
+      if (returnData.error.includes("username"))
+        usernameRef.current?.setAttribute("data-error-input", "true");
+      if (returnData.error.includes("name"))
+        nameRef.current?.setAttribute("data-error-input", "true");
+      if (returnData.error.includes("password"))
+        passwordRef.current?.setAttribute("data-error-input", "true");
+      if (returnData.error.includes("confirm password"))
+        confirmPasswordRef.current?.setAttribute("data-error-input", "true");
+    }
+
+    if (returnData && "data" in returnData) {
+      const returnDataAssertion = returnData as { data: ResponseDataType };
+      const responseDataCreateAccount = returnDataAssertion.data;
+
+      setUserStoreLogin(responseDataCreateAccount);
+      navigate("/");
+    }
+  }, [returnData]);
+
   return (
-    <form
-      className="p-4"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setSubmitFormLoading(true);
-        try {
-          const email = emailRef.current?.value;
-          const username = usernameRef.current?.value;
-          const name = nameRef.current?.value;
-          const password = passwordRef.current?.value;
-          const confirmPassword = confirmPasswordRef.current?.value;
-
-          const allRefsCurrent = [
-            emailRef.current!,
-            usernameRef.current!,
-            nameRef.current!,
-            passwordRef.current!,
-            confirmPasswordRef.current!,
-          ];
-
-          if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
-            setSubmitFormLoading(false);
-            return;
-          }
-
-          if (
-            !checkPasswordsMatch(
-              password!,
-              confirmPassword!,
-              passwordRef.current!,
-              confirmPasswordRef.current!,
-              setAlertMessage
-            )
-          ) {
-            setSubmitFormLoading(false);
-            return;
-          }
-
-          if (
-            !checkValidityPassword(
-              password!,
-              passwordRef.current!,
-              setAlertMessage
-            )
-          ) {
-            setSubmitFormLoading(false);
-            return;
-          }
-          if (
-            !checkValidityNameOrUsername(
-              username!,
-              usernameRef.current!,
-              setAlertMessage
-            )
-          ) {
-            setSubmitFormLoading(false);
-            return;
-          }
-          if (
-            !checkValidityNameOrUsername(
-              name!,
-              usernameRef.current!,
-              setAlertMessage
-            )
-          ) {
-            setSubmitFormLoading(false);
-            return;
-          }
-
-          const data = {
-            email,
-            username,
-            name,
-            password,
-          };
-          const responseCreateAccount = await createAccount(data);
-
-          const responseDataCreateAccount = await responseCreateAccount.data;
-
-          setUserStoreLogin(responseDataCreateAccount);
-          navigate("/");
-        } catch (error) {
-          if (isAxiosError(error)) {
-            if (error.response) {
-              if (error.response.status === 400) {
-                setAlertMessage(`${error.response.data.message}`);
-                setSubmitFormLoading(false);
-                return;
-              }
-
-              setAlertMessage("Internal server error, try again later");
-              setSubmitFormLoading(false);
-              return;
-            }
-          }
-          setAlertMessage("Internal server error, try again later");
-          setSubmitFormLoading(false);
-          console.log(error);
-        }
-      }}
-    >
-      <span
-        className="text-xl font-bold text-red-400"
+    <form className="p-4" action={signUpAction}>
+      <p
+        className="text-xl mb-4 font-bold text-red-400"
         role="alert"
         aria-live="assertive"
       >
-        {alertMessage}
-      </span>
+        {returnData && typeof returnData === "object" && "error" in returnData
+          ? returnData.error
+          : null}
+      </p>
 
       <TextInput
         idFor="email"
         label="Email"
         type="email"
         placeholder="Enter your email"
+        defaultValueProp={
+          returnData &&
+          typeof returnData === "object" &&
+          "previousData" in returnData &&
+          returnData.previousData.email
+            ? returnData.previousData.email.toString()
+            : ""
+        }
         refProp={emailRef}
-        additionalFunction={() => {
-          setAlertMessage("");
-        }}
       ></TextInput>
       <TextInput
         idFor="username"
         label="Username"
         type="text"
         placeholder="Enter your username"
+        defaultValueProp={
+          returnData &&
+          typeof returnData === "object" &&
+          "previousData" in returnData &&
+          returnData.previousData.username
+            ? returnData.previousData.username.toString()
+            : ""
+        }
         refProp={usernameRef}
-        additionalFunction={() => {
-          setAlertMessage("");
-        }}
       ></TextInput>
       <TextInput
         idFor="name"
         label="Name"
         type="text"
         placeholder="Enter your name"
+        defaultValueProp={
+          returnData &&
+          typeof returnData === "object" &&
+          "previousData" in returnData &&
+          returnData.previousData.name
+            ? returnData.previousData.name.toString()
+            : ""
+        }
         refProp={nameRef}
-        additionalFunction={() => {
-          setAlertMessage("");
-        }}
       ></TextInput>
       <TextInput
         idFor="password"
         label="Password"
         type="password"
         placeholder="Enter your password"
+        defaultValueProp={
+          returnData &&
+          typeof returnData === "object" &&
+          "previousData" in returnData &&
+          returnData.previousData.password
+            ? returnData.previousData.password.toString()
+            : ""
+        }
         refProp={passwordRef}
-        additionalFunction={() => {
-          setAlertMessage("");
-        }}
       ></TextInput>
       <TextInput
         idFor="confirmPassword"
         label="Confirm password"
         type="password"
         placeholder="Repeat your password"
+        defaultValueProp={
+          returnData &&
+          typeof returnData === "object" &&
+          "previousData" in returnData &&
+          returnData.previousData.confirmPassword
+            ? returnData.previousData.confirmPassword.toString()
+            : ""
+        }
         refProp={confirmPasswordRef}
-        additionalFunction={() => {
-          setAlertMessage("");
-        }}
       ></TextInput>
 
       <ButtonComponent
         textBtn="Sign up"
         typeButton="submit"
-        loadingDisabled={submitFormLoading}
+        loadingDisabled={isPending}
       ></ButtonComponent>
 
       <p className="mt-4">

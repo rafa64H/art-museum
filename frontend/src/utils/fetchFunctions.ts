@@ -1,6 +1,6 @@
 //You should handle the try catch on where you're calling these functoins.
 
-import axios from "axios";
+import axios, { AxiosResponse, isAxiosError } from "axios";
 import { BACKEND_URL } from "../constants";
 import { store } from "../services/redux-toolkit/store";
 
@@ -9,23 +9,62 @@ const axiosInstance = axios.create({
 });
 
 //////////USER RELATED:
-export async function createAccount(dataToCreateAccount: {
-  email: string | undefined;
-  username: string | undefined;
-  name: string | undefined;
-  password: string | undefined;
-}) {
-  const urlToCreateAccount = `${BACKEND_URL}/auth/signup`;
-
-  const responseCreateAccount = axiosInstance.post(
-    urlToCreateAccount,
-    dataToCreateAccount,
-    {
-      withCredentials: true,
+export async function createAccount(
+  previousState: unknown,
+  formData: FormData
+): Promise<
+  | Promise<AxiosResponse<unknown, unknown>>
+  | {
+      error: string;
+      previousData: {
+        email: FormDataEntryValue | null;
+        username: FormDataEntryValue | null;
+        name: FormDataEntryValue | null;
+        password: FormDataEntryValue | null;
+        confirmPassword: FormDataEntryValue | null;
+      };
     }
-  );
+> {
+  const email = formData.get("email");
+  const username = formData.get("username");
+  const name = formData.get("name");
+  const password = formData.get("password");
+  const confirmPassword = formData.get("confirmPassword");
+  try {
+    const urlToCreateAccount = `${BACKEND_URL}/auth/signup`;
 
-  return responseCreateAccount;
+    console.log(email, username, name, password, confirmPassword);
+
+    const responseCreateAccount = await axiosInstance.post(
+      urlToCreateAccount,
+      { email, username, name, password, confirmPassword },
+      {
+        withCredentials: true,
+      }
+    );
+
+    return responseCreateAccount;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      if (error.response) {
+        if (error.response.status === 400) {
+          return {
+            error: error.response.data.message,
+            previousData: { email, username, name, password, confirmPassword },
+          };
+        }
+
+        return {
+          error: error.response.data.message,
+          previousData: { email, username, name, password, confirmPassword },
+        };
+      }
+    }
+    return {
+      error: "An error occurred",
+      previousData: { email, username, name, password, confirmPassword },
+    };
+  }
 }
 
 export async function loginToAccount(dataToLogin: {

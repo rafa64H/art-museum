@@ -4,7 +4,7 @@ import {
 } from "../services/redux-toolkit/auth/authSlice";
 import { store } from "../services/redux-toolkit/store";
 
-type ResponseDataType = {
+export type ResponseDataType = {
   user: {
     _id: string;
     username: string;

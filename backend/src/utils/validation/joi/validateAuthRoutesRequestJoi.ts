@@ -23,6 +23,10 @@ const passwordSchema = Joi.object({
     .required(),
 });
 
+const confirmPasswordSchema = Joi.object({
+  confirmPassword: Joi.string().required(),
+});
+
 const nameSchema = Joi.object({
   name: Joi.string()
     .min(3)
@@ -54,6 +58,7 @@ type ValidateAuthRequestType = {
   userId?: unknown;
   email?: unknown;
   password?: unknown;
+  confirmPassword?: unknown;
   name?: unknown;
   username?: unknown;
   emailOrUsername?: unknown;
@@ -65,46 +70,77 @@ type ValidateAuthRequestType = {
     code: unknown;
     userId: unknown;
   };
+  passedUserId?: boolean;
+  passedEmail?: boolean;
+  passedPassword?: boolean;
+  passedConfirmPassword?: boolean;
+  passedName?: boolean;
+  passedUsername?: boolean;
+  passedEmailOrUsername?: boolean;
+  passedLoginObject?: boolean;
+  passedVerifyEmailOrResetPasswordObject?: boolean;
 };
 export function validateAuthRoutesRequest({
   userId,
   email,
   password,
+  confirmPassword,
   name,
   username,
   emailOrUsername,
   loginObject,
   verifyEmailOrResetPasswordObject,
+  passedUserId,
+  passedEmail,
+  passedPassword,
+  passedConfirmPassword,
+  passedName,
+  passedUsername,
+  passedEmailOrUsername,
+  passedLoginObject,
+  passedVerifyEmailOrResetPasswordObject,
 }: ValidateAuthRequestType) {
-  if (userId) {
+  if (passedUserId) {
     const { error } = userIdSchema.validate({ email });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (email) {
+  if (passedEmail) {
     const { error } = emailSchema.validate({ email });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (password) {
+  if (passedPassword) {
     const { error } = passwordSchema.validate({ password });
+    if (error)
+      throw new CustomError(
+        400,
+        "Password needs to be 7 characters long, have a letter, a number and a symbol"
+      );
+  }
+  if (passedConfirmPassword) {
+    const { error } = confirmPasswordSchema.validate({ confirmPassword });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (name) {
+  if (passedPassword && passedConfirmPassword) {
+    if (password !== confirmPassword)
+      throw new CustomError(400, "Password and confirm password do not match");
+  }
+  if (passedName) {
     const { error } = nameSchema.validate({ name });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (username) {
+  if (passedUsername) {
     const { error } = usernameSchema.validate({ username });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (emailOrUsername) {
+  if (passedEmailOrUsername) {
     const { error } = emailOrUsernameSchema.validate({ emailOrUsername });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (loginObject) {
+  if (passedLoginObject) {
     const { error } = loginSchema.validate(loginObject);
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (verifyEmailOrResetPasswordObject) {
+  if (passedVerifyEmailOrResetPasswordObject) {
     const { error } = verifyEmailOrResetPasswordSchema.validate(loginObject);
     if (error) throw new CustomError(400, error.details[0].message);
   }

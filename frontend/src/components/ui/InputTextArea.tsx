@@ -32,6 +32,7 @@ function InputTextArea({
       <textarea
         className={`border-2 mt-2 min-h-[${minHeight}] w-full lg:mt-0 lg:col-span-2 border-black resize-none p-2 text-black data-[error-input=true]:border-red-700`}
         id={idAndFor}
+        name={idAndFor}
         placeholder={placeholder ? placeholder : "Write your text"}
         ref={refProp}
       ></textarea>

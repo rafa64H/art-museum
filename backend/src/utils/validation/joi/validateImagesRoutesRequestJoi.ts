@@ -15,21 +15,27 @@ type ValidatePostRequestType = {
   userId?: unknown;
   postId?: string;
   imagesIds?: unknown;
+  passedUserId?: boolean;
+  passedPostId?: boolean;
+  passedImagesIds?: boolean;
 };
 export function validateImagesRoutesRequest({
   userId,
   postId,
   imagesIds,
+  passedUserId,
+  passedPostId,
+  passedImagesIds,
 }: ValidatePostRequestType) {
-  if (userId) {
+  if (passedUserId) {
     const { error } = userIdSchema.validate({ userId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (postId) {
+  if (passedPostId) {
     const { error } = postIdSchema.validate({ postId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (imagesIds) {
+  if (passedImagesIds) {
     const { error } = imagesIdsSchema.validate({ imagesIds });
     if (error) throw new CustomError(400, error.details[0].message);
   }

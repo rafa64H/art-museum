@@ -30,6 +30,7 @@ function TextInput({
       <input
         className="border-2 mt-2 lg:mt-0 lg:col-span-2 border-black p-2 text-black data-[error-input=true]:border-red-700"
         id={idFor}
+        name={idFor}
         type={type}
         placeholder={placeholder}
         ref={refProp}

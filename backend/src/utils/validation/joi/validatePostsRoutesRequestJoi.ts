@@ -39,6 +39,15 @@ type ValidatePostRequestType = {
   commentId?: string;
   replyId?: string;
   contentCommentOrReply?: unknown;
+  passedUserId?: boolean;
+  passedPostTitle?: boolean;
+  passedContent?: boolean;
+  passedTags?: boolean;
+  passedAmountOfImages?: boolean;
+  passedPostId?: boolean;
+  passedCommentId?: boolean;
+  passedReplyId?: boolean;
+  passedContentCommentOrReply?: boolean;
 };
 export function validatePostsRoutesRequest({
   userId,
@@ -50,42 +59,51 @@ export function validatePostsRoutesRequest({
   commentId,
   replyId,
   contentCommentOrReply,
+  passedUserId,
+  passedPostTitle,
+  passedContent,
+  passedTags,
+  passedAmountOfImages,
+  passedPostId,
+  passedCommentId,
+  passedReplyId,
+  passedContentCommentOrReply,
 }: ValidatePostRequestType) {
-  if (userId) {
+  if (passedUserId) {
     const { error } = userIdSchema.validate({ userId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (postTitle) {
+  if (passedPostTitle) {
     const { error } = postTitleSchema.validate({ title: postTitle });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (postContent) {
+  if (passedContent) {
     const { error } = postContentSchema.validate({ content: postContent });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (postTags) {
+  if (passedTags) {
     const { error } = postTagsSchema.validate({ tags: postTags });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (postAmountOfImages) {
+  if (passedAmountOfImages) {
     const { error } = postAmountOfImagesSchema.validate({
       amountOfImages: postAmountOfImages,
     });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (postId) {
+  if (passedPostId) {
     const { error } = postIdSchema.validate({ postId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (commentId) {
+  if (passedCommentId) {
     const { error } = commentIdSchema.validate({ commentId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (replyId) {
+  if (passedReplyId) {
     const { error } = replyIdSchema.validate({ replyId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (contentCommentOrReply) {
+  if (passedContentCommentOrReply) {
     const { error } = contentCommentOrReplySchema.validate({
       content: contentCommentOrReply,
     });

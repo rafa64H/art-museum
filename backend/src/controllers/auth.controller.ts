@@ -29,16 +29,30 @@ import databaseValidateUserIdObjectId from "../utils/validation/database/databas
 import checkOrChangeIfUsernameHasAt from "../utils/checkOrChangeIfUsernameHasAt";
 
 export const signUpHandler = async (req: Request, res: Response) => {
-  const { email, password, name, username } = req.body as unknown as {
+  const { email, password, confirmPassword, name, username } = req.body as {
     email: unknown;
     password: unknown;
+    confirmPassword: unknown;
     name: unknown;
     username: unknown;
   };
-  validateAuthRoutesRequest({ email, password, name, username });
+
+  validateAuthRoutesRequest({
+    email,
+    password,
+    confirmPassword,
+    name,
+    username,
+    passedEmail: true,
+    passedPassword: true,
+    passedConfirmPassword: true,
+    passedName: true,
+    passedUsername: true,
+  });
 
   const validatedEmail = email as string;
   const validatedPassword = password as string;
+  const validatedConfirmPassword = confirmPassword as string;
   const validatedName = name as string;
   const validatedUsername = username as string;
 
@@ -94,7 +108,10 @@ export const loginHandler = async (req: Request, res: Response) => {
     password: unknown;
   };
 
-  validateAuthRoutesRequest({ loginObject: { emailOrUsername, password } });
+  validateAuthRoutesRequest({
+    loginObject: { emailOrUsername, password },
+    passedLoginObject: true,
+  });
 
   const validatedEmailOrUsername = emailOrUsername as string;
   const validatedPassword = password as string;
@@ -135,6 +152,7 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
   const code = req.params.code;
   validateAuthRoutesRequest({
     verifyEmailOrResetPasswordObject: { userId, code },
+    passedVerifyEmailOrResetPasswordObject: true,
   });
 
   const validatedCode = code as string;
@@ -180,7 +198,7 @@ export const logoutHandler = async (req: Request, res: Response) => {
 export const forgotPasswordHandler = async (req: Request, res: Response) => {
   const { emailOrUsername } = req.body as { emailOrUsername: unknown };
 
-  validateAuthRoutesRequest({ emailOrUsername });
+  validateAuthRoutesRequest({ emailOrUsername, passedEmailOrUsername: true });
 
   const validatedEmailOrUsername = emailOrUsername as string;
 
@@ -216,6 +234,8 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
   validateAuthRoutesRequest({
     password,
     verifyEmailOrResetPasswordObject: { userId, code: token },
+    passedPassword: true,
+    passedVerifyEmailOrResetPasswordObject: true,
   });
 
   const validatedPassword = password as string;
@@ -280,7 +300,7 @@ export async function sendEmailVerificationCodeHandler(
 ) {
   const userId = req.params.userId;
 
-  validateAuthRoutesRequest({ userId });
+  validateAuthRoutesRequest({ userId, passedUserId: true });
 
   const userIdObjectId = ObjectId.createFromHexString(userId);
   const foundUser = (await databaseValidateUserIdObjectId(

@@ -46,6 +46,12 @@ type ValidateUsersRequestType = {
   newPassword?: unknown;
   name?: unknown;
   username?: unknown;
+  passedUserId?: boolean;
+  passedEmail?: boolean;
+  passedLoginPassword?: boolean;
+  passedNewPassword?: boolean;
+  passedName?: boolean;
+  passedUsername?: boolean;
 };
 export function validateUsersRoutesRequest({
   userId,
@@ -54,28 +60,34 @@ export function validateUsersRoutesRequest({
   newPassword,
   name,
   username,
+  passedUserId,
+  passedEmail,
+  passedLoginPassword,
+  passedNewPassword,
+  passedName,
+  passedUsername,
 }: ValidateUsersRequestType) {
-  if (userId) {
+  if (passedUserId) {
     const { error } = userIdSchema.validate({ email });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (email) {
+  if (passedEmail) {
     const { error } = emailSchema.validate({ email });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (newPassword) {
+  if (passedNewPassword) {
     const { error } = newPasswordSchema.validate({ password: newPassword });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (loginPassword) {
+  if (passedLoginPassword) {
     const { error } = loginPasswordSchema.validate({ password: loginPassword });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (name) {
+  if (passedName) {
     const { error } = nameSchema.validate({ name });
     if (error) throw new CustomError(400, error.details[0].message);
   }
-  if (username) {
+  if (passedUsername) {
     const { error } = usernameSchema.validate({ username });
     if (error) throw new CustomError(400, error.details[0].message);
   }
