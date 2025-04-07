@@ -67,17 +67,54 @@ export async function createAccount(
   }
 }
 
-export async function loginToAccount(dataToLogin: {
-  emailOrUsername: string | undefined;
-  password: string | undefined;
-}) {
-  const urlToLogin = `${BACKEND_URL}/auth/login`;
+export async function loginToAccount(
+  previousState: unknown,
+  formData: FormData
+): Promise<
+  | Promise<AxiosResponse<unknown, unknown>>
+  | {
+      error: string;
+      previousData: {
+        emailOrUsername: FormDataEntryValue | null;
+        password: FormDataEntryValue | null;
+      };
+    }
+> {
+  const emailOrUsername = formData.get("emailOrUsername");
+  const password = formData.get("password");
+  try {
+    const urlToLogin = `${BACKEND_URL}/auth/login`;
 
-  const responseLogin = await axiosInstance.post(urlToLogin, dataToLogin, {
-    withCredentials: true,
-  });
+    const responseLogin = await axiosInstance.post(
+      urlToLogin,
+      { emailOrUsername, password },
+      {
+        withCredentials: true,
+      }
+    );
 
-  return responseLogin;
+    return responseLogin;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      if (error.response) {
+        if (error.response.status === 400) {
+          return {
+            error: error.response.data.message,
+            previousData: { emailOrUsername, password },
+          };
+        }
+
+        return {
+          error: error.response.data.message,
+          previousData: { emailOrUsername, password },
+        };
+      }
+    }
+    return {
+      error: "An error occurred",
+      previousData: { emailOrUsername, password },
+    };
+  }
 }
 
 export async function getUser(dataToGetUser: {
