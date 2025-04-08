@@ -55,7 +55,7 @@ function SignUpForm() {
       </p>
 
       <TextInput
-        idFor="email"
+        idForAndName="email"
         label="Email"
         type="email"
         placeholder="Enter your email"
@@ -70,7 +70,7 @@ function SignUpForm() {
         refProp={emailRef}
       ></TextInput>
       <TextInput
-        idFor="username"
+        idForAndName="username"
         label="Username"
         type="text"
         placeholder="Enter your username"
@@ -85,7 +85,7 @@ function SignUpForm() {
         refProp={usernameRef}
       ></TextInput>
       <TextInput
-        idFor="name"
+        idForAndName="name"
         label="Name"
         type="text"
         placeholder="Enter your name"
@@ -100,7 +100,7 @@ function SignUpForm() {
         refProp={nameRef}
       ></TextInput>
       <TextInput
-        idFor="password"
+        idForAndName="password"
         label="Password"
         type="password"
         placeholder="Enter your password"
@@ -115,7 +115,7 @@ function SignUpForm() {
         refProp={passwordRef}
       ></TextInput>
       <TextInput
-        idFor="confirmPassword"
+        idForAndName="confirmPassword"
         label="Confirm password"
         type="password"
         placeholder="Repeat your password"

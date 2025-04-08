@@ -56,12 +56,17 @@ export async function editUserHandler(
     email: newEmail,
     name: newName,
     username: newUsername,
+    passedUserId: true,
+    passedLoginPassword: true,
+    passedEmail: true,
+    passedName: true,
+    passedUsername: true,
   });
 
   const validatedUserId = userId as string;
   const validatedPassword = password as string;
   const validatedNewEmail = newEmail as string;
-  const validatedNewName = newUsername as string;
+  const validatedNewName = newName as string;
   const validatedNewUsername = newUsername as string;
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
@@ -101,15 +106,26 @@ export async function changePasswordHandler(
   res: Response
 ) {
   const userId = req.userId;
-  const { password, newPassword } = req.body as {
+  const { password, newPassword, confirmNewPassword } = req.body as {
     password: unknown;
     newPassword: unknown;
+    confirmNewPassword: unknown;
   };
 
-  validateUsersRoutesRequest({ userId, loginPassword: password, newPassword });
+  validateUsersRoutesRequest({
+    userId,
+    loginPassword: password,
+    newPassword,
+    confirmNewPassword,
+    passedUserId: true,
+    passedLoginPassword: true,
+    passedNewPassword: true,
+    passedConfirmNewPassword: true,
+  });
 
   const validatedUserId = userId as string;
   const validatedPassword = password as string;
+  const validatedConfirmNewPassword = confirmNewPassword as string;
   const validatedNewPassword = newPassword as string;
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
@@ -119,12 +135,12 @@ export async function changePasswordHandler(
     true
   )) as UserDocument;
 
-  const validDialogPassword = await bcrypt.compare(
+  const validVerifyPassword = await bcrypt.compare(
     validatedPassword,
     foundUser.password
   );
 
-  if (!validDialogPassword) throw new CustomError(401, "Wrong password");
+  if (!validVerifyPassword) throw new CustomError(401, "Wrong password");
 
   const newHashedPassword = await bcrypt.hash(validatedNewPassword, 10);
   await foundUser.updateOne({ $set: { password: newHashedPassword } });

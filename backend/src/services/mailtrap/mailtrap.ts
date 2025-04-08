@@ -59,7 +59,8 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 
 export const sendPasswordResetEmail = async (
   email: string,
-  resetPasswordToken: string
+  resetPasswordToken: string,
+  userId: string
 ) => {
   const recipient = [{ email }];
 
@@ -71,7 +72,7 @@ export const sendPasswordResetEmail = async (
       html: PASSWORD_RESET_REQUEST_TEMPLATE.replace(
         "{resetPasswordToken}",
         resetPasswordToken
-      ),
+      ).replace("{userId}", userId),
       category: "Password Reset",
     });
   } catch (error) {
@@ -120,7 +121,7 @@ export const VERIFICATION_EMAIL_TEMPLATE = `<!DOCTYPE html>
     <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
       Your link to verify your email is this:
     </p>
-    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;"><a href="http://localhost:5000/verify-email/{userId}/{verificationCode}">Click here to verify email</a></h2>
+    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;"><a href="http://localhost:5173/verify-email/{userId}/{verificationCode}">Click here to verify email</a></h2>
     <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
       If you didn't use this email for an account in our page, then ignore this
       email.
@@ -146,9 +147,9 @@ export const PASSWORD_RESET_REQUEST_TEMPLATE = `<!DOCTYPE html>
       <h1 style="font-size:2rem; text-align: center; color: white; font-family: sans-serif;">Reset your password</h1>
     </div>
     <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
-      Your code to reset your password is this:
+      Your link to Reset your password is:
     </p>
-    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;">{resetPasswordToken}</h2>
+    <h2 style="font-size: 1.5rem; text-align: center; margin: 0.5em auto; background-color: #333775; padding: 1.5em; color: white;"><a href="http://localhost:5173/reset-password/{userId}/{resetPasswordToken}">Click here to verify email</a></h2>
     <p style="font-size: 1.2rem; margin-left: 0.5em; color: #00728b;">
       If you didn't request this email, ignore this (maybe be sure to change
       your email's password).

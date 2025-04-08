@@ -45,7 +45,7 @@ function SignUpForm() {
       </p>
 
       <TextInput
-        idFor="emailOrUsername"
+        idForAndName="emailOrUsername"
         label="Email or username"
         type="text"
         placeholder="Enter your email or username"
@@ -60,7 +60,7 @@ function SignUpForm() {
         refProp={emailOrUsernameRef}
       ></TextInput>
       <TextInput
-        idFor="password"
+        idForAndName="password"
         label="Password"
         type="password"
         placeholder="Enter your password"

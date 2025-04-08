@@ -1,7 +1,7 @@
 import React from "react";
 
 type Props = {
-  idFor: string;
+  idForAndName: string;
   label: string;
   type: "text" | "email" | "password";
   placeholder: string;
@@ -12,7 +12,7 @@ type Props = {
   additionalFunction?: () => void;
 };
 function TextInput({
-  idFor,
+  idForAndName,
   label,
   type,
   placeholder,
@@ -24,13 +24,13 @@ function TextInput({
 }: Props) {
   return (
     <div className="w-[min(45rem,100%)] flex flex-col mb-4 lg:grid lg:grid-cols-3">
-      <label className="" htmlFor={idFor}>
+      <label className="" htmlFor={idForAndName}>
         {label}:
       </label>
       <input
         className="border-2 mt-2 lg:mt-0 lg:col-span-2 border-black p-2 text-black data-[error-input=true]:border-red-700"
-        id={idFor}
-        name={idFor}
+        id={idForAndName}
+        name={idForAndName}
         type={type}
         placeholder={placeholder}
         ref={refProp}

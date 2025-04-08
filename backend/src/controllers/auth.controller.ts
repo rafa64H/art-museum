@@ -71,6 +71,7 @@ export const signUpHandler = async (req: Request, res: Response) => {
     name: validatedName,
     username: usernameWithAt,
     role: "user",
+    verified: true,
     verificationToken,
     verificationTokenExpiresAt: create24HoursFromNowDate(),
   });
@@ -215,7 +216,11 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
     },
   });
 
-  await sendPasswordResetEmail(userDocument.email, resetPasswordToken);
+  await sendPasswordResetEmail(
+    userDocument.email,
+    resetPasswordToken,
+    (userDocument._id as ObjectId).toString()
+  );
 
   res.status(200).json({
     success: true,
@@ -229,7 +234,7 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
   };
 
   const token = req.params.token;
-  const userId = req.params.token;
+  const userId = req.params.userId;
 
   validateAuthRoutesRequest({
     password,

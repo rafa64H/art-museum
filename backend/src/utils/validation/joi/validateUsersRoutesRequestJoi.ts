@@ -44,12 +44,14 @@ type ValidateUsersRequestType = {
   email?: unknown;
   loginPassword?: unknown;
   newPassword?: unknown;
+  confirmNewPassword?: unknown;
   name?: unknown;
   username?: unknown;
   passedUserId?: boolean;
   passedEmail?: boolean;
   passedLoginPassword?: boolean;
   passedNewPassword?: boolean;
+  passedConfirmNewPassword?: boolean;
   passedName?: boolean;
   passedUsername?: boolean;
 };
@@ -58,17 +60,19 @@ export function validateUsersRoutesRequest({
   email,
   loginPassword,
   newPassword,
+  confirmNewPassword,
   name,
   username,
   passedUserId,
   passedEmail,
   passedLoginPassword,
   passedNewPassword,
+  passedConfirmNewPassword,
   passedName,
   passedUsername,
 }: ValidateUsersRequestType) {
   if (passedUserId) {
-    const { error } = userIdSchema.validate({ email });
+    const { error } = userIdSchema.validate({ userId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedEmail) {
@@ -78,6 +82,16 @@ export function validateUsersRoutesRequest({
   if (passedNewPassword) {
     const { error } = newPasswordSchema.validate({ password: newPassword });
     if (error) throw new CustomError(400, error.details[0].message);
+  }
+  if (passedConfirmNewPassword) {
+    const { error } = newPasswordSchema.validate({
+      password: confirmNewPassword,
+    });
+    if (error) throw new CustomError(400, error.details[0].message);
+  }
+  if (passedNewPassword && passedConfirmNewPassword) {
+    if (newPassword !== confirmNewPassword)
+      throw new CustomError(400, "Password and confirm password do not match");
   }
   if (passedLoginPassword) {
     const { error } = loginPasswordSchema.validate({ password: loginPassword });

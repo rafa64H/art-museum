@@ -40,6 +40,7 @@ export default async function databaseValidateEditAccountInfo({
   }
 
   if (newName && newName !== userDocument.name) {
+    console.log(newName, 2);
     await userDocument.updateOne({ $set: { name: newName } });
   }
 

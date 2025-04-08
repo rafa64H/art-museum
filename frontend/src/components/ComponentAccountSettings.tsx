@@ -1,14 +1,9 @@
-import { useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import MultipleSelectButton from "./ui/MultipleSelectButton";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
 import TextInput from "./ui/TextInput";
 import ButtonComponent from "./ui/ButtonComponent";
-import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
-import checkValidityNameOrUsername from "../utils/forms/checkValidityNameUsername";
-import checkPasswordsMatch from "../utils/forms/checkPasswordsMatch";
-import checkValidityPassword from "../utils/forms/checkValidityPassword";
-import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { Link, useNavigate } from "react-router-dom";
 import {
   setUserFollowers,
@@ -22,7 +17,6 @@ import {
   editAccountInformation,
   requestEmailChangeCode,
   undoEmailChange,
-  uploadImageProfilePicture,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
 
@@ -44,11 +38,19 @@ function ComponentAccountSettings({
   setFollowingObjects,
 }: Props) {
   const [selectedOption, setSelectedOption] = useState(1);
-  const [openModal, setOpenModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [alertMessage2, setAlertMessage2] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
+  const [
+    returnDataAccountInformation,
+    editAccountInformationAction,
+    isPendingEditAccount,
+  ] = useActionState(editAccountInformation, null);
+  const [
+    returnDataChangePassword,
+    changePasswordAction,
+    isPendingChangePassword,
+  ] = useActionState(changePassword, null);
   const [submitFormLoading, setSubmitFormLoading] = useState(false);
   const [
     sendEmailVerificationLinkLoading,
@@ -59,9 +61,10 @@ function ComponentAccountSettings({
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const usernameRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const confirmPasswordRef = useRef<HTMLInputElement>(null);
-  const passwordDialogRef = useRef<HTMLInputElement>(null);
+  const passwordToVerifyOneRef = useRef<HTMLInputElement>(null);
+  const passwordToVerifyTwoRef = useRef<HTMLInputElement>(null);
+  const newPasswordRef = useRef<HTMLInputElement>(null);
+  const confirmNewPasswordRef = useRef<HTMLInputElement>(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
   const navigate = useNavigate();
@@ -69,147 +72,6 @@ function ComponentAccountSettings({
 
   return (
     <div>
-      <section
-        data-open-modal={openModal}
-        className="z-30 data-[open-modal='true']:scale-100 scale-0 duration-200 bg-slate-700 pt-4 pb-8 px-8 w-[min(80%,45rem)] fixed translate-x-[-50%] translate-y-[-50%] top-[50%] left-[50%]"
-      >
-        <ButtonComponent
-          textBtn="Close"
-          additionalClassnames="block ml-auto text-xl p-4"
-          typeButton="button"
-          onClickFunction={() => setOpenModal((prevValue) => !prevValue)}
-        ></ButtonComponent>
-
-        <h2 className="font-bold my-8 text-xl">
-          Introduce your current password before changing information, page will
-          reload after change.
-        </h2>
-
-        <span
-          className="text-xl font-bold text-red-400"
-          role="alert"
-          aria-live="assertive"
-        >
-          {alertMessage2}
-        </span>
-
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setSubmitFormLoading(true);
-
-            const email = emailRef.current!.value;
-            const name = nameRef.current!.value;
-            const username = usernameRef.current!.value;
-            const verifyPassword = passwordDialogRef.current!.value;
-            const newPassword = passwordRef.current!.value;
-
-            try {
-              const responseRequestTokenRefresh =
-                await requestAccessTokenRefresh();
-              if (responseRequestTokenRefresh.status === 401) {
-                navigate("/", { replace: true });
-                return;
-              }
-
-              if (selectedOption === 1) {
-                const dataToEditAccount = {
-                  newEmail: email !== user.userData!.email ? email : null,
-                  newName: name !== user.userData!.name ? name : null,
-                  newUsername:
-                    username !== user.userData!.username ? username : null,
-                  password: verifyPassword,
-                };
-
-                const responseEditAccount = await editAccountInformation(
-                  dataToEditAccount
-                );
-
-                if (imageFile) {
-                  const formDataToUploadProfilePicture = new FormData();
-                  formDataToUploadProfilePicture.append("file", imageFile);
-
-                  const responseProfilePictureUpload =
-                    await uploadImageProfilePicture(
-                      formDataToUploadProfilePicture
-                    );
-                  navigate(0);
-                  return;
-                }
-
-                navigate(0);
-              }
-
-              if (selectedOption === 2) {
-                const dataToChangePassword = {
-                  newPassword: newPassword,
-                  password: verifyPassword,
-                };
-                if (!newPassword) return;
-
-                const responseChangePassword = await changePassword(
-                  dataToChangePassword
-                );
-
-                if (!responseChangePassword) return;
-
-                setAlertMessage("Password changed");
-                setOpenModal(false);
-                setSubmitFormLoading(false);
-              }
-            } catch (error) {
-              if (isAxiosError(error)) {
-                if (error.response) {
-                  if (error.response.status === 401) {
-                    const responseDataEditAccount = error.response.data.message;
-
-                    if (error.response.data.message.includes("Unauthorized")) {
-                      navigate("/", { replace: true });
-                      return;
-                    }
-
-                    setAlertMessage2(responseDataEditAccount.message);
-                    setSubmitFormLoading(false);
-                    return;
-                  }
-
-                  if (error.response.status === 400) {
-                    setAlertMessage2(error.response.data.message);
-                    setSubmitFormLoading(false);
-                    return;
-                  }
-                  setAlertMessage2("Internal server error, try again later");
-                  setSubmitFormLoading(false);
-                }
-              }
-
-              setOpenModal(false);
-              setAlertMessage("Internal server error, try again later");
-              setSubmitFormLoading(false);
-              console.log(error);
-            }
-          }}
-        >
-          <TextInput
-            idFor="authPassword"
-            label="Introduce current password"
-            placeholder="Confirm your current password"
-            refProp={passwordDialogRef}
-            type="password"
-          ></TextInput>
-          <ButtonComponent
-            textBtn="Change account information"
-            typeButton="submit"
-            loadingDisabled={submitFormLoading}
-          ></ButtonComponent>
-        </form>
-      </section>
-
-      <div
-        data-open-modal={openModal}
-        className="data-[open-modal='true']:block hidden z-20 fixed top-0 w-[100%] h-[100%] bg-[rgba(0,0,0,0.6)]"
-      ></div>
-
       <h1>Account Settings</h1>
 
       <section>
@@ -249,47 +111,7 @@ function ComponentAccountSettings({
 
       <form
         className={`ml-2 mt-8 ${selectedOption === 1 ? "block" : "hidden"}`}
-        onSubmit={async (e) => {
-          e.preventDefault();
-
-          try {
-            const allRefsCurrent = [
-              emailRef.current!,
-              nameRef.current!,
-              usernameRef.current!,
-            ];
-
-            const name = nameRef.current!.value;
-            const username = usernameRef.current!.value;
-
-            if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
-              return;
-            }
-
-            if (
-              !checkValidityNameOrUsername(
-                name,
-                nameRef.current!,
-                setAlertMessage
-              )
-            ) {
-              return;
-            }
-            if (
-              !checkValidityNameOrUsername(
-                username,
-                usernameRef.current!,
-                setAlertMessage
-              )
-            ) {
-              return;
-            }
-
-            setOpenModal(true);
-          } catch (error) {
-            console.log(error);
-          }
-        }}
+        action={editAccountInformationAction}
       >
         <span
           className="text-xl font-bold text-red-400"
@@ -305,6 +127,7 @@ function ComponentAccountSettings({
           setImageFileState={setImageFile}
           labelText="Change profile picture"
           typeOfImage="profilePicture"
+          idForAndName="imageInputProfilePicture"
         ></ImageInput>
 
         {!user.userData?.verified ? (
@@ -377,90 +200,49 @@ function ComponentAccountSettings({
           <></>
         )}
         <TextInput
-          idFor="email"
+          idForAndName="newEmail"
           label="Change email"
           placeholder="Change your email"
           refProp={emailRef}
           defaultValueProp={user.userData?.email}
           disabledProp={!user.userData?.verified || user.userData?.changedEmail}
           type="email"
-          additionalFunction={() => {
-            setAlertMessage("");
-          }}
         ></TextInput>
         <TextInput
-          idFor="name"
+          idForAndName="newName"
           label="Change name"
           placeholder="Change your name"
           refProp={nameRef}
           defaultValueProp={user.userData?.name}
           type="text"
-          additionalFunction={() => {
-            setAlertMessage("");
-          }}
         ></TextInput>
         <TextInput
-          idFor="username"
+          idForAndName="newUsername"
           label="Change username"
           placeholder="Change your username"
           refProp={usernameRef}
           defaultValueProp={user.userData?.username}
           type="text"
-          additionalFunction={() => {
-            setAlertMessage("");
-          }}
+        ></TextInput>
+
+        <TextInput
+          idForAndName="passwordToVerifyOne"
+          label="Write your current password"
+          placeholder="Current password"
+          refProp={passwordToVerifyOneRef}
+          type="password"
         ></TextInput>
 
         <ButtonComponent
           textBtn="Change information"
+          loadingDisabled={isPendingEditAccount}
           typeButton="submit"
         ></ButtonComponent>
       </form>
 
       <form
         className={`ml-2 mt-8 ${selectedOption === 2 ? "block" : "hidden"}`}
-        onSubmit={async (e) => {
-          e.preventDefault();
-
-          try {
-            const allRefsCurrent = [
-              passwordRef.current!,
-              confirmPasswordRef.current!,
-            ];
-
-            const password = passwordRef.current!.value;
-            const confirmPassword = confirmPasswordRef.current!.value;
-
-            if (!checkEmptyFieldsForm(allRefsCurrent, setAlertMessage)) {
-              return;
-            }
-
-            if (
-              !checkPasswordsMatch(
-                password,
-                confirmPassword,
-                passwordRef.current!,
-                confirmPasswordRef.current!,
-                setAlertMessage
-              )
-            ) {
-              return;
-            }
-            if (
-              !checkValidityPassword(
-                password,
-                passwordRef.current!,
-                setAlertMessage
-              )
-            ) {
-              return;
-            }
-
-            setOpenModal(true);
-          } catch (error) {
-            console.log(error);
-          }
-        }}
+        action={changePasswordAction}
       >
         <span
           className="text-xl font-bold text-red-400"
@@ -471,29 +253,32 @@ function ComponentAccountSettings({
         </span>
 
         <TextInput
-          idFor="changePassword"
+          idForAndName="newPassword"
           label="Change password"
           placeholder="Change your password"
-          refProp={passwordRef}
+          refProp={newPasswordRef}
           type="password"
-          additionalFunction={() => {
-            setAlertMessage("");
-          }}
         ></TextInput>
         <TextInput
-          idFor="confirmPassword"
+          idForAndName="confirmPassword"
           label="Confirm new password"
           placeholder="Confirm new password"
-          refProp={confirmPasswordRef}
+          refProp={confirmNewPasswordRef}
           type="password"
-          additionalFunction={() => {
-            setAlertMessage("");
-          }}
+        ></TextInput>
+
+        <TextInput
+          idForAndName="currentPassword"
+          label="Write your current password"
+          placeholder="Current password"
+          refProp={passwordToVerifyTwoRef}
+          type="password"
         ></TextInput>
 
         <ButtonComponent
           textBtn="Change password"
           typeButton="submit"
+          loadingDisabled={isPendingChangePassword}
         ></ButtonComponent>
       </form>
 

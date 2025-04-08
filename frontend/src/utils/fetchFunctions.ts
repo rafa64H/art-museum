@@ -1,6 +1,6 @@
 //You should handle the try catch on where you're calling these functoins.
 
-import axios, { AxiosResponse, isAxiosError } from "axios";
+import axios, { isAxiosError } from "axios";
 import { BACKEND_URL } from "../constants";
 import { store } from "../services/redux-toolkit/store";
 
@@ -12,19 +12,7 @@ const axiosInstance = axios.create({
 export async function createAccount(
   previousState: unknown,
   formData: FormData
-): Promise<
-  | Promise<AxiosResponse<unknown, unknown>>
-  | {
-      error: string;
-      previousData: {
-        email: FormDataEntryValue | null;
-        username: FormDataEntryValue | null;
-        name: FormDataEntryValue | null;
-        password: FormDataEntryValue | null;
-        confirmPassword: FormDataEntryValue | null;
-      };
-    }
-> {
+) {
   const email = formData.get("email");
   const username = formData.get("username");
   const name = formData.get("name");
@@ -70,16 +58,7 @@ export async function createAccount(
 export async function loginToAccount(
   previousState: unknown,
   formData: FormData
-): Promise<
-  | Promise<AxiosResponse<unknown, unknown>>
-  | {
-      error: string;
-      previousData: {
-        emailOrUsername: FormDataEntryValue | null;
-        password: FormDataEntryValue | null;
-      };
-    }
-> {
+) {
   const emailOrUsername = formData.get("emailOrUsername");
   const password = formData.get("password");
   try {
@@ -133,43 +112,74 @@ export async function getUser(dataToGetUser: {
   return responseGetUser;
 }
 
-export async function editAccountInformation(dataToEditAccount: {
-  newEmail: string | null;
-  newName: string | null;
-  newUsername: string | null;
-  password: string;
-}) {
-  const user = store.getState().auth.user;
-  const urlToEditAccount = `${BACKEND_URL}/api/users/edit-account`;
+export async function editAccountInformation(
+  previousData: unknown,
+  formData: FormData
+) {
+  const newEmail = formData.get("newEmail");
+  const newName = formData.get("newName");
+  const newUsername = formData.get("newUsername");
+  const password = formData.get("passwordToVerifyOne");
+  const file = formData.get("imageInputProfilePicture") as File;
+  try {
+    const user = store.getState().auth.user;
+    const urlToEditAccount = `${BACKEND_URL}/api/users/${user.userData?.id}`;
 
-  const responseEditAccount = await axiosInstance.put(
-    urlToEditAccount,
-    dataToEditAccount,
-    {
-      withCredentials: true,
-      headers: {
-        authorization: `Bearer ${user.userData?.accessToken}`,
-      },
+    const responseEditAccount = await axiosInstance.put(
+      urlToEditAccount,
+      { newEmail, newName, newUsername, password },
+      {
+        withCredentials: true,
+        headers: {
+          authorization: `Bearer ${user.userData?.accessToken}`,
+        },
+      }
+    );
+
+    if (file.name !== "") {
+      const formDataToUploadProfilePicture = new FormData();
+      formDataToUploadProfilePicture.append("file", file);
+
+      await uploadImageProfilePicture(formDataToUploadProfilePicture);
     }
-  );
 
-  return responseEditAccount;
+    return responseEditAccount;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      if (error.response) {
+        if (error.response.status === 400) {
+          return {
+            error: error.response.data.message,
+            previousData: { newEmail, newName, newUsername, password },
+          };
+        }
+
+        return {
+          error: error.response.data.message,
+          previousData: { newEmail, newName, newUsername, password },
+        };
+      }
+    }
+    return {
+      error: "An error occurred",
+      previousData: { newEmail, newName, newUsername, password },
+    };
+  }
 }
 
-export async function changePassword(dataToChangeAccount: {
-  newPassword: string | null;
-  password: string;
-}) {
-  const urlToChangePassword = `${BACKEND_URL}/api/users/change-password`;
+export async function changePassword(
+  previousData: unknown,
+  formData: FormData
+) {
+  const newPassword = formData.get("newPassword");
+  const confirmNewPassword = formData.get("confirmNewPassword");
+  const password = formData.get("currentPassword");
   const user = store.getState().auth.user;
-
-  const { newPassword } = dataToChangeAccount;
-
-  if (!newPassword) return;
+  const urlToChangePassword = `${BACKEND_URL}/api/users/change-password`;
 
   const responseChangePassword = await axiosInstance.put(
     urlToChangePassword,
-    dataToChangeAccount,
+    { newPassword, confirmNewPassword, password },
     {
       headers: {
         authorization: `Bearer ${user.userData?.accessToken}`,
@@ -213,7 +223,6 @@ export async function deleteFollow(userProfileId: string | undefined) {
 
 export async function requestEmailChangeCode(userId: string | undefined) {
   const urlGetVerificationCode = `${BACKEND_URL}/auth/request-email-code/${userId}`;
-
   const responseSendVerificationCode = await axiosInstance.get(
     urlGetVerificationCode
   );
@@ -238,9 +247,9 @@ export async function verifyEmail(dataToVerifyEmail: {
   codeToVerifyEmail: string | undefined;
 }) {
   const { userId, codeToVerifyEmail } = dataToVerifyEmail;
-  const urlToVerifyEmail = `${BACKEND_URL}/auth/verify-email`;
+  const urlToVerifyEmail = `${BACKEND_URL}/auth/verify-email/${userId}/${codeToVerifyEmail}`;
 
-  const responseVerifyEmail = await axiosInstance.post(urlToVerifyEmail, {
+  const responseVerifyEmail = await axiosInstance.put(urlToVerifyEmail, {
     userId: userId,
     code: codeToVerifyEmail,
   });
@@ -280,8 +289,7 @@ export async function resetPassword(dataToResetPassword: {
   token: string | undefined;
   emailOrUsername: string | undefined;
 }) {
-  const urlToResetPassword = `${BACKEND_URL}/auth/password/reset-password`;
-
+  const urlToResetPassword = `${BACKEND_URL}/auth/password/reset-password/:userId/:token`;
   const { password, token, emailOrUsername } = dataToResetPassword;
 
   const responseResetPassword = await axiosInstance.put(urlToResetPassword, {

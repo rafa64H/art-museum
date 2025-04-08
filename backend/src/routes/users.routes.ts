@@ -11,7 +11,10 @@ import {
   getUserHandler,
   undoEmailChangeHandler,
 } from "../controllers/users.controller";
-
+import multer from "multer";
+const formDataHandler = multer({
+  storage: multer.memoryStorage(),
+});
 const usersRoutes = express.Router();
 usersRoutes.get("/", async (req, res) => {
   await getAllUsersHandler(req, res);
@@ -36,9 +39,14 @@ usersRoutes.get(
   }
 );
 
-usersRoutes.put("/:userId", verifyJWT as RequestHandler, async (req, res) => {
-  await editUserHandler(req, res);
-});
+usersRoutes.put(
+  "/:userId",
+  verifyJWT as RequestHandler,
+  formDataHandler.single("file"),
+  async (req, res) => {
+    await editUserHandler(req, res);
+  }
+);
 
 usersRoutes.put(
   "/undo-email-change",

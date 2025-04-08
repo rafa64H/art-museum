@@ -11,12 +11,14 @@ type Props = {
   labelText: string;
   typeOfImage: "profilePicture" | "post";
   imageWidth?: string;
+  idForAndName: string;
 };
 function ImageInput({
   imageURLState,
   imageFileState,
   setImageURLState,
   setImageFileState,
+  idForAndName,
   labelText,
   typeOfImage,
   imageWidth,
@@ -69,6 +71,7 @@ function ImageInput({
       <input
         id="imageFileInput"
         className="hidden"
+        name={idForAndName}
         onChange={(e) => handleFileChange(e)}
         type="file"
         accept="image/*"
