@@ -17,11 +17,11 @@ export default async function databaseValidateEditAccountInfo({
   newName: string | null;
   newUsernameWithAt: string | null;
 }) {
-  const validDialogPassword = await bcrypt.compare(
+  const validVerifyPassword = await bcrypt.compare(
     password,
     userDocument.password
   );
-  if (!validDialogPassword) {
+  if (!validVerifyPassword) {
     throw new CustomError(401, "Wrong password");
   }
 

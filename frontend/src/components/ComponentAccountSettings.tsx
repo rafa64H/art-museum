@@ -1,4 +1,4 @@
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import MultipleSelectButton from "./ui/MultipleSelectButton";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
@@ -6,6 +6,7 @@ import TextInput from "./ui/TextInput";
 import ButtonComponent from "./ui/ButtonComponent";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  setUser,
   setUserFollowers,
   setUserFollowing,
 } from "../services/redux-toolkit/auth/authSlice";
@@ -19,6 +20,7 @@ import {
   undoEmailChange,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
+import setUserStore from "../utils/setUserStore";
 
 type Props = {
   followersObjects: UserDataResponse[] | string | null;
@@ -62,13 +64,47 @@ function ComponentAccountSettings({
   const nameRef = useRef<HTMLInputElement>(null);
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordToVerifyOneRef = useRef<HTMLInputElement>(null);
-  const passwordToVerifyTwoRef = useRef<HTMLInputElement>(null);
+
   const newPasswordRef = useRef<HTMLInputElement>(null);
   const confirmNewPasswordRef = useRef<HTMLInputElement>(null);
+  const passwordToVerifyTwoRef = useRef<HTMLInputElement>(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (returnDataAccountInformation) {
+      if (
+        typeof returnDataAccountInformation === "object" &&
+        "error" in returnDataAccountInformation
+      ) {
+        if (returnDataAccountInformation.error.includes("email")) {
+          emailRef.current?.setAttribute("data-error-input", "true");
+        }
+        if (returnDataAccountInformation.error.includes("username")) {
+          usernameRef.current?.setAttribute("data-error-input", "true");
+        }
+        if (returnDataAccountInformation.error.includes("name")) {
+          nameRef.current?.setAttribute("data-error-input", "true");
+        }
+        if (returnDataAccountInformation.error.includes("password")) {
+          passwordToVerifyOneRef.current?.setAttribute(
+            "data-error-input",
+            "true"
+          );
+        }
+      }
+
+      if ("data" in returnDataAccountInformation) {
+        const userDataToSet = {
+          ...returnDataAccountInformation.data.user,
+          accessToken: user.userData?.accessToken,
+        };
+        dispatch(setUser(userDataToSet));
+      }
+    }
+  }, [returnDataAccountInformation]);
 
   return (
     <div>

@@ -94,9 +94,14 @@ export async function editUserHandler(
     newUsernameWithAt,
   });
 
+  const editedUser = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true
+  )) as UserDocument;
+
   res.status(200).json({
     success: true,
-    user: { ...foundUser.toObject(), password: undefined },
+    user: { ...editedUser.toObject(), password: undefined },
     message: "User account edited",
   });
 }
