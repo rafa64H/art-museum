@@ -101,14 +101,18 @@ export function validateAuthRoutesRequest({
   passedVerifyEmailOrResetPasswordObject,
 }: ValidateAuthRequestType) {
   if (passedUserId) {
-    const { error } = userIdSchema.validate({ email });
+    console.log("hola1");
+    const { error } = userIdSchema.validate({ userId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedEmail) {
+    console.log("hola2");
+
     const { error } = emailSchema.validate({ email });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedPassword) {
+    console.log("hola3");
     const { error } = passwordSchema.validate({ password });
     if (error)
       throw new CustomError(
@@ -117,31 +121,40 @@ export function validateAuthRoutesRequest({
       );
   }
   if (passedConfirmPassword) {
+    console.log("hola4");
     const { error } = confirmPasswordSchema.validate({ confirmPassword });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedPassword && passedConfirmPassword) {
+    console.log("hola5");
     if (password !== confirmPassword)
       throw new CustomError(400, "Password and confirm password do not match");
   }
   if (passedName) {
+    console.log("hola6");
     const { error } = nameSchema.validate({ name });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedUsername) {
+    console.log("hola7");
     const { error } = usernameSchema.validate({ username });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedEmailOrUsername) {
+    console.log("hola8");
     const { error } = emailOrUsernameSchema.validate({ emailOrUsername });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedLoginObject) {
+    console.log("hola9");
     const { error } = loginSchema.validate(loginObject);
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedVerifyEmailOrResetPasswordObject) {
-    const { error } = verifyEmailOrResetPasswordSchema.validate(loginObject);
+    console.log("hola10");
+    const { error } = verifyEmailOrResetPasswordSchema.validate(
+      verifyEmailOrResetPasswordObject
+    );
     if (error) throw new CustomError(400, error.details[0].message);
   }
 }

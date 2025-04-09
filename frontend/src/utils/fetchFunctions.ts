@@ -174,20 +174,42 @@ export async function changePassword(
   const newPassword = formData.get("newPassword");
   const confirmNewPassword = formData.get("confirmNewPassword");
   const password = formData.get("currentPassword");
-  const user = store.getState().auth.user;
-  const urlToChangePassword = `${BACKEND_URL}/api/users/change-password`;
+  try {
+    const user = store.getState().auth.user;
+    const urlToChangePassword = `${BACKEND_URL}/api/users/change-password`;
 
-  const responseChangePassword = await axiosInstance.put(
-    urlToChangePassword,
-    { newPassword, confirmNewPassword, password },
-    {
-      headers: {
-        authorization: `Bearer ${user.userData?.accessToken}`,
-      },
+    const responseChangePassword = await axiosInstance.put(
+      urlToChangePassword,
+      { newPassword, confirmNewPassword, password },
+      {
+        headers: {
+          authorization: `Bearer ${user.userData?.accessToken}`,
+        },
+      }
+    );
+
+    return responseChangePassword;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      if (error.response) {
+        if (error.response.status === 400) {
+          return {
+            error: error.response.data.message,
+            previousData: { newPassword, confirmNewPassword, password },
+          };
+        }
+
+        return {
+          error: error.response.data.message,
+          previousData: { newPassword, confirmNewPassword, password },
+        };
+      }
     }
-  );
-
-  return responseChangePassword;
+    return {
+      error: "An error occurred",
+      previousData: { newPassword, confirmNewPassword, password },
+    };
+  }
 }
 
 export async function addFollow(userProfileId: string | undefined) {

@@ -119,13 +119,13 @@ export async function changePasswordHandler(
 
   validateUsersRoutesRequest({
     userId,
+    password: newPassword,
+    confirmPassword: confirmNewPassword,
     loginPassword: password,
-    newPassword,
-    confirmNewPassword,
     passedUserId: true,
+    passedPassword: true,
+    passedConfirmPassword: true,
     passedLoginPassword: true,
-    passedNewPassword: true,
-    passedConfirmNewPassword: true,
   });
 
   const validatedUserId = userId as string;

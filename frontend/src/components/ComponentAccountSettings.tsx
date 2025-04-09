@@ -20,7 +20,6 @@ import {
   undoEmailChange,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
-import setUserStore from "../utils/setUserStore";
 
 type Props = {
   followersObjects: UserDataResponse[] | string | null;
@@ -53,7 +52,6 @@ function ComponentAccountSettings({
     changePasswordAction,
     isPendingChangePassword,
   ] = useActionState(changePassword, null);
-  const [submitFormLoading, setSubmitFormLoading] = useState(false);
   const [
     sendEmailVerificationLinkLoading,
     setSendEmailVerificationLinkLoading,
@@ -106,6 +104,23 @@ function ComponentAccountSettings({
     }
   }, [returnDataAccountInformation]);
 
+  useEffect(() => {
+    if (
+      returnDataChangePassword &&
+      typeof returnDataChangePassword === "object" &&
+      "error" in returnDataChangePassword
+    ) {
+      if (returnDataChangePassword.error.includes("password")) {
+        confirmNewPasswordRef.current?.setAttribute("data-error-input", "true");
+        newPasswordRef.current?.setAttribute("data-error-input", "true");
+        passwordToVerifyTwoRef.current?.setAttribute(
+          "data-error-input",
+          "true"
+        );
+      }
+    }
+  }, [returnDataChangePassword]);
+
   return (
     <div>
       <h1>Account Settings</h1>
@@ -149,13 +164,21 @@ function ComponentAccountSettings({
         className={`ml-2 mt-8 ${selectedOption === 1 ? "block" : "hidden"}`}
         action={editAccountInformationAction}
       >
-        <span
+        <p
           className="text-xl font-bold text-red-400"
           role="alert"
           aria-live="assertive"
         >
-          {alertMessage}
-        </span>
+          {returnDataAccountInformation &&
+          typeof returnDataAccountInformation === "object" &&
+          "data" in returnDataAccountInformation &&
+          "message" in returnDataAccountInformation.data
+            ? returnDataAccountInformation.data.message
+            : returnDataAccountInformation &&
+              "error" in returnDataAccountInformation
+            ? returnDataAccountInformation.error
+            : ""}
+        </p>
         <ImageInput
           imageURLState={imageURL}
           imageFileState={imageFile}
@@ -280,13 +303,19 @@ function ComponentAccountSettings({
         className={`ml-2 mt-8 ${selectedOption === 2 ? "block" : "hidden"}`}
         action={changePasswordAction}
       >
-        <span
+        <p
           className="text-xl font-bold text-red-400"
           role="alert"
           aria-live="assertive"
         >
-          {alertMessage}
-        </span>
+          {returnDataChangePassword &&
+          "data" in returnDataChangePassword &&
+          "message" in returnDataChangePassword.data
+            ? returnDataChangePassword.data.message
+            : returnDataChangePassword && "error" in returnDataChangePassword
+            ? returnDataChangePassword.error
+            : ""}
+        </p>
 
         <TextInput
           idForAndName="newPassword"
@@ -296,7 +325,7 @@ function ComponentAccountSettings({
           type="password"
         ></TextInput>
         <TextInput
-          idForAndName="confirmPassword"
+          idForAndName="confirmNewPassword"
           label="Confirm new password"
           placeholder="Confirm new password"
           refProp={confirmNewPasswordRef}
