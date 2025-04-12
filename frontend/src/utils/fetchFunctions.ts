@@ -176,7 +176,7 @@ export async function changePassword(
   const password = formData.get("currentPassword");
   try {
     const user = store.getState().auth.user;
-    const urlToChangePassword = `${BACKEND_URL}/api/users/change-password`;
+    const urlToChangePassword = `${BACKEND_URL}/api/users/:userId/password`;
 
     const responseChangePassword = await axiosInstance.put(
       urlToChangePassword,

@@ -57,8 +57,9 @@ usersRoutes.put(
 );
 
 usersRoutes.put(
-  "/change-password",
+  "/:userId/password",
   verifyJWT as RequestHandler,
+  formDataHandler.single("file"),
   async (req, res) => {
     await changePasswordHandler(req, res);
   }
