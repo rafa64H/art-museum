@@ -7,9 +7,6 @@ export type UserData = {
   role: "user" | "admin";
   profilePictureURL: string;
   verified: boolean;
-  changedEmail: boolean;
-  previousEmailVerified: boolean;
-  previousEmail: string | null;
   lastLogin: Date;
   accessToken: string;
   following: string[];
@@ -65,16 +62,6 @@ export const authSlice = createSlice({
         state.user.userData.verified = action.payload;
       }
     },
-    setChangedEmail(state, action: PayloadAction<boolean>) {
-      if (state.user.userData) {
-        state.user.userData.changedEmail = action.payload;
-      }
-    },
-    setPreviousEmail(state, action: PayloadAction<string>) {
-      if (state.user.userData) {
-        state.user.userData.previousEmail = action.payload;
-      }
-    },
     logout(state) {
       state.user.userData = null;
     },
@@ -87,8 +74,6 @@ export const {
   setUserFollowing,
   setUserFollowers,
   setEmailVerified,
-  setChangedEmail,
-  setPreviousEmail,
   logout,
   setAccessToken,
 } = authSlice.actions;

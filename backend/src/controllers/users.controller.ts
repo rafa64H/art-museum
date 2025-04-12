@@ -361,30 +361,3 @@ export async function addOrRemoveFollowingHandler(
     message: `${userDocument.username} is following ${otherUserDocument.username}`,
   });
 }
-
-export async function undoEmailChangeHandler(
-  req: AuthMiddlewareRequest,
-  res: Response
-) {
-  const userId = req.userId;
-  console.log(userId);
-  if (!userId) throw new CustomError(401, "Unauthorized");
-  const userIdObjectId = ObjectId.createFromHexString(userId);
-
-  const foundUser = await UserModel.findOne(userIdObjectId);
-  console.log(foundUser);
-  if (!foundUser) throw new CustomError(401, "Unauthorized");
-
-  if (!foundUser.previousEmail)
-    throw new CustomError(400, "User does not have previous email");
-
-  foundUser.email = foundUser.previousEmail;
-  foundUser.verified = foundUser.previousEmailVerified;
-  foundUser.changedEmail = false;
-  foundUser.previousEmail = null;
-  await foundUser.save();
-
-  res
-    .status(200)
-    .json({ success: true, message: "Email change undid successfully" });
-}

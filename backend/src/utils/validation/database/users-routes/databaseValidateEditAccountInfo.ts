@@ -26,14 +26,11 @@ export default async function databaseValidateEditAccountInfo({
   }
 
   if (newEmail && newEmail !== userDocument.email) {
-    if (!(newEmail === userDocument.email) && !userDocument.changedEmail) {
+    if (!(newEmail === userDocument.email)) {
       await userDocument.updateOne({
         $set: {
-          previousEmail: userDocument.email,
           email: newEmail,
-          previousEmailVerified: userDocument.verified,
           verified: false,
-          changedEmail: true,
         },
       });
     }

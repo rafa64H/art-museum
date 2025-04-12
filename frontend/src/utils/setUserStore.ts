@@ -16,9 +16,6 @@ export type ResponseDataType = {
     following: string[];
     lastLogin: Date;
     verified: boolean;
-    changedEmail: boolean;
-    previousEmail: string | null;
-    previousEmailVerified: boolean;
   };
   accessToken: string;
 };
@@ -37,9 +34,6 @@ export default function setUserStore(responseData: ResponseDataType): void {
     lastLogin: responseData.user.lastLogin as Date,
     verified: responseData.user.verified as boolean,
 
-    changedEmail: responseData.user.changedEmail as boolean,
-    previousEmail: responseData.user.previousEmail as string | null,
-    previousEmailVerified: responseData.user.previousEmailVerified as boolean,
     accessToken: responseData.accessToken as string,
   };
 

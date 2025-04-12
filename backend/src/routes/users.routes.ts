@@ -9,7 +9,6 @@ import {
   getFollowersFromUser,
   getFollowingFromUser,
   getUserHandler,
-  undoEmailChangeHandler,
 } from "../controllers/users.controller";
 import multer from "multer";
 const formDataHandler = multer({
@@ -45,14 +44,6 @@ usersRoutes.put(
   formDataHandler.single("file"),
   async (req, res) => {
     await editUserHandler(req, res);
-  }
-);
-
-usersRoutes.put(
-  "/undo-email-change",
-  verifyJWT as RequestHandler,
-  async (req, res) => {
-    await undoEmailChangeHandler(req, res);
   }
 );
 

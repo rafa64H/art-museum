@@ -173,7 +173,6 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
   await userDocument.updateOne({
     $set: {
       verified: true,
-      changedEmail: true,
       verificationToken: undefined,
       verificationTokenExpiresAt: undefined,
     },

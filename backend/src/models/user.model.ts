@@ -12,9 +12,6 @@ export interface UserDocument extends mongoose.Document {
   role: "user" | "admin";
   followers: string[];
   following: string[];
-  changedEmail: boolean;
-  previousEmailVerified: boolean;
-  previousEmail: string | null;
   lastLogin: Date;
   createdAt: Date;
   lastUpdated: Date;
@@ -85,18 +82,6 @@ const UserSchema = new mongoose.Schema<UserDocument>(
     verified: {
       type: Boolean,
       default: false,
-    },
-    changedEmail: {
-      type: Boolean,
-      default: false,
-    },
-    previousEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
-    previousEmail: {
-      type: String,
-      default: null,
     },
     resetPasswordToken: String || undefined,
     resetPasswordExpiresAt: Date || undefined,

@@ -251,19 +251,6 @@ export async function requestEmailChangeCode(userId: string | undefined) {
   return responseSendVerificationCode;
 }
 
-export async function undoEmailChange() {
-  const user = store.getState().auth.user;
-  const urlToUndoEmalChange = `${BACKEND_URL}/api/users/undo-email-change`;
-
-  const responseUndoEmailChange = await axios(urlToUndoEmalChange, {
-    withCredentials: true,
-    headers: {
-      authorization: `Bearer ${user.userData?.accessToken}`,
-    },
-  });
-  return responseUndoEmailChange;
-}
-
 export async function verifyEmail(dataToVerifyEmail: {
   userId: string | undefined;
   codeToVerifyEmail: string | undefined;

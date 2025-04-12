@@ -17,7 +17,6 @@ import {
   deleteFollow,
   editAccountInformation,
   requestEmailChangeCode,
-  undoEmailChange,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
 
@@ -56,7 +55,6 @@ function ComponentAccountSettings({
     sendEmailVerificationLinkLoading,
     setSendEmailVerificationLinkLoading,
   ] = useState(false);
-  const [undoChangedEmailLoading, setUndoChangedEmailLoading] = useState(false);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -97,6 +95,8 @@ function ComponentAccountSettings({
       if ("data" in returnDataAccountInformation) {
         const userDataToSet = {
           ...returnDataAccountInformation.data.user,
+          //Solve this issue about redux-toolkit user id, I had to do this for it to work (id was undefined):
+          id: returnDataAccountInformation.data.user._id,
           accessToken: user.userData?.accessToken,
         };
         dispatch(setUser(userDataToSet));
@@ -230,41 +230,13 @@ function ComponentAccountSettings({
           <></>
         )}
 
-        {user.userData?.changedEmail ? (
-          <>
-            <p className="text-lg mt-8">
-              Email changed, press the button if you want to undo the change{" "}
-              {user.userData.previousEmail}
-            </p>
-            <ButtonComponent
-              textBtn="Change to previous email"
-              typeButton="button"
-              additionalClassnames="mb-8"
-              loadingDisabled={undoChangedEmailLoading}
-              onClickFunction={async () => {
-                try {
-                  setUndoChangedEmailLoading(true);
-                  const responseUndoEmailChange = await undoEmailChange();
-
-                  setUndoChangedEmailLoading(false);
-                  navigate(0);
-                } catch (error) {
-                  setUndoChangedEmailLoading(false);
-                  console.log(error);
-                }
-              }}
-            ></ButtonComponent>
-          </>
-        ) : (
-          <></>
-        )}
         <TextInput
           idForAndName="newEmail"
           label="Change email"
           placeholder="Change your email"
           refProp={emailRef}
           defaultValueProp={user.userData?.email}
-          disabledProp={!user.userData?.verified || user.userData?.changedEmail}
+          disabledProp={!user.userData?.verified}
           type="email"
         ></TextInput>
         <TextInput
