@@ -4,6 +4,7 @@ import {
   regexAtLeastThreeCharacters,
 } from "./regularExpressions";
 import CustomError from "../../../constants/customError";
+import checkOrRemoveIfUsernameHasAt from "../../checkOrRemoveIfUsernameHasAt";
 
 const userIdSchema = Joi.object({
   userId: Joi.string().hex().length(24).required(),
@@ -75,28 +76,41 @@ export function validateUsersRoutesRequest({
   passedLoginPassword,
 }: ValidateUserRequestType) {
   if (passedUserId) {
-    console.log("hola1");
     const { error } = userIdSchema.validate({ userId });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedEmail) {
-    console.log("hola2");
-
     const { error } = emailSchema.validate({ email });
     if (error) throw new CustomError(400, error.details[0].message);
   }
+
   if (passedUsername) {
-    console.log("hola3");
-    const { error } = usernameSchema.validate({ username });
-    if (error) throw new CustomError(400, error.details[0].message);
+    const { error: firstUsernameError } = usernameSchema.validate({ username });
+
+    if (
+      firstUsernameError &&
+      firstUsernameError.details[0].message.includes("alpha-numeric")
+    ) {
+      const assertionUsername = username as string;
+      const possibleValidUsername =
+        checkOrRemoveIfUsernameHasAt(assertionUsername);
+      console.log(possibleValidUsername);
+      const { error: secondUsernameError } = usernameSchema.validate({
+        username: possibleValidUsername,
+      });
+
+      if (secondUsernameError)
+        throw new CustomError(400, secondUsernameError.details[0].message);
+    } else if (firstUsernameError) {
+      throw new CustomError(400, firstUsernameError.details[0].message);
+    }
   }
+
   if (passedName) {
-    console.log("hola4");
     const { error } = nameSchema.validate({ name });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedPassword) {
-    console.log("hola5");
     const { error } = passwordSchema.validate({ password });
     if (error)
       throw new CustomError(
@@ -105,19 +119,16 @@ export function validateUsersRoutesRequest({
       );
   }
   if (passedConfirmPassword) {
-    console.log("hola6");
     const { error } = passwordIsStringSchema.validate({
       password: confirmPassword,
     });
     if (error) throw new CustomError(400, error.details[0].message);
   }
   if (passedPassword && passedConfirmPassword) {
-    console.log("hola7");
     if (password !== confirmPassword)
       throw new CustomError(400, "Password and confirm password do not match");
   }
   if (passedLoginPassword) {
-    console.log("hola8");
     const { error } = passwordIsStringSchema.validate({
       password: loginPassword,
     });

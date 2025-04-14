@@ -34,7 +34,7 @@ function CheckProfilePage() {
       }
     }
 
-    if (userIdParam === user.userData?.id) {
+    if (userIdParam === user.userData?._id) {
       setGetUserProfileLoading(false);
     } else {
       getUserFunction();
@@ -43,11 +43,11 @@ function CheckProfilePage() {
     dispatch,
     navigate,
     user.userData?.accessToken,
-    user.userData?.id,
+    user.userData?._id,
     userIdParam,
   ]);
 
-  if (userIdParam === user.userData?.id) {
+  if (userIdParam === user.userData?._id) {
     return <ProfilePage isUserProfile={true}></ProfilePage>;
   }
   if (getUserProfileLoading) {

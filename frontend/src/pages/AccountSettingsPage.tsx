@@ -20,7 +20,7 @@ function AccountSettingsPage() {
   useEffect(() => {
     const getFollowers = async () => {
       try {
-        if (user.userData?.id) {
+        if (user.userData?._id) {
           const responseGetFollowersFollowing =
             await getFollowersAndFollowings();
           console.log(responseGetFollowersFollowing);
@@ -44,7 +44,7 @@ function AccountSettingsPage() {
     };
 
     getFollowers();
-  }, [user.userData?.id]);
+  }, [user.userData?._id]);
   return (
     <>
       <Header></Header>

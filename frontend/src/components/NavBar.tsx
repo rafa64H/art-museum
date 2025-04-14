@@ -22,7 +22,7 @@ function NavBar({ isOpen }: Props) {
         ) : user.userData ? (
           <>
             <NavItem linkProp="/" text="Home"></NavItem>
-            <Link to={`/profile/${user.userData.id}`}>
+            <Link to={`/profile/${user.userData._id}`}>
               <img
                 className="w-[7rem] h-[7rem] rounded-full hover:border-firstGreen duration-150 border-2 border-[rgba(0,0,0,0)]"
                 src={`${user.userData.profilePictureURL}`}

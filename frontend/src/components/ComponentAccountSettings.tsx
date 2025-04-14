@@ -10,7 +10,6 @@ import {
   setUserFollowers,
   setUserFollowing,
 } from "../services/redux-toolkit/auth/authSlice";
-import { UserDataResponse } from "../types/userDataResponse";
 import ImageInput from "./ImageInput";
 import {
   changePassword,
@@ -19,6 +18,11 @@ import {
   requestEmailChangeCode,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
+import setUserStore from "../utils/setUserStore";
+import {
+  ResponseUserDataType,
+  UserDataResponse,
+} from "../types/userDataResponse";
 
 type Props = {
   followersObjects: UserDataResponse[] | string | null;
@@ -93,13 +97,13 @@ function ComponentAccountSettings({
       }
 
       if ("data" in returnDataAccountInformation) {
-        const userDataToSet = {
-          ...returnDataAccountInformation.data.user,
-          //Solve this issue about redux-toolkit user id, I had to do this for it to work (id was undefined):
-          id: returnDataAccountInformation.data.user._id,
-          accessToken: user.userData?.accessToken,
+        const userDataToSet: ResponseUserDataType = {
+          user: {
+            ...returnDataAccountInformation.data.user,
+          },
+          accessToken: user.userData!.accessToken,
         };
-        dispatch(setUser(userDataToSet));
+        setUserStore(userDataToSet);
       }
     }
   }, [returnDataAccountInformation]);
@@ -201,11 +205,11 @@ function ComponentAccountSettings({
               onClickFunction={async () => {
                 try {
                   setSendEmailVerificationLinkLoading(true);
-                  const userId = user.userData?.id;
+                  const userId = user.userData?._id;
                   const responseSendVerificationCode =
                     await requestEmailChangeCode(userId);
 
-                  navigate(`/verify-email/${user.userData?.id}`);
+                  navigate(`/verify-email/${user.userData?._id}`);
                   return;
                 } catch (error) {
                   if (isAxiosError(error)) {
@@ -235,7 +239,12 @@ function ComponentAccountSettings({
           label="Change email"
           placeholder="Change your email"
           refProp={emailRef}
-          defaultValueProp={user.userData?.email}
+          defaultValueProp={
+            returnDataAccountInformation &&
+            "error" in returnDataAccountInformation
+              ? returnDataAccountInformation.previousData.newEmail?.toString()
+              : user.userData?.email
+          }
           disabledProp={!user.userData?.verified}
           type="email"
         ></TextInput>
@@ -244,7 +253,12 @@ function ComponentAccountSettings({
           label="Change name"
           placeholder="Change your name"
           refProp={nameRef}
-          defaultValueProp={user.userData?.name}
+          defaultValueProp={
+            returnDataAccountInformation &&
+            "error" in returnDataAccountInformation
+              ? returnDataAccountInformation.previousData.newName?.toString()
+              : user.userData?.name
+          }
           type="text"
         ></TextInput>
         <TextInput
@@ -252,7 +266,12 @@ function ComponentAccountSettings({
           label="Change username"
           placeholder="Change your username"
           refProp={usernameRef}
-          defaultValueProp={user.userData?.username}
+          defaultValueProp={
+            returnDataAccountInformation &&
+            "error" in returnDataAccountInformation
+              ? returnDataAccountInformation.previousData.newUsername?.toString()
+              : user.userData?.username
+          }
           type="text"
         ></TextInput>
 

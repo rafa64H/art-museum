@@ -3,27 +3,12 @@ import {
   setUserLoading,
 } from "../services/redux-toolkit/auth/authSlice";
 import { store } from "../services/redux-toolkit/store";
-
-export type ResponseDataType = {
-  user: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePictureURL: string;
-    email: string;
-    role: string;
-    followers: string[];
-    following: string[];
-    lastLogin: Date;
-    verified: boolean;
-  };
-  accessToken: string;
-};
+import { ResponseUserDataType } from "../types/userDataResponse";
 
 //You should send as argument an await response.data
-export default function setUserStore(responseData: ResponseDataType): void {
+export default function setUserStore(responseData: ResponseUserDataType): void {
   const userData = {
-    id: responseData.user._id as string,
+    _id: responseData.user._id as string,
     username: responseData.user.username as string,
     name: responseData.user.name as string,
     profilePictureURL: responseData.user.profilePictureURL as string,

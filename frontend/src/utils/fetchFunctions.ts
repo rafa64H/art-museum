@@ -123,7 +123,7 @@ export async function editAccountInformation(
   const file = formData.get("imageInputProfilePicture") as File;
   try {
     const user = store.getState().auth.user;
-    const urlToEditAccount = `${BACKEND_URL}/api/users/${user.userData?.id}`;
+    const urlToEditAccount = `${BACKEND_URL}/api/users/${user.userData?._id}`;
 
     const responseEditAccount = await axiosInstance.put(
       urlToEditAccount,
@@ -267,7 +267,7 @@ export async function verifyEmail(dataToVerifyEmail: {
 
 export async function getFollowersAndFollowings() {
   const user = store.getState().auth.user;
-  const urlToGetFollowersAndFollowings = `${BACKEND_URL}/api/users/followers/${user.userData?.id}`;
+  const urlToGetFollowersAndFollowings = `${BACKEND_URL}/api/users/followers/${user.userData?._id}`;
 
   const responseGetFollowersAndFollowings = await axiosInstance.get(
     urlToGetFollowersAndFollowings,
