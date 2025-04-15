@@ -6,7 +6,6 @@ import TextInput from "./ui/TextInput";
 import ButtonComponent from "./ui/ButtonComponent";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  setUser,
   setUserFollowers,
   setUserFollowing,
 } from "../services/redux-toolkit/auth/authSlice";
@@ -104,6 +103,8 @@ function ComponentAccountSettings({
           accessToken: user.userData!.accessToken,
         };
         setUserStore(userDataToSet);
+        setImageFile(null);
+        setImageURL(undefined);
       }
     }
   }, [returnDataAccountInformation]);
@@ -169,7 +170,12 @@ function ComponentAccountSettings({
         action={editAccountInformationAction}
       >
         <p
-          className="text-xl font-bold text-red-400"
+          className={`text-xl font-bold ${
+            returnDataAccountInformation &&
+            "error" in returnDataAccountInformation
+              ? "text-red-400"
+              : "text-blue-400"
+          }`}
           role="alert"
           aria-live="assertive"
         >
@@ -295,7 +301,11 @@ function ComponentAccountSettings({
         action={changePasswordAction}
       >
         <p
-          className="text-xl font-bold text-red-400"
+          className={`text-xl font-bold ${
+            returnDataChangePassword && "error" in returnDataChangePassword
+              ? "text-red-400"
+              : "text-blue-400"
+          }`}
           role="alert"
           aria-live="assertive"
         >
