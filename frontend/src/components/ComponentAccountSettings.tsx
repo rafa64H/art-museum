@@ -59,6 +59,12 @@ function ComponentAccountSettings({
     setSendEmailVerificationLinkLoading,
   ] = useState(false);
 
+  const [
+    returnDataSendVerificationLink,
+    sendEmailVerificationLinkAction,
+    isPendingSendVerificationLink,
+  ] = useActionState(requestEmailVerificationLink, null);
+
   const emailRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -165,6 +171,36 @@ function ComponentAccountSettings({
         ></MultipleSelectButton>
       </section>
 
+      {!user.userData?.verified ? (
+        <form className="my-10" action={sendEmailVerificationLinkAction}>
+          <p className="text-lg font-bold">
+            Email not verified, click the button to send a code to verify it:
+          </p>
+          <ButtonComponent
+            textBtn="Send code to email"
+            typeButton="submit"
+            loadingDisabled={isPendingSendVerificationLink}
+          ></ButtonComponent>
+          <p
+            className={`text-lg ${
+              returnDataSendVerificationLink &&
+              "error" in returnDataSendVerificationLink
+                ? "text-red-400"
+                : "text-blue-400"
+            }`}
+          >
+            {returnDataSendVerificationLink &&
+            "error" in returnDataSendVerificationLink
+              ? returnDataSendVerificationLink.error
+              : returnDataSendVerificationLink
+              ? "Email verification link sent to your email"
+              : ""}
+          </p>
+        </form>
+      ) : (
+        <></>
+      )}
+
       <form
         className={`ml-2 mt-8 ${selectedOption === 1 ? "block" : "hidden"}`}
         action={editAccountInformationAction}
@@ -198,48 +234,6 @@ function ComponentAccountSettings({
           typeOfImage="profilePicture"
           idForAndName="imageInputProfilePicture"
         ></ImageInput>
-
-        {!user.userData?.verified ? (
-          <>
-            <p className="text-lg font-bold">
-              Email not verified, click the button to send a code to verify it:
-            </p>
-            <ButtonComponent
-              textBtn="Send code to email"
-              typeButton="button"
-              loadingDisabled={sendEmailVerificationLinkLoading}
-              onClickFunction={async () => {
-                try {
-                  setSendEmailVerificationLinkLoading(true);
-                  const userId = user.userData?._id;
-                  const responseSendVerificationCode =
-                    await requestEmailVerificationLink(userId);
-
-                  console.log("Email verification link sent");
-
-                  return;
-                } catch (error) {
-                  if (isAxiosError(error)) {
-                    if (error.response) {
-                      if (error.response.status === 404) {
-                        setAlertMessage(error.response.data.message);
-                        setSendEmailVerificationLinkLoading(false);
-                        return;
-                      }
-                      setAlertMessage("Internal server error, try again later");
-                      setSendEmailVerificationLinkLoading(false);
-                    }
-                  }
-                  setAlertMessage("An error occurred, try again later.");
-                  setSendEmailVerificationLinkLoading(false);
-                  console.log(error);
-                }
-              }}
-            ></ButtonComponent>
-          </>
-        ) : (
-          <></>
-        )}
 
         <TextInput
           idForAndName="newEmail"

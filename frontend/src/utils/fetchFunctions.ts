@@ -243,12 +243,28 @@ export async function deleteFollow(userProfileId: string | undefined) {
   return responseDeleteFollow;
 }
 
-export async function requestEmailVerificationLink(userId: string | undefined) {
-  const urlGetVerificationLink = `${BACKEND_URL}/auth/request-email-code/${userId}`;
-  const responseSendVerificationLink = await axiosInstance.get(
-    urlGetVerificationLink
-  );
-  return responseSendVerificationLink;
+export async function requestEmailVerificationLink() {
+  try {
+    const userId = store.getState().auth.user.userData?._id;
+    const urlGetVerificationLink = `${BACKEND_URL}/auth/request-email-code/${userId}`;
+    const responseSendVerificationLink = await axiosInstance.get(
+      urlGetVerificationLink
+    );
+    return responseSendVerificationLink;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      if (error.response) {
+        if (error.response.status === 400) {
+          return {
+            error: error.response.data.message,
+          };
+        }
+        return {
+          error: "Unexpected error, try again later",
+        };
+      }
+    }
+  }
 }
 
 export async function verifyEmail(
