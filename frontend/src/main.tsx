@@ -71,8 +71,12 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/verify-email/:userId",
-    element: <VerifyEmailPage></VerifyEmailPage>,
+    path: "/verify-email/:userId/:code",
+    element: (
+      <CheckAuth>
+        <VerifyEmailPage></VerifyEmailPage>
+      </CheckAuth>
+    ),
   },
   {
     path: "/login",
@@ -93,9 +97,9 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+  <>
     <Provider store={store}>
       <RouterProvider router={router} />
     </Provider>
-  </StrictMode>
+  </>
 );

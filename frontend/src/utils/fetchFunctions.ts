@@ -243,19 +243,18 @@ export async function deleteFollow(userProfileId: string | undefined) {
   return responseDeleteFollow;
 }
 
-export async function requestEmailChangeCode(userId: string | undefined) {
-  const urlGetVerificationCode = `${BACKEND_URL}/auth/request-email-code/${userId}`;
-  const responseSendVerificationCode = await axiosInstance.get(
-    urlGetVerificationCode
+export async function requestEmailVerificationLink(userId: string | undefined) {
+  const urlGetVerificationLink = `${BACKEND_URL}/auth/request-email-code/${userId}`;
+  const responseSendVerificationLink = await axiosInstance.get(
+    urlGetVerificationLink
   );
-  return responseSendVerificationCode;
+  return responseSendVerificationLink;
 }
 
-export async function verifyEmail(dataToVerifyEmail: {
-  userId: string | undefined;
-  codeToVerifyEmail: string | undefined;
-}) {
-  const { userId, codeToVerifyEmail } = dataToVerifyEmail;
+export async function verifyEmail(
+  userId: string | undefined,
+  codeToVerifyEmail: string | undefined
+) {
   const urlToVerifyEmail = `${BACKEND_URL}/auth/verify-email/${userId}/${codeToVerifyEmail}`;
 
   const responseVerifyEmail = await axiosInstance.put(urlToVerifyEmail, {

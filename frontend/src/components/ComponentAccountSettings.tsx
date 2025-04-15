@@ -14,7 +14,7 @@ import {
   changePassword,
   deleteFollow,
   editAccountInformation,
-  requestEmailChangeCode,
+  requestEmailVerificationLink,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
 import setUserStore from "../utils/setUserStore";
@@ -213,9 +213,10 @@ function ComponentAccountSettings({
                   setSendEmailVerificationLinkLoading(true);
                   const userId = user.userData?._id;
                   const responseSendVerificationCode =
-                    await requestEmailChangeCode(userId);
+                    await requestEmailVerificationLink(userId);
 
-                  navigate(`/verify-email/${user.userData?._id}`);
+                  console.log("Email verification link sent");
+
                   return;
                 } catch (error) {
                   if (isAxiosError(error)) {
