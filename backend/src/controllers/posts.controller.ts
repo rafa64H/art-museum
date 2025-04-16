@@ -28,6 +28,9 @@ export async function createPostHandler(
     postTitle: title,
     postContent: content,
     postTags: tags,
+    passedPostTitle: true,
+    passedContent: true,
+    passedTags: true,
   });
 
   const validatedUserId = userId as string;

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { startTransition, useActionState, useRef, useState } from "react";
 import Header from "../components/Header";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
@@ -11,13 +11,44 @@ import { v4 as uuidv4 } from "uuid";
 import InputTextArea from "../components/ui/InputTextArea";
 import { createPost, uploadPostImages } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
+import AlertParagraph from "../components/ui/AlertParagraph";
 
 function CreatePostPage() {
   const user = useSelector((state: RootState) => state.auth.user);
   const [imageFiles, setImageFiles] = useState<File[] | null>(null);
   const [imageURLs, setImageURLs] = useState<string[] | undefined>(undefined);
-  const [formSubmitLoading, setFormSubmitLoading] = useState(false);
   const [tagsState, setTags] = useState<string[] | []>(["React", "Nodejs"]);
+
+  const [returnDataCreatePost, createPostAction, isPendingCreatePost] =
+    useActionState(async () => {
+      try {
+        const responseCreatePostDocument = await createPost(
+          titleRef.current?.value,
+          contentRef.current?.value,
+          tagsState
+        );
+        if (imageFiles) {
+          const formData = new FormData();
+          imageFiles.forEach((file) => {
+            formData.append("files", file);
+          });
+          formData.append("postId", responseCreatePostDocument.data.post._id);
+          const responsePostImage = await uploadPostImages(formData);
+        }
+      } catch (error) {
+        if (isAxiosError(error)) {
+          if (error.response) {
+            if (error.response.data.message.includes("title"))
+              titleRef.current?.setAttribute("data-error-input", "true");
+            if (error.response.data.message.includes("content"))
+              contentRef.current?.setAttribute("data-error-input", "true");
+            return { error: error.response.data.message };
+          }
+        }
+        console.log(error);
+        return { error: "Unexpected error, try again later" };
+      }
+    }, null);
 
   //If there is no prevValue state, then when removing
   //the last character from the tags input, it will remove a tag.
@@ -65,6 +96,19 @@ function CreatePostPage() {
             e.preventDefault();
           }}
         >
+          <AlertParagraph
+            conditionError={
+              returnDataCreatePost && "error" in returnDataCreatePost
+                ? true
+                : false
+            }
+            textValue={
+              returnDataCreatePost && "error" in returnDataCreatePost
+                ? returnDataCreatePost.error
+                : ""
+            }
+          ></AlertParagraph>
+
           <MultipleImagesInput
             imagesFileState={imageFiles}
             imagesURLState={imageURLs}
@@ -74,10 +118,8 @@ function CreatePostPage() {
             typeOfImage="post"
           ></MultipleImagesInput>
 
-          <p className="text-red-700 text-lg">{alertMessage}</p>
-
           <TextInput
-            idFor="title"
+            idForAndName="title"
             label="Title"
             placeholder="Title"
             refProp={titleRef}
@@ -131,63 +173,9 @@ function CreatePostPage() {
           <ButtonComponent
             textBtn="Post"
             typeButton="button"
-            loadingDisabled={formSubmitLoading}
-            onClickFunction={async () => {
-              setFormSubmitLoading(true);
-
-              try {
-                const responseAccessTokenRefresh =
-                  await requestAccessTokenRefresh();
-                // if (!responseAccessTokenRefresh.ok) {
-                //   navigate("/login");
-                // }
-
-                if (!user.userData?.verified) {
-                  setAlertMessage("To post you need to verify your email");
-
-                  setFormSubmitLoading(false);
-                  return;
-                }
-
-                // //Post model
-                const data = {
-                  title: titleRef.current?.value,
-                  content: contentRef.current?.value,
-                  tags: tagsState,
-                };
-                const responsePostModel = await createPost(data);
-
-                const responsePostModelData = await responsePostModel.data;
-
-                if (imageFiles) {
-                  const formData = new FormData();
-                  imageFiles.forEach((file) => {
-                    formData.append("files", file);
-                  });
-                  formData.append("postId", responsePostModelData.post._id);
-
-                  const responsePostImage = await uploadPostImages(formData);
-                }
-
-                setFormSubmitLoading(false);
-                navigate(`/post/${responsePostModelData.post._id}`, {
-                  replace: true,
-                });
-
-                return;
-              } catch (error) {
-                if (isAxiosError(error)) {
-                  if (error.response) {
-                    if (error.response.status === 400) {
-                      setAlertMessage(error.response.data.message);
-                    }
-                    setFormSubmitLoading(false);
-                    setAlertMessage("Error uploading post");
-                    return;
-                  }
-                }
-                console.log(error);
-              }
+            loadingDisabled={isPendingCreatePost}
+            onClickFunction={() => {
+              startTransition(createPostAction);
             }}
           ></ButtonComponent>
         </form>

@@ -1,5 +1,5 @@
 type Props = {
-  refProp: React.RefObject<HTMLTextAreaElement>;
+  refProp: React.RefObject<HTMLTextAreaElement | null>;
   width?: string;
   minHeight?: string;
   smallOrLarge: "large" | "small";

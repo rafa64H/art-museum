@@ -11,7 +11,7 @@ const postIdSchema = Joi.object({
   postId: Joi.string().hex().length(24).required(),
 });
 const postContentSchema = Joi.object({
-  content: Joi.string().allow(null),
+  content: Joi.string(),
 });
 const postTagsSchema = Joi.object({
   tags: Joi.array().items(Joi.string()),

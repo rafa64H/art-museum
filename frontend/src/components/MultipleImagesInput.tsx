@@ -90,7 +90,7 @@ function MultipleImagesInput({
         <i className="fa-solid fa-upload"></i> {labelText}
       </label>
 
-      {imagesFileState ? (
+      {imagesFileState && imagesFileState.length > 0 ? (
         <ButtonComponent
           additionalClassnames="ml-2"
           textBtn="Cancel"

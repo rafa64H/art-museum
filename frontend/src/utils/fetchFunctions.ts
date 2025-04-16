@@ -343,17 +343,17 @@ export async function fetchRefreshAuth() {
 }
 
 ////////POSTS RELATED
-export async function createPost(dataToCreatePost: {
-  title: string | undefined;
-  content: string | undefined;
-  tags: string[] | [];
-}) {
+export async function createPost(
+  title: string | undefined,
+  content: string | undefined,
+  tags: string[] | []
+) {
   const user = store.getState().auth.user;
   const urlCreatePost = `${BACKEND_URL}/api/posts`;
 
   const responsePostModel = await axiosInstance.post(
     urlCreatePost,
-    dataToCreatePost,
+    { title, content, tags },
     {
       headers: {
         authorization: `Bearer ${user.userData?.accessToken}`,
