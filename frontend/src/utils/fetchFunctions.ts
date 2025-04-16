@@ -116,18 +116,24 @@ export async function editAccountInformation(
   previousData: unknown,
   formData: FormData
 ) {
+  const user = store.getState().auth.user;
   const newEmail = formData.get("newEmail");
   const newName = formData.get("newName");
   const newUsername = formData.get("newUsername");
   const password = formData.get("passwordToVerifyOne");
   const file = formData.get("imageInputProfilePicture") as File;
   try {
-    const user = store.getState().auth.user;
+    console.log(newEmail);
     const urlToEditAccount = `${BACKEND_URL}/api/users/${user.userData?._id}`;
 
     const responseEditAccount = await axiosInstance.put(
       urlToEditAccount,
-      { newEmail, newName, newUsername, password },
+      {
+        newEmail: newEmail !== null ? newEmail : user.userData?.email,
+        newName,
+        newUsername,
+        password,
+      },
       {
         withCredentials: true,
         headers: {
@@ -147,22 +153,25 @@ export async function editAccountInformation(
   } catch (error) {
     if (isAxiosError(error)) {
       if (error.response) {
-        if (error.response.status === 400) {
-          return {
-            error: error.response.data.message,
-            previousData: { newEmail, newName, newUsername, password },
-          };
-        }
-
         return {
           error: error.response.data.message,
-          previousData: { newEmail, newName, newUsername, password },
+          previousData: {
+            newEmail: newEmail !== null ? newEmail : user.userData?.email,
+            newName,
+            newUsername,
+            password,
+          },
         };
       }
     }
     return {
       error: "An error occurred",
-      previousData: { newEmail, newName, newUsername, password },
+      previousData: {
+        newEmail: newEmail !== null ? newEmail : user.userData?.email,
+        newName,
+        newUsername,
+        password,
+      },
     };
   }
 }

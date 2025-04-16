@@ -16,12 +16,12 @@ import {
   editAccountInformation,
   requestEmailVerificationLink,
 } from "../utils/fetchFunctions";
-import { isAxiosError } from "axios";
 import setUserStore from "../utils/setUserStore";
 import {
   ResponseUserDataType,
   UserDataResponse,
 } from "../types/userDataResponse";
+import AlertParagraph from "./ui/AlertParagraph";
 
 type Props = {
   followersObjects: UserDataResponse[] | string | null;
@@ -41,7 +41,6 @@ function ComponentAccountSettings({
   setFollowingObjects,
 }: Props) {
   const [selectedOption, setSelectedOption] = useState(1);
-  const [alertMessage, setAlertMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [
@@ -54,10 +53,6 @@ function ComponentAccountSettings({
     changePasswordAction,
     isPendingChangePassword,
   ] = useActionState(changePassword, null);
-  const [
-    sendEmailVerificationLinkLoading,
-    setSendEmailVerificationLinkLoading,
-  ] = useState(false);
 
   const [
     returnDataSendVerificationLink,
@@ -75,7 +70,6 @@ function ComponentAccountSettings({
   const passwordToVerifyTwoRef = useRef<HTMLInputElement>(null);
 
   const user = useSelector((state: RootState) => state.auth.user);
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -205,26 +199,25 @@ function ComponentAccountSettings({
         className={`ml-2 mt-8 ${selectedOption === 1 ? "block" : "hidden"}`}
         action={editAccountInformationAction}
       >
-        <p
-          className={`text-xl font-bold ${
+        <AlertParagraph
+          conditionError={
             returnDataAccountInformation &&
             "error" in returnDataAccountInformation
-              ? "text-red-400"
-              : "text-blue-400"
-          }`}
-          role="alert"
-          aria-live="assertive"
-        >
-          {returnDataAccountInformation &&
-          typeof returnDataAccountInformation === "object" &&
-          "data" in returnDataAccountInformation &&
-          "message" in returnDataAccountInformation.data
-            ? returnDataAccountInformation.data.message
-            : returnDataAccountInformation &&
-              "error" in returnDataAccountInformation
-            ? returnDataAccountInformation.error
-            : ""}
-        </p>
+              ? true
+              : false
+          }
+          textValue={
+            returnDataAccountInformation &&
+            "data" in returnDataAccountInformation &&
+            "message" in returnDataAccountInformation.data
+              ? returnDataAccountInformation.data.message
+              : returnDataAccountInformation &&
+                "error" in returnDataAccountInformation
+              ? returnDataAccountInformation.error
+              : ""
+          }
+        ></AlertParagraph>
+
         <ImageInput
           imageURLState={imageURL}
           imageFileState={imageFile}
@@ -295,23 +288,22 @@ function ComponentAccountSettings({
         className={`ml-2 mt-8 ${selectedOption === 2 ? "block" : "hidden"}`}
         action={changePasswordAction}
       >
-        <p
-          className={`text-xl font-bold ${
+        <AlertParagraph
+          conditionError={
             returnDataChangePassword && "error" in returnDataChangePassword
-              ? "text-red-400"
-              : "text-blue-400"
-          }`}
-          role="alert"
-          aria-live="assertive"
-        >
-          {returnDataChangePassword &&
-          "data" in returnDataChangePassword &&
-          "message" in returnDataChangePassword.data
-            ? returnDataChangePassword.data.message
-            : returnDataChangePassword && "error" in returnDataChangePassword
-            ? returnDataChangePassword.error
-            : ""}
-        </p>
+              ? true
+              : false
+          }
+          textValue={
+            returnDataChangePassword &&
+            "data" in returnDataChangePassword &&
+            "message" in returnDataChangePassword.data
+              ? returnDataChangePassword.data.message
+              : returnDataChangePassword && "error" in returnDataChangePassword
+              ? returnDataChangePassword.error
+              : ""
+          }
+        ></AlertParagraph>
 
         <TextInput
           idForAndName="newPassword"

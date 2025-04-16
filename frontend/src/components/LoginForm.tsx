@@ -2,8 +2,10 @@ import { useActionState, useEffect, useRef } from "react";
 import TextInput from "./ui/TextInput";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonComponent from "./ui/ButtonComponent";
-import setUserStoreLogin, { ResponseDataType } from "../utils/setUserStore";
+import setUserStoreLogin from "../utils/setUserStore";
 import { loginToAccount } from "../utils/fetchFunctions";
+import AlertParagraph from "./ui/AlertParagraph";
+import { ResponseUserDataType } from "../types/userDataResponse";
 
 function SignUpForm() {
   const [returnData, loginAction, isPending] = useActionState(
@@ -24,7 +26,7 @@ function SignUpForm() {
     }
 
     if (returnData && typeof returnData === "object" && "data" in returnData) {
-      const returnDataAssertion = returnData as { data: ResponseDataType };
+      const returnDataAssertion = returnData as { data: ResponseUserDataType };
       const responseDataLoginAccount = returnDataAssertion.data;
 
       setUserStoreLogin(responseDataLoginAccount);
@@ -43,6 +45,11 @@ function SignUpForm() {
           ? returnData.error
           : null}
       </p>
+
+      <AlertParagraph
+        conditionError={returnData && "error" in returnData ? true : false}
+        textValue={returnData && "error" in returnData ? returnData.error : ""}
+      ></AlertParagraph>
 
       <TextInput
         idForAndName="emailOrUsername"

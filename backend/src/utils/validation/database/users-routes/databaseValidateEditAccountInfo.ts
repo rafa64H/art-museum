@@ -26,6 +26,11 @@ export default async function databaseValidateEditAccountInfo({
   }
 
   if (newEmail && newEmail !== userDocument.email) {
+    if (!userDocument.verified)
+      throw new CustomError(
+        403,
+        "You need to verify your email before changing it"
+      );
     if (!(newEmail === userDocument.email)) {
       await userDocument.updateOne({
         $set: {
