@@ -1,12 +1,9 @@
 import { startTransition, useActionState, useRef, useState } from "react";
 import Header from "../components/Header";
-import { useSelector } from "react-redux";
-import { RootState } from "../services/redux-toolkit/store";
 import TextInput from "../components/ui/TextInput";
 import ButtonComponent from "../components/ui/ButtonComponent";
 import { useNavigate } from "react-router-dom";
 import MultipleImagesInput from "../components/MultipleImagesInput";
-import requestAccessTokenRefresh from "../utils/requestAccessTokenRefresh";
 import { v4 as uuidv4 } from "uuid";
 import InputTextArea from "../components/ui/InputTextArea";
 import { createPost, uploadPostImages } from "../utils/fetchFunctions";
@@ -14,7 +11,6 @@ import { isAxiosError } from "axios";
 import AlertParagraph from "../components/ui/AlertParagraph";
 
 function CreatePostPage() {
-  const user = useSelector((state: RootState) => state.auth.user);
   const [imageFiles, setImageFiles] = useState<File[] | null>(null);
   const [imageURLs, setImageURLs] = useState<string[] | undefined>(undefined);
   const [tagsState, setTags] = useState<string[] | []>(["React", "Nodejs"]);
@@ -33,7 +29,8 @@ function CreatePostPage() {
             formData.append("files", file);
           });
           formData.append("postId", responseCreatePostDocument.data.post._id);
-          const responsePostImage = await uploadPostImages(formData);
+          await uploadPostImages(formData);
+          navigate(`/post/${responseCreatePostDocument.data.post._id}`);
         }
       } catch (error) {
         if (isAxiosError(error)) {
@@ -54,7 +51,6 @@ function CreatePostPage() {
   //the last character from the tags input, it will remove a tag.
   //If you can solve this problem without using state, you can help :)
   const [inputTagPrevValue, setInputTagPrevValue] = useState("");
-  const [alertMessage, setAlertMessage] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const tagRef = useRef<HTMLInputElement>(null);

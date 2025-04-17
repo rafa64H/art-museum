@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 import { v4 as uuidv4 } from "uuid";
@@ -32,37 +38,34 @@ type postDataResponse = {
   createdAt: Date;
   updatedAt: Date;
 };
-function PostPage() {
-  const [post, setPost] = useState<postDataResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingComments, setLoadingComments] = useState(true);
-  const [imagesIds, setImagesIds] = useState([]);
-  const [imagesURLs, setImagesURLs] = useState([]);
-  const [fullViewImage, setFullViewImage] = useState(false);
-  const [selectedViewImage, setSelectedViewImage] = useState(0);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [commentSubmitLoading, setCommentSubmitLoading] = useState(false);
-  const commentRef = useRef<HTMLTextAreaElement>(null);
-  const params = useParams();
-  const postId = params.postId;
-  const user = useSelector((state: RootState) => state.auth.user);
-  const { commentsState, setCommentsState } = useContextCommentsPosts();
 
-  useEffect(() => {
-    const getPost = async () => {
+type postImagesDataReponse = {
+  imagesIds: string[];
+  imagesURLs: string[];
+};
+function PostPage() {
+  const [returnDataGetPost, getPostAction, isPendingGetPost] = useActionState(
+    async () => {
       try {
         const responseGetSinglePost = await getSinglePost(postId);
 
-        const postData = await responseGetSinglePost.data;
+        const postData = (await responseGetSinglePost.data) as {
+          post: postDataResponse;
+        };
 
-        setPost(postData.post);
-        setLoading(false);
+        return postData.post;
       } catch (error) {
         console.log(error);
+        if (isAxiosError(error)) {
+          if (error.response) return { error: error.response.data.message };
+        }
+        return { error: "Unexpected error getting the post, try again later" };
       }
-    };
-
-    const getImagesIdsAndUrls = async () => {
+    },
+    null
+  );
+  const [returnDataGetPostImages, getPostImagesAction, isPendingGetPostImages] =
+    useActionState(async () => {
       try {
         const responseGetPostImages = await getPostImages(postId);
 
@@ -78,13 +81,42 @@ function PostPage() {
             idURLObject.imageURL
         );
 
-        setImagesIds(imagesIds);
-        setImagesURLs(imagesURLs);
+        return {
+          imagesIds: imagesIds,
+          imagesURLs: imagesURLs,
+        } as postImagesDataReponse;
       } catch (error) {
         console.log(error);
+        if (isAxiosError(error)) {
+          if (error.response) return { error: error.response.data.message };
+        }
+        return {
+          error: "Unexpected error getting the images, try again later",
+        };
       }
-    };
+    }, null);
 
+  const successfulGetPost =
+    returnDataGetPost && "_id" in returnDataGetPost
+      ? (returnDataGetPost as postDataResponse)
+      : false;
+  const successfulGetImages =
+    returnDataGetPostImages && "imagesIds" in returnDataGetPostImages
+      ? returnDataGetPostImages
+      : false;
+
+  const [loadingComments, setLoadingComments] = useState(true);
+  const [fullViewImage, setFullViewImage] = useState(false);
+  const [selectedViewImage, setSelectedViewImage] = useState(0);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [commentSubmitLoading, setCommentSubmitLoading] = useState(false);
+  const commentRef = useRef<HTMLTextAreaElement>(null);
+  const params = useParams();
+  const postId = params.postId;
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { commentsState, setCommentsState } = useContextCommentsPosts();
+
+  useEffect(() => {
     const getFirstComments = async () => {
       try {
         const responseGetComments = await getCommentsFromPost(postId);
@@ -98,8 +130,8 @@ function PostPage() {
       }
     };
 
-    getPost();
-    getImagesIdsAndUrls();
+    startTransition(getPostAction);
+    startTransition(getPostImagesAction);
     getFirstComments();
 
     return () => {};
@@ -107,35 +139,43 @@ function PostPage() {
   return (
     <>
       <Header></Header>
-      {loading ? (
+      {isPendingGetPost ? (
         <>
           <div>Loading</div>
         </>
-      ) : post ? (
+      ) : successfulGetPost ? (
         <>
           <section className="bg-mainBg px-5 py-2 text-white">
-            <h1 className="text-4xl font-semibold text-center">{post.title}</h1>
+            <h1 className="text-4xl font-semibold text-center">
+              {successfulGetPost.title}
+            </h1>
 
             <div className="flex flex-wrap gap-7 py-4">
-              {imagesURLs?.map((imageURL, index) => {
-                return (
-                  <div
-                    key={uuidv4()}
-                    className="relative w-[min(40%,20rem)] h-fit"
-                  >
-                    <img src={imageURL ? imageURL : undefined} />
-                    <button
-                      onClick={() => {
-                        setSelectedViewImage(index);
-                        setFullViewImage(true);
-                      }}
-                      className="absolute z-20 top-0 flex justify-center items-center w-full h-full transition-all duration-150 opacity-0 hover:opacity-100 hover:bg-black hover:bg-opacity-70 cursor-pointer"
-                    >
-                      Open full view of the image
-                    </button>
-                  </div>
-                );
-              })}
+              {successfulGetImages ? (
+                successfulGetImages.imagesURLs.map(
+                  (imageURL: string, index: number) => {
+                    return (
+                      <div
+                        key={uuidv4()}
+                        className="relative w-[min(40%,20rem)] h-fit"
+                      >
+                        <img src={imageURL ? imageURL : undefined} />
+                        <button
+                          onClick={() => {
+                            setSelectedViewImage(index);
+                            setFullViewImage(true);
+                          }}
+                          className="absolute z-20 top-0 flex justify-center items-center w-full h-full transition-all duration-150 opacity-0 hover:opacity-100 hover:bg-black hover:bg-opacity-70 cursor-pointer"
+                        >
+                          Open full view of the image
+                        </button>
+                      </div>
+                    );
+                  }
+                )
+              ) : (
+                <></>
+              )}
             </div>
 
             <div
@@ -145,25 +185,35 @@ function PostPage() {
             >
               <div>
                 <ol className="absolute">
-                  {imagesURLs?.map((imageURL, index) => {
-                    return (
-                      <li className="my-2" key={uuidv4()}>
-                        <button
-                          onClick={() => {
-                            setSelectedViewImage(index);
-                          }}
-                          className={`translate-x-[-100%] ${
-                            selectedViewImage === index
-                              ? "bg-firstBrown border-firstGreen"
-                              : ""
-                          } border-2 border-solid hover:border-firstGreen p-4 rounded-full`}
-                        ></button>
-                      </li>
-                    );
-                  })}
+                  {successfulGetImages ? (
+                    successfulGetImages.imagesURLs.map((imageURL, index) => {
+                      return (
+                        <li className="my-2" key={uuidv4()}>
+                          <button
+                            onClick={() => {
+                              setSelectedViewImage(index);
+                            }}
+                            className={`translate-x-[-100%] ${
+                              selectedViewImage === index
+                                ? "bg-firstBrown border-firstGreen"
+                                : ""
+                            } border-2 border-solid hover:border-firstGreen p-4 rounded-full`}
+                          ></button>
+                        </li>
+                      );
+                    })
+                  ) : (
+                    <></>
+                  )}
                 </ol>
 
-                <img src={imagesURLs![selectedViewImage]}></img>
+                <img
+                  src={
+                    successfulGetImages
+                      ? successfulGetImages.imagesURLs[selectedViewImage]
+                      : ""
+                  }
+                ></img>
                 <button
                   onClick={() => {
                     setFullViewImage(false);
@@ -174,7 +224,11 @@ function PostPage() {
                 <a
                   target="_blank"
                   className="hover:underline"
-                  href={imagesURLs![selectedViewImage]}
+                  href={
+                    successfulGetImages
+                      ? successfulGetImages.imagesURLs[selectedViewImage]
+                      : ""
+                  }
                 >
                   See image in a new window
                 </a>
@@ -187,13 +241,13 @@ function PostPage() {
               } fixed top-0 left-0 z-30 w-full h-full bg-black bg-opacity-70`}
             ></div>
 
-            <p className="text-lg text-center">{post.content}</p>
+            <p className="text-lg text-center">{successfulGetPost.content}</p>
 
-            {post.tags.length > 0 ? (
+            {successfulGetPost.tags.length > 0 ? (
               <>
                 <p className="text-lg m-2">Tags: </p>
 
-                {post.tags.map((tag) => (
+                {successfulGetPost.tags.map((tag) => (
                   <li
                     key={uuidv4()}
                     className="inline-block p-2 cursor-default text-lg mx-2 font-semibold bg-firstGreen rounded-full"
