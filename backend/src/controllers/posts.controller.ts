@@ -254,6 +254,9 @@ export async function createCommentHandler(
     userId,
     postId,
     contentCommentOrReply: content,
+    passedUserId: true,
+    passedPostId: true,
+    passedContentCommentOrReply: true,
   });
 
   const validatedUserId = userId as string;

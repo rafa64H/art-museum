@@ -414,23 +414,30 @@ export async function getCommentsFromPost(postId: string | undefined) {
 }
 
 export async function createComment(
-  postId: string | undefined,
-  commentContent: string
+  previousState: unknown,
+  formData: FormData
 ) {
-  const user = store.getState().auth.user;
-  const urlToCreateComment = `${BACKEND_URL}/api/posts/${postId}/comments`;
-
-  const responseCreateComment = await axiosInstance.post(
-    urlToCreateComment,
-    { content: commentContent },
-    {
-      headers: {
-        authorization: "Bearer " + user.userData?.accessToken,
-      },
+  const postId = formData.get("postId");
+  const commentContent = formData.get("commentText");
+  try {
+    const user = store.getState().auth.user;
+    const urlToCreateComment = `${BACKEND_URL}/api/posts/${postId}/comments`;
+    const responseCreateComment = await axiosInstance.post(
+      urlToCreateComment,
+      { content: commentContent },
+      {
+        headers: {
+          authorization: "Bearer " + user.userData?.accessToken,
+        },
+      }
+    );
+    return responseCreateComment;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      if (error.response) return { error: error.response.data.message };
     }
-  );
-
-  return responseCreateComment;
+    return { error: "Unexpected error, try again later" };
+  }
 }
 
 export async function likeComment(

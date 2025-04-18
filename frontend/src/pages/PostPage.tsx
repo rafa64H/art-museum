@@ -27,6 +27,7 @@ import {
   likePost,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
+import AlertParagraph from "../components/ui/AlertParagraph";
 
 type postDataResponse = {
   authorId: string;
@@ -96,6 +97,28 @@ function PostPage() {
       }
     }, null);
 
+  const [returnDataGetComments, getCommentsAction, isPendingGetComments] =
+    useActionState(async () => {
+      try {
+        const responseGetComments = await getCommentsFromPost(postId);
+
+        const firstCommentsToSet = await responseGetComments.data;
+        console.log(await firstCommentsToSet);
+        setCommentsState(firstCommentsToSet.comments);
+      } catch (error) {
+        console.log(error);
+        if (isAxiosError(error)) {
+          if (error.response) return { error: error.response.data.message };
+        }
+        return {
+          error: "Unexpected error getting the comments, try again later",
+        };
+      }
+    }, null);
+
+  const [returnDataCreateComment, createCommentAction, isPendingCreateComment] =
+    useActionState(createComment, null);
+
   const successfulGetPost =
     returnDataGetPost && "_id" in returnDataGetPost
       ? (returnDataGetPost as postDataResponse)
@@ -105,11 +128,13 @@ function PostPage() {
       ? returnDataGetPostImages
       : false;
 
-  const [loadingComments, setLoadingComments] = useState(true);
+  const thereIsErrorInCreateComment =
+    returnDataCreateComment && "error" in returnDataCreateComment
+      ? true
+      : false;
+
   const [fullViewImage, setFullViewImage] = useState(false);
   const [selectedViewImage, setSelectedViewImage] = useState(0);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [commentSubmitLoading, setCommentSubmitLoading] = useState(false);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const params = useParams();
   const postId = params.postId;
@@ -117,25 +142,20 @@ function PostPage() {
   const { commentsState, setCommentsState } = useContextCommentsPosts();
 
   useEffect(() => {
-    const getFirstComments = async () => {
-      try {
-        const responseGetComments = await getCommentsFromPost(postId);
-
-        const firstCommentsToSet = await responseGetComments.data;
-        console.log(await firstCommentsToSet);
-        setCommentsState(firstCommentsToSet.comments);
-        setLoadingComments(false);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
     startTransition(getPostAction);
     startTransition(getPostImagesAction);
-    getFirstComments();
+    startTransition(getCommentsAction);
 
     return () => {};
   }, []);
+
+  useEffect(() => {
+    if (returnDataCreateComment && "data" in returnDataCreateComment)
+      setCommentsState((prevValue) => [
+        ...prevValue,
+        returnDataCreateComment.data.newComment,
+      ]);
+  }, [returnDataCreateComment]);
   return (
     <>
       <Header></Header>
@@ -288,51 +308,17 @@ function PostPage() {
           <section className="bg-mainBg px-10 text-white">
             <h2 className="text-2xl font-semibold text-center">Comments</h2>
 
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setCommentSubmitLoading(true);
-                try {
-                  const validate = checkEmptyFieldsForm(
-                    [commentRef.current!],
-                    setAlertMessage
-                  );
-                  if (!validate) {
-                    setCommentSubmitLoading(false);
-
-                    return;
-                  }
-
-                  const responseCreateComment = await createComment(
-                    postId,
-                    commentRef.current!.value
-                  );
-
-                  console.log(await responseCreateComment.data);
-                  setCommentSubmitLoading(false);
-                } catch (error) {
-                  if (isAxiosError(error)) {
-                    if (error.response) {
-                      if (error.response.status === 404) {
-                        setAlertMessage(
-                          `${error.response.data.message}, maybe it was deleted recently or try reloading the page`
-                        );
-                        setCommentSubmitLoading(false);
-                        return;
-                      }
-                      setAlertMessage("Internal server error, try again later");
-                      setCommentSubmitLoading(false);
-                    }
-                  }
-                  setCommentSubmitLoading(false);
-                  setAlertMessage(
-                    "There was an error with the client try reloading the page"
-                  );
+            <form action={createCommentAction}>
+              <AlertParagraph
+                conditionError={thereIsErrorInCreateComment}
+                textValue={
+                  returnDataCreateComment && "error" in returnDataCreateComment
+                    ? returnDataCreateComment.error
+                    : ""
                 }
-              }}
-            >
-              <p className="text-lg font-bold text-red-600">{alertMessage}</p>
+              ></AlertParagraph>
               <div className="flex flex-col w-[min(45rem,70%)]">
+                <input type="hidden" name="postId" value={postId}></input>
                 <InputTextArea
                   refProp={commentRef}
                   smallOrLarge="small"
@@ -346,13 +332,13 @@ function PostPage() {
                   typeButton="submit"
                   textBtn="Submit comment"
                   additionalClassnames="self-end"
-                  loadingDisabled={commentSubmitLoading}
+                  loadingDisabled={isPendingCreateComment}
                 ></ButtonComponent>
               </div>
             </form>
 
             <ul>
-              {loadingComments ? (
+              {isPendingGetComments ? (
                 <>
                   <div>Loading...</div>
                 </>
