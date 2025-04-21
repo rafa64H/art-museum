@@ -14,7 +14,6 @@ import ButtonComponent from "../components/ui/ButtonComponent";
 import LikeBtn from "../components/ui/LikeBtn";
 import DislikeBtn from "../components/ui/DislikeBtn";
 import InputTextArea from "../components/ui/InputTextArea";
-import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import { useContextCommentsPosts } from "../contexts/ContextCommentsPosts";
 import CommentItem from "../components/CommentItem";
 import RepliesListPost from "../components/RepliesListPost";
@@ -36,6 +35,8 @@ type postDataResponse = {
   imageURLs?: string[] | null;
   imageIds?: string[] | null;
   tags: string[];
+  likes: string[];
+  dislikes: string[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -135,6 +136,8 @@ function PostPage() {
 
   const [fullViewImage, setFullViewImage] = useState(false);
   const [selectedViewImage, setSelectedViewImage] = useState(0);
+  const [postLikesState, setPostLikesState] = useState<string[]>([]);
+  const [postDislikesState, setPostDislikesState] = useState<string[]>([]);
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const params = useParams();
   const postId = params.postId;
@@ -146,6 +149,15 @@ function PostPage() {
     startTransition(getPostImagesAction);
     startTransition(getCommentsAction);
 
+    const post =
+      returnDataGetPost && "_id" in returnDataGetPost
+        ? (returnDataGetPost as postDataResponse)
+        : null;
+    if (post) {
+      setPostLikesState(post.likes);
+      setPostDislikesState(post.dislikes);
+    }
+
     return () => {};
   }, []);
 
@@ -156,6 +168,7 @@ function PostPage() {
         returnDataCreateComment.data.newComment,
       ]);
   }, [returnDataCreateComment]);
+
   return (
     <>
       <Header></Header>
@@ -281,9 +294,31 @@ function PostPage() {
             <div className="flex gap-4 my-4">
               <LikeBtn
                 smallOrLarge="large"
+                arrayLiked={postLikesState}
                 onClickFunction={async () => {
                   try {
-                    await likePost(postId);
+                    const responseLike = await likePost(postId);
+
+                    if (responseLike.data.message.includes("removed")) {
+                      setPostLikesState(
+                        postLikesState.filter(
+                          (uid) => uid !== user.userData!._id
+                        )
+                      );
+                      return;
+                    }
+
+                    if (postDislikesState.includes(user.userData!._id))
+                      setPostDislikesState(
+                        postDislikesState.filter(
+                          (uid) => uid !== user.userData!._id
+                        )
+                      );
+
+                    setPostLikesState([
+                      ...successfulGetPost.likes,
+                      user.userData!._id,
+                    ]);
                   } catch (error) {
                     console.log(error);
                   }
@@ -292,9 +327,30 @@ function PostPage() {
 
               <DislikeBtn
                 smallOrLarge="large"
+                arrayDisliked={postDislikesState}
                 onClickFunction={async () => {
                   try {
-                    await dislikePost(postId);
+                    const responseDislike = await dislikePost(postId);
+                    if (responseDislike.data.message.includes("removed")) {
+                      setPostDislikesState(
+                        postDislikesState.filter(
+                          (uid) => uid !== user.userData!._id
+                        )
+                      );
+                      return;
+                    }
+
+                    if (postLikesState.includes(user.userData!._id))
+                      setPostLikesState(
+                        postLikesState.filter(
+                          (uid) => uid !== user.userData!._id
+                        )
+                      );
+
+                    setPostDislikesState([
+                      ...successfulGetPost.dislikes,
+                      user.userData!._id,
+                    ]);
                   } catch (error) {
                     console.log(error);
                   }

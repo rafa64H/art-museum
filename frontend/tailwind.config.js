@@ -10,7 +10,7 @@ export default {
         firstLavender: "#575799",
         firstBrown: "#865200",
         firstGreen: "#00728b",
-        FirstDarkBlue: "#00023d",
+        firstDarkBlue: "#00023d",
         mainBg: "#333775",
       },
     },

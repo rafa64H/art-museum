@@ -168,7 +168,7 @@ export async function likePostHandler(
     await postDocument.updateOne({ $pull: { likes: validatedUserId } });
     return res
       .status(200)
-      .json({ success: true, message: "Removed like from post" });
+      .json({ success: true, message: "Like removed from post" });
   }
 
   await postDocument.updateOne({ $push: { likes: validatedUserId } });

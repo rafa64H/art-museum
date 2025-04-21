@@ -375,7 +375,7 @@ export async function likePost(postId: string | undefined) {
   const urlToLikePost = `${BACKEND_URL}/api/posts/${postId}/likes`;
   const user = store.getState().auth.user;
 
-  const responseLikePost = await axiosInstance.post(
+  const responseLikePost = await axiosInstance.put(
     urlToLikePost,
     {},
     {
@@ -393,7 +393,7 @@ export async function dislikePost(postId: string | undefined) {
   const urlToDislikePost = `${BACKEND_URL}/api/posts/${postId}/dislikes`;
   const user = store.getState().auth.user;
 
-  const responseDislikePost = await axiosInstance.post(
+  const responseDislikePost = await axiosInstance.put(
     urlToDislikePost,
     {},
     {

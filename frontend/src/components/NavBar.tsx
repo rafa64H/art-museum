@@ -10,7 +10,7 @@ function NavBar({ isOpen }: Props) {
 
   return (
     <nav
-      className={`bg-FirstDarkBlue absolute right-0 top-[17.5%] h-full w-[min(80%,30rem)] origin-right text-xl font-semibold text-white duration-150 sm:top-[20%] sm:mt-0 ${
+      className={`bg-firstDarkBlue absolute right-0 top-[17.5%] h-full w-[min(80%,30rem)] origin-right text-xl font-semibold text-white duration-150 sm:top-[20%] sm:mt-0 ${
         isOpen ? "z-20 scale-x-100" : "scale-x-0"
       }`}
     >

@@ -6,7 +6,7 @@ function Header() {
   const [openNav, setOpenNav] = useState(false);
 
   return (
-    <header className="bg-FirstDarkBlue flex items-center justify-between p-4">
+    <header className="bg-firstDarkBlue flex items-center justify-between p-4">
       <CompanyLogo additionalClasses="z-30"></CompanyLogo>
       <button
         onClick={() => {
