@@ -158,7 +158,8 @@ export async function likePostHandler(
     true
   )) as PostDocument;
 
-  const findIfUserDislikedPost = postDocument.likes.includes(validatedUserId);
+  const findIfUserDislikedPost =
+    postDocument.dislikes.includes(validatedUserId);
   const findIfUserLikedPost = postDocument.likes.includes(validatedUserId);
 
   if (findIfUserDislikedPost) {
@@ -166,14 +167,27 @@ export async function likePostHandler(
   }
   if (findIfUserLikedPost) {
     await postDocument.updateOne({ $pull: { likes: validatedUserId } });
-    return res
-      .status(200)
-      .json({ success: true, message: "Like removed from post" });
+    return res.status(200).json({
+      success: true,
+      postLikes: postDocument.likes,
+      postDislikes: postDocument.dislikes,
+      message: "Like removed from post",
+    });
   }
 
   await postDocument.updateOne({ $push: { likes: validatedUserId } });
 
-  res.status(200).json({ success: true, message: "Post liked" });
+  const editedPostDocument = (await databaseValidatePostIdObjectId(
+    postIdObjectId,
+    true
+  )) as PostDocument;
+
+  res.status(200).json({
+    success: true,
+    postLikes: editedPostDocument.likes,
+    postDislikes: editedPostDocument.dislikes,
+    message: "Post liked",
+  });
 }
 
 export async function dislikePostHandler(
@@ -207,15 +221,28 @@ export async function dislikePostHandler(
   }
   if (findIfUserDislikedPost) {
     await postDocument.updateOne({ $pull: { dislikes: validatedUserId } });
-    return res
-      .status(200)
-      .json({ success: false, message: "Dislike removed from post" });
+    return res.status(200).json({
+      success: false,
+      postDislikes: postDocument.dislikes,
+      postLikes: postDocument.likes,
+      message: "Dislike removed from post",
+    });
   }
   await postDocument.updateOne({ $push: { dislikes: validatedUserId } });
 
   await postDocument.save();
 
-  res.status(200).json({ success: true, message: "Post disliked" });
+  const editedPostDocument = (await databaseValidatePostIdObjectId(
+    postIdObjectId,
+    true
+  )) as PostDocument;
+
+  res.status(200).json({
+    success: true,
+    postDislikes: editedPostDocument.dislikes,
+    postLikes: editedPostDocument.likes,
+    message: "Post disliked",
+  });
 }
 
 export async function getAllCommentsHandler(req: Request, res: Response) {

@@ -45,6 +45,12 @@ type postImagesDataReponse = {
   imagesIds: string[];
   imagesURLs: string[];
 };
+
+type likeOrDislikePostDataResponse = {
+  postLikes: string[];
+  postDislikes: string[];
+  message: string;
+};
 function PostPage() {
   const [returnDataGetPost, getPostAction, isPendingGetPost] = useActionState(
     async () => {
@@ -298,27 +304,12 @@ function PostPage() {
                 onClickFunction={async () => {
                   try {
                     const responseLike = await likePost(postId);
+                    const responseLikeData =
+                      responseLike.data as likeOrDislikePostDataResponse;
 
-                    if (responseLike.data.message.includes("removed")) {
-                      setPostLikesState(
-                        postLikesState.filter(
-                          (uid) => uid !== user.userData!._id
-                        )
-                      );
-                      return;
-                    }
-
-                    if (postDislikesState.includes(user.userData!._id))
-                      setPostDislikesState(
-                        postDislikesState.filter(
-                          (uid) => uid !== user.userData!._id
-                        )
-                      );
-
-                    setPostLikesState([
-                      ...successfulGetPost.likes,
-                      user.userData!._id,
-                    ]);
+                    setPostLikesState(responseLikeData.postLikes);
+                    setPostDislikesState(responseLikeData.postDislikes);
+                    console.log(responseLikeData);
                   } catch (error) {
                     console.log(error);
                   }
@@ -331,26 +322,12 @@ function PostPage() {
                 onClickFunction={async () => {
                   try {
                     const responseDislike = await dislikePost(postId);
-                    if (responseDislike.data.message.includes("removed")) {
-                      setPostDislikesState(
-                        postDislikesState.filter(
-                          (uid) => uid !== user.userData!._id
-                        )
-                      );
-                      return;
-                    }
+                    const responseDislikeData =
+                      responseDislike.data as likeOrDislikePostDataResponse;
+                    setPostLikesState(responseDislikeData.postLikes);
+                    setPostDislikesState(responseDislikeData.postDislikes);
 
-                    if (postLikesState.includes(user.userData!._id))
-                      setPostLikesState(
-                        postLikesState.filter(
-                          (uid) => uid !== user.userData!._id
-                        )
-                      );
-
-                    setPostDislikesState([
-                      ...successfulGetPost.dislikes,
-                      user.userData!._id,
-                    ]);
+                    console.log(responseDislikeData);
                   } catch (error) {
                     console.log(error);
                   }
