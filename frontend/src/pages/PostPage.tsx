@@ -309,7 +309,6 @@ function PostPage() {
 
                     setPostLikesState(responseLikeData.postLikes);
                     setPostDislikesState(responseLikeData.postDislikes);
-                    console.log(responseLikeData);
                   } catch (error) {
                     console.log(error);
                   }
@@ -326,8 +325,6 @@ function PostPage() {
                       responseDislike.data as likeOrDislikePostDataResponse;
                     setPostLikesState(responseDislikeData.postLikes);
                     setPostDislikesState(responseDislikeData.postDislikes);
-
-                    console.log(responseDislikeData);
                   } catch (error) {
                     console.log(error);
                   }

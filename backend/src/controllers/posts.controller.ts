@@ -167,10 +167,15 @@ export async function likePostHandler(
   }
   if (findIfUserLikedPost) {
     await postDocument.updateOne({ $pull: { likes: validatedUserId } });
+    const editedPostDocument = (await databaseValidatePostIdObjectId(
+      postIdObjectId,
+      true
+    )) as PostDocument;
+
     return res.status(200).json({
       success: true,
-      postLikes: postDocument.likes,
-      postDislikes: postDocument.dislikes,
+      postLikes: editedPostDocument.likes,
+      postDislikes: editedPostDocument.dislikes,
       message: "Like removed from post",
     });
   }
@@ -221,10 +226,16 @@ export async function dislikePostHandler(
   }
   if (findIfUserDislikedPost) {
     await postDocument.updateOne({ $pull: { dislikes: validatedUserId } });
+
+    const editedPostDocument = (await databaseValidatePostIdObjectId(
+      postIdObjectId,
+      true
+    )) as PostDocument;
+
     return res.status(200).json({
       success: false,
-      postDislikes: postDocument.dislikes,
-      postLikes: postDocument.likes,
+      postDislikes: editedPostDocument.dislikes,
+      postLikes: editedPostDocument.likes,
       message: "Dislike removed from post",
     });
   }
@@ -388,6 +399,10 @@ export async function createReplyHandler(
     postId,
     commentId,
     contentCommentOrReply: content,
+    passedUserId: true,
+    passedPostId: true,
+    passedCommentId: true,
+    passedContentCommentOrReply: true,
   });
 
   const validatedUserId = userId as string;
@@ -473,7 +488,14 @@ export async function likeCommentHandler(
 
   const { postId, commentId } = req.params;
 
-  validatePostsRoutesRequest({ userId, postId, commentId });
+  validatePostsRoutesRequest({
+    userId,
+    postId,
+    commentId,
+    passedUserId: true,
+    passedPostId: true,
+    passedCommentId: true,
+  });
 
   const validatedUserId = userId as string;
   const validatedPostId = postId as string;
@@ -500,15 +522,30 @@ export async function likeCommentHandler(
 
   if (findIfUserLikedComment) {
     await foundComment.updateOne({ $pull: { likes: validatedUserId } });
-    return res
-      .status(200)
-      .json({ success: true, message: "Like removed from comment" });
+    const editedComment = (await databaseValidateCommentIdObjectId(
+      commentIdObjectId,
+      true
+    )) as CommentDocument;
+
+    return res.status(200).json({
+      success: true,
+      commentLikes: editedComment.likes,
+      commentDislikes: editedComment.dislikes,
+      message: "Like removed from comment",
+    });
   }
 
   await foundComment.updateOne({ $push: { likes: validatedUserId } });
 
+  const editedComment = (await databaseValidateCommentIdObjectId(
+    commentIdObjectId,
+    true
+  )) as CommentDocument;
+
   res.status(201).json({
     success: true,
+    commentLikes: editedComment.likes,
+    commentDislikes: editedComment.dislikes,
     message: "Comment liked",
   });
 }
@@ -521,7 +558,14 @@ export async function dislikeCommentHandler(
 
   const { postId, commentId } = req.params;
 
-  validatePostsRoutesRequest({ userId, postId, commentId });
+  validatePostsRoutesRequest({
+    userId,
+    postId,
+    commentId,
+    passedUserId: true,
+    passedPostId: true,
+    passedCommentId: true,
+  });
 
   const validatedUserId = userId as string;
   const validatedPostId = postId as string;
@@ -548,15 +592,30 @@ export async function dislikeCommentHandler(
 
   if (findIfUserDislikedComment) {
     await foundComment.updateOne({ $pull: { dislikes: validatedUserId } });
-    return res
-      .status(200)
-      .json({ success: true, message: "Dislike removed from comment" });
+    const editedComment = (await databaseValidateCommentIdObjectId(
+      commentIdObjectId,
+      true
+    )) as CommentDocument;
+
+    return res.status(200).json({
+      success: true,
+      commentLikes: editedComment.likes,
+      commentDislikes: editedComment.dislikes,
+      message: "Dislike removed from comment",
+    });
   }
 
   await foundComment.updateOne({ $push: { dislikes: validatedUserId } });
 
+  const editedComment = (await databaseValidateCommentIdObjectId(
+    commentIdObjectId,
+    true
+  )) as CommentDocument;
+
   res.status(201).json({
     success: true,
+    commentLikes: editedComment.likes,
+    commentDislikes: editedComment.dislikes,
     message: "Comment disliked",
   });
 }

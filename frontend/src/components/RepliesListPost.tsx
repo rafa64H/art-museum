@@ -47,6 +47,7 @@ function RepliesListPost({ commentObjProp, postId }: Props) {
               <p className="ml-[min(7rem,7%)]">{reply.content}</p>
               <div className="w-fit ml-[min(7rem,7%)]  flex gap-4 my-2">
                 <LikeBtn
+                  arrayLiked={[]}
                   onClickFunction={async () => {
                     try {
                       const responseLikeReply = await likeReply(
@@ -62,6 +63,7 @@ function RepliesListPost({ commentObjProp, postId }: Props) {
                 ></LikeBtn>
 
                 <DislikeBtn
+                  arrayDisliked={[]}
                   onClickFunction={async () => {
                     try {
                       const responseDislikeReply = await dislikeReply(

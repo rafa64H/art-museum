@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { commentObjPost } from "../contexts/ContextCommentsPosts";
 import UserPictureAndUsername from "./ui/UserPictureAndUsername";
 import LikeBtn from "./ui/LikeBtn";
@@ -13,16 +13,53 @@ import {
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
 import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
+import AlertParagraph from "./ui/AlertParagraph";
 
 type Props = {
   commentProp: commentObjPost;
   postId: string | undefined;
 };
+
+type likeOrDislikeCommentDataResponse = {
+  commentLikes: string[];
+  commentDislikes: string[];
+  message: string;
+};
 function CommentItem({ commentProp, postId }: Props) {
-  const [alertMessage, setAlertMessage] = useState("");
+  const [returnDataCreateReply, createReplyAction, isPendingCreateReply] =
+    useActionState(async () => {
+      try {
+        const responsePostReply = await createReplyToComment({
+          postId: postId,
+          commentId: commentProp._id,
+          replyContent: replyRef.current?.value,
+        });
+
+        return responsePostReply.data;
+      } catch (error) {
+        if (isAxiosError(error)) {
+          if (error.response) {
+            if (error.response.status === 404) {
+              return {
+                error: `${error.response.data.message}, maybe it was deleted recently or try reloading the page`,
+              };
+            }
+            return { error: error.response.data.message };
+          }
+        }
+      }
+    }, null);
+  const [commentLikesState, setCommentLikesState] = useState<string[]>([]);
+  const [commentDislikesState, setCommentDislikesState] = useState<string[]>(
+    []
+  );
   const [showReplyBox, setShowReplyBox] = useState(false);
-  const [submitReplyLoading, setSubmitReplyLoading] = useState(false);
   const replyRef = useRef<HTMLTextAreaElement>(null);
+
+  const thereIsErrorInReturnDataCreateReply =
+    returnDataCreateReply && "error" in returnDataCreateReply
+      ? returnDataCreateReply.error
+      : "";
 
   return (
     <li className="relative w-fit">
@@ -32,12 +69,18 @@ function CommentItem({ commentProp, postId }: Props) {
       <p className="mt-2 ml-[min(7rem,7%)]">{commentProp.content}</p>
       <div className="w-fit ml-[min(7rem,7%)]  flex gap-4 my-2">
         <LikeBtn
+          arrayLiked={commentLikesState}
           onClickFunction={async () => {
             try {
               const responseLikeComment = await likeComment(
                 postId,
                 commentProp._id
               );
+
+              const responseLikeCommentData =
+                responseLikeComment.data as likeOrDislikeCommentDataResponse;
+
+              setCommentLikesState(responseLikeCommentData.commentLikes);
             } catch (error) {
               console.log(error);
             }
@@ -46,12 +89,18 @@ function CommentItem({ commentProp, postId }: Props) {
         ></LikeBtn>
 
         <DislikeBtn
+          arrayDisliked={commentDislikesState}
           onClickFunction={async () => {
             try {
               console.log(postId, commentProp._id);
               const responseDislikeComment = await dislikeComment(
                 postId,
                 commentProp._id
+              );
+              const responseDislikeCommentData =
+                responseDislikeComment.data as likeOrDislikeCommentDataResponse;
+              setCommentDislikesState(
+                responseDislikeCommentData.commentDislikes
               );
             } catch (error) {
               console.log(error);
@@ -68,53 +117,13 @@ function CommentItem({ commentProp, postId }: Props) {
       </div>
 
       <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setSubmitReplyLoading(true);
-          try {
-            const validate = checkEmptyFieldsForm(
-              [replyRef.current!],
-              setAlertMessage
-            );
-            if (!validate) {
-              setSubmitReplyLoading(false);
-
-              return;
-            }
-
-            const responsePostReply = await createReplyToComment({
-              postId: postId,
-              commentId: commentProp._id,
-              replyContent: replyRef.current?.value,
-            });
-
-            console.log(await responsePostReply.data);
-            setShowReplyBox(false);
-            setSubmitReplyLoading(false);
-            return;
-          } catch (error) {
-            if (isAxiosError(error)) {
-              if (error.response) {
-                if (error.response.status === 404) {
-                  setAlertMessage(
-                    `${error.response.data.message}, maybe it was deleted recently or try reloading the page`
-                  );
-                  setSubmitReplyLoading(false);
-                  return;
-                }
-                setAlertMessage("Internal server error, try again later");
-                setSubmitReplyLoading(false);
-              }
-            }
-            setAlertMessage(
-              "There was an error with the client try reloading the page"
-            );
-            setSubmitReplyLoading(false);
-          }
-        }}
+        action={createReplyAction}
         className={`${showReplyBox ? "block" : "hidden"} ml-[min(7rem,7%)]`}
       >
-        <p className="text-lg font-bold text-red-600">{alertMessage}</p>
+        <AlertParagraph
+          conditionError={thereIsErrorInReturnDataCreateReply ? true : false}
+          textValue={thereIsErrorInReturnDataCreateReply}
+        ></AlertParagraph>
         <div className="flex flex-col w-[min(45rem,25vw)]">
           <InputTextArea
             refProp={replyRef}
@@ -128,7 +137,7 @@ function CommentItem({ commentProp, postId }: Props) {
           <ButtonComponent
             typeButton="submit"
             textBtn="Submit reply"
-            loadingDisabled={submitReplyLoading}
+            loadingDisabled={isPendingCreateReply}
             additionalClassnames="self-end p-1"
           ></ButtonComponent>
         </div>
