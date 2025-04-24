@@ -12,7 +12,6 @@ import {
   likeComment,
 } from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
-import checkEmptyFieldsForm from "../utils/forms/checkEmptyFieldsForm";
 import AlertParagraph from "./ui/AlertParagraph";
 
 type Props = {
@@ -29,11 +28,11 @@ function CommentItem({ commentProp, postId }: Props) {
   const [returnDataCreateReply, createReplyAction, isPendingCreateReply] =
     useActionState(async () => {
       try {
-        const responsePostReply = await createReplyToComment({
-          postId: postId,
-          commentId: commentProp._id,
-          replyContent: replyRef.current?.value,
-        });
+        const responsePostReply = await createReplyToComment(
+          postId,
+          commentProp._id,
+          replyRef.current?.value
+        );
 
         return responsePostReply.data;
       } catch (error) {

@@ -481,13 +481,12 @@ export async function dislikeComment(
   return responseDislikeComment;
 }
 
-export async function createReplyToComment(dataToCreateReplyToComment: {
-  postId: string | undefined;
-  commentId: string | undefined;
-  replyContent: string | undefined;
-}) {
+export async function createReplyToComment(
+  postId: string | undefined,
+  commentId: string | undefined,
+  replyContent: string | undefined
+) {
   const user = store.getState().auth.user;
-  const { postId, commentId, replyContent } = dataToCreateReplyToComment;
 
   const urlToPostReply = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/replies`;
 

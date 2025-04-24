@@ -658,15 +658,30 @@ export async function likeReplyHandler(
   if (findIfUserLikedReply) {
     await foundReply.updateOne({ $pull: { likes: validatedUserId } });
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Like removed from reply" });
+    const editedReply = (await databaseValidateReplyIdObjectId(
+      replyIdObjectId,
+      true
+    )) as ReplyDocument;
+
+    return res.status(200).json({
+      success: true,
+      replyLikes: editedReply.likes,
+      replyDislikes: editedReply.dislikes,
+      message: "Like removed from reply",
+    });
   }
 
   await foundReply.updateOne({ $push: { likes: validatedUserId } });
 
+  const editedReply = (await databaseValidateReplyIdObjectId(
+    replyIdObjectId,
+    true
+  )) as ReplyDocument;
+
   res.status(201).json({
     success: true,
+    replyLikes: editedReply.likes,
+    replyDislikes: editedReply.dislikes,
     message: "Reply liked",
   });
 }
@@ -708,15 +723,31 @@ export async function dislikeReplyHandler(
 
   if (findIfUserDislikedReply) {
     await foundReply.updateOne({ $pull: { dislikes: validatedUserId } });
-    return res
-      .status(200)
-      .json({ success: true, message: "Dislike removed from reply" });
+
+    const editedReply = (await databaseValidateReplyIdObjectId(
+      replyIdObjectId,
+      true
+    )) as ReplyDocument;
+
+    return res.status(200).json({
+      success: true,
+      replyLikes: editedReply.likes,
+      replyDislikes: editedReply.dislikes,
+      message: "Dislike removed from reply",
+    });
   }
 
   await foundReply.updateOne({ $push: { dislikes: validatedUserId } });
 
+  const editedReply = (await databaseValidateReplyIdObjectId(
+    replyIdObjectId,
+    true
+  )) as ReplyDocument;
+
   res.status(201).json({
     success: true,
+    replyLikes: editedReply.likes,
+    replyDislikes: editedReply.dislikes,
     message: "Reply disliked",
   });
 }
