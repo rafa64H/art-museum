@@ -36,16 +36,6 @@ function SignUpForm() {
 
   return (
     <form className="p-4" action={loginAction}>
-      <p
-        className="text-xl mb-4 font-bold text-red-400"
-        role="alert"
-        aria-live="assertive"
-      >
-        {returnData && typeof returnData === "object" && "error" in returnData
-          ? returnData.error
-          : null}
-      </p>
-
       <AlertParagraph
         conditionError={returnData && "error" in returnData ? true : false}
         textValue={returnData && "error" in returnData ? returnData.error : ""}
