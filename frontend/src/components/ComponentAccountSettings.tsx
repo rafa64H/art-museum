@@ -90,7 +90,7 @@ function ComponentAccountSettings({
         if (returnDataAccountInformation.error.includes("password")) {
           passwordToVerifyOneRef.current?.setAttribute(
             "data-error-input",
-            "true"
+            "true",
           );
         }
       }
@@ -120,7 +120,7 @@ function ComponentAccountSettings({
         newPasswordRef.current?.setAttribute("data-error-input", "true");
         passwordToVerifyTwoRef.current?.setAttribute(
           "data-error-input",
-          "true"
+          "true",
         );
       }
     }
@@ -187,8 +187,8 @@ function ComponentAccountSettings({
             "error" in returnDataSendVerificationLink
               ? returnDataSendVerificationLink.error
               : returnDataSendVerificationLink
-              ? "Email verification link sent to your email"
-              : ""}
+                ? "Email verification link sent to your email"
+                : ""}
           </p>
         </form>
       ) : (
@@ -212,9 +212,9 @@ function ComponentAccountSettings({
             "message" in returnDataAccountInformation.data
               ? returnDataAccountInformation.data.message
               : returnDataAccountInformation &&
-                "error" in returnDataAccountInformation
-              ? returnDataAccountInformation.error
-              : ""
+                  "error" in returnDataAccountInformation
+                ? returnDataAccountInformation.error
+                : ""
           }
         ></AlertParagraph>
 
@@ -300,8 +300,8 @@ function ComponentAccountSettings({
             "message" in returnDataChangePassword.data
               ? returnDataChangePassword.data.message
               : returnDataChangePassword && "error" in returnDataChangePassword
-              ? returnDataChangePassword.error
-              : ""
+                ? returnDataChangePassword.error
+                : ""
           }
         ></AlertParagraph>
 
@@ -357,12 +357,12 @@ function ComponentAccountSettings({
                 onClick={async () => {
                   try {
                     const isUserFollowing = user.userData?.following.some(
-                      (id) => id === userObject._id
+                      (id) => id === userObject._id,
                     );
 
                     if (isUserFollowing) {
                       const responseDeleteFollow = await deleteFollow(
-                        userObject._id
+                        userObject._id,
                       );
 
                       const responseDeleteFollowData =
@@ -372,15 +372,15 @@ function ComponentAccountSettings({
 
                       dispatch(
                         setUserFollowing(
-                          responseDeleteFollowData.userRequestFollowing
-                        )
+                          responseDeleteFollowData.userRequestFollowing,
+                        ),
                       );
 
                       //For some reason dispatch redux-toolkit
                       //doesn't re-render page
                       //If you know how to solve the error, you can help :)
                       setFollowingObjects(
-                        responseDeleteFollowData.userRequestFollowing
+                        responseDeleteFollowData.userRequestFollowing,
                       );
 
                       console.log(responseDeleteFollowData);
@@ -431,11 +431,11 @@ function ComponentAccountSettings({
                 onClick={async () => {
                   try {
                     const isUserFollowing = user.userData?.following.some(
-                      (id) => id === userObject._id
+                      (id) => id === userObject._id,
                     );
                     if (isUserFollowing) {
                       const responseDeleteFollow = await deleteFollow(
-                        userObject._id
+                        userObject._id,
                       );
 
                       const responseDeleteFollowData =
@@ -443,12 +443,12 @@ function ComponentAccountSettings({
 
                       dispatch(
                         setUserFollowers(
-                          responseDeleteFollowData.foundUserFollowers
-                        )
+                          responseDeleteFollowData.foundUserFollowers,
+                        ),
                       );
 
                       setFollowersObjects(
-                        responseDeleteFollowData.foundUserFollowers
+                        responseDeleteFollowData.foundUserFollowers,
                       );
 
                       console.log(responseDeleteFollowData);

@@ -31,7 +31,7 @@ function CommentItem({ commentProp, postId }: Props) {
         const responsePostReply = await createReplyToComment(
           postId,
           commentProp._id,
-          replyRef.current?.value
+          replyRef.current?.value,
         );
 
         return responsePostReply.data;
@@ -48,9 +48,11 @@ function CommentItem({ commentProp, postId }: Props) {
         }
       }
     }, null);
-  const [commentLikesState, setCommentLikesState] = useState<string[]>([]);
+  const [commentLikesState, setCommentLikesState] = useState<string[]>(
+    commentProp.likes,
+  );
   const [commentDislikesState, setCommentDislikesState] = useState<string[]>(
-    []
+    commentProp.dislikes,
   );
   const [showReplyBox, setShowReplyBox] = useState(false);
   const replyRef = useRef<HTMLTextAreaElement>(null);
@@ -73,13 +75,14 @@ function CommentItem({ commentProp, postId }: Props) {
             try {
               const responseLikeComment = await likeComment(
                 postId,
-                commentProp._id
+                commentProp._id,
               );
 
               const responseLikeCommentData =
                 responseLikeComment.data as likeOrDislikeCommentDataResponse;
 
               setCommentLikesState(responseLikeCommentData.commentLikes);
+              setCommentDislikesState(responseLikeCommentData.commentDislikes);
             } catch (error) {
               console.log(error);
             }
@@ -94,13 +97,14 @@ function CommentItem({ commentProp, postId }: Props) {
               console.log(postId, commentProp._id);
               const responseDislikeComment = await dislikeComment(
                 postId,
-                commentProp._id
+                commentProp._id,
               );
               const responseDislikeCommentData =
                 responseDislikeComment.data as likeOrDislikeCommentDataResponse;
               setCommentDislikesState(
-                responseDislikeCommentData.commentDislikes
+                responseDislikeCommentData.commentDislikes,
               );
+              setCommentLikesState(responseDislikeCommentData.commentLikes);
             } catch (error) {
               console.log(error);
             }

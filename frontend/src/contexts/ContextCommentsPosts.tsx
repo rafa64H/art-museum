@@ -11,6 +11,8 @@ export type commentObjPost = {
   content: string;
   createdAt: Date;
   updatedAt: Date;
+  likes: string[];
+  dislikes: string[];
 };
 
 type ContextCommentsPostsType = {
@@ -19,7 +21,7 @@ type ContextCommentsPostsType = {
 };
 
 const ContextCommentsPosts = createContext<ContextCommentsPostsType | null>(
-  null
+  null,
 );
 export function ContextCommentsPostsProvider({ children }: Props) {
   const [commentsState, setCommentsState] = useState<commentObjPost[]>([]);
@@ -34,7 +36,7 @@ export function useContextCommentsPosts() {
   const context = useContext(ContextCommentsPosts);
   if (!context) {
     throw new Error(
-      "useContextCommentsPosts must be used within a ContextCommentsPostsProvider"
+      "useContextCommentsPosts must be used within a ContextCommentsPostsProvider",
     );
   }
   return context;
