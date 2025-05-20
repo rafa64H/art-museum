@@ -22,6 +22,8 @@ type ReplyObjPost = {
   commentId: string;
   createdAt: Date;
   updatedAt: Date;
+  likes: string[];
+  dislikes: string[];
 };
 type Props = {
   reply: ReplyObjPost;
@@ -39,8 +41,10 @@ function ReplyItem({ reply, postId, commentObjProp }: Props) {
   const [showReplyBox, setShowReplyBox] = useState(false);
   const replyButtonRef = useRef<HTMLTextAreaElement>(null);
 
-  const [replyLikesState, setReplyLikesState] = useState<string[]>([]);
-  const [replyDislikesState, setReplyDislikesState] = useState<string[]>([]);
+  const [replyLikesState, setReplyLikesState] = useState<string[]>(reply.likes);
+  const [replyDislikesState, setReplyDislikesState] = useState<string[]>(
+    reply.dislikes,
+  );
 
   const [returnDataCreateReply, createReplyAction, isPendingCreateReply] =
     useActionState(async (prevState: unknown, formData: FormData) => {
@@ -52,7 +56,7 @@ function ReplyItem({ reply, postId, commentObjProp }: Props) {
         await createReplyToComment(
           postIdParam,
           commentId,
-          replyContent!.toString()
+          replyContent!.toString(),
         );
       } catch (error) {
         if (isAxiosError(error)) {
@@ -80,7 +84,7 @@ function ReplyItem({ reply, postId, commentObjProp }: Props) {
               const responseLikeReply = await likeReply(
                 postId,
                 commentObjProp._id,
-                reply._id
+                reply._id,
               );
 
               const responseLikeReplyData =
@@ -102,7 +106,7 @@ function ReplyItem({ reply, postId, commentObjProp }: Props) {
               const responseDislikeReply = await dislikeReply(
                 postId,
                 commentObjProp._id,
-                reply._id
+                reply._id,
               );
 
               const responseDislikeReplyData =

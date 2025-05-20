@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 //////////USER RELATED:
 export async function createAccount(
   previousState: unknown,
-  formData: FormData
+  formData: FormData,
 ) {
   const email = formData.get("email");
   const username = formData.get("username");
@@ -28,7 +28,7 @@ export async function createAccount(
       { email, username, name, password, confirmPassword },
       {
         withCredentials: true,
-      }
+      },
     );
 
     return responseCreateAccount;
@@ -57,7 +57,7 @@ export async function createAccount(
 
 export async function loginToAccount(
   previousState: unknown,
-  formData: FormData
+  formData: FormData,
 ) {
   const emailOrUsername = formData.get("emailOrUsername");
   const password = formData.get("password");
@@ -69,7 +69,7 @@ export async function loginToAccount(
       { emailOrUsername, password },
       {
         withCredentials: true,
-      }
+      },
     );
 
     return responseLogin;
@@ -114,7 +114,7 @@ export async function getUser(dataToGetUser: {
 
 export async function editAccountInformation(
   previousData: unknown,
-  formData: FormData
+  formData: FormData,
 ) {
   const user = store.getState().auth.user;
   const newEmail = formData.get("newEmail");
@@ -139,7 +139,7 @@ export async function editAccountInformation(
         headers: {
           authorization: `Bearer ${user.userData?.accessToken}`,
         },
-      }
+      },
     );
 
     if (file.name !== "") {
@@ -178,7 +178,7 @@ export async function editAccountInformation(
 
 export async function changePassword(
   previousData: unknown,
-  formData: FormData
+  formData: FormData,
 ) {
   const newPassword = formData.get("newPassword");
   const confirmNewPassword = formData.get("confirmNewPassword");
@@ -194,7 +194,7 @@ export async function changePassword(
         headers: {
           authorization: `Bearer ${user.userData?.accessToken}`,
         },
-      }
+      },
     );
 
     return responseChangePassword;
@@ -233,7 +233,7 @@ export async function addFollow(userProfileId: string | undefined) {
       headers: {
         authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
 
   return responseAddFollow;
@@ -257,7 +257,7 @@ export async function requestEmailVerificationLink() {
     const userId = store.getState().auth.user.userData?._id;
     const urlGetVerificationLink = `${BACKEND_URL}/auth/request-email-code/${userId}`;
     const responseSendVerificationLink = await axiosInstance.get(
-      urlGetVerificationLink
+      urlGetVerificationLink,
     );
     return responseSendVerificationLink;
   } catch (error) {
@@ -278,7 +278,7 @@ export async function requestEmailVerificationLink() {
 
 export async function verifyEmail(
   userId: string | undefined,
-  codeToVerifyEmail: string | undefined
+  codeToVerifyEmail: string | undefined,
 ) {
   const urlToVerifyEmail = `${BACKEND_URL}/auth/verify-email/${userId}/${codeToVerifyEmail}`;
 
@@ -299,7 +299,7 @@ export async function getFollowersAndFollowings() {
       headers: {
         authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
   return responseGetFollowersAndFollowings;
 }
@@ -312,7 +312,7 @@ export async function forgotPasswordFetch(dataToForgotPasswordFetch: {
 
   const responseForgotPassword = await axiosInstance.put(
     urlToSendTokenForgotPassword,
-    { emailOrUsername: emailOrUsername }
+    { emailOrUsername: emailOrUsername },
   );
   return responseForgotPassword;
 }
@@ -346,7 +346,7 @@ export async function fetchRefreshAuth() {
 export async function createPost(
   title: string | undefined,
   content: string | undefined,
-  tags: string[] | []
+  tags: string[] | [],
 ) {
   const user = store.getState().auth.user;
   const urlCreatePost = `${BACKEND_URL}/api/posts`;
@@ -358,7 +358,7 @@ export async function createPost(
       headers: {
         authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
   return responsePostModel;
 }
@@ -382,7 +382,7 @@ export async function likePost(postId: string | undefined) {
       headers: {
         Authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
 
   return responseLikePost;
@@ -400,7 +400,7 @@ export async function dislikePost(postId: string | undefined) {
       headers: {
         Authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
 
   return responseDislikePost;
@@ -415,7 +415,7 @@ export async function getCommentsFromPost(postId: string | undefined) {
 
 export async function createComment(
   previousState: unknown,
-  formData: FormData
+  formData: FormData,
 ) {
   const postId = formData.get("postId");
   const commentContent = formData.get("commentText");
@@ -429,7 +429,7 @@ export async function createComment(
         headers: {
           authorization: "Bearer " + user.userData?.accessToken,
         },
-      }
+      },
     );
     return responseCreateComment;
   } catch (error) {
@@ -442,19 +442,19 @@ export async function createComment(
 
 export async function likeComment(
   postId: string | undefined,
-  commentId: string | undefined
+  commentId: string | undefined,
 ) {
   const urlToLikeComment = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/likes/`;
   const user = store.getState().auth.user;
 
-  const responseLikeComment = await axiosInstance.post(
+  const responseLikeComment = await axiosInstance.put(
     urlToLikeComment,
     {},
     {
       headers: {
         Authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
 
   return responseLikeComment;
@@ -462,20 +462,20 @@ export async function likeComment(
 
 export async function dislikeComment(
   postId: string | undefined,
-  commentId: string | undefined
+  commentId: string | undefined,
 ) {
   const urlToDisikeComment = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/dislikes/`;
 
   const user = store.getState().auth.user;
 
-  const responseDislikeComment = await axiosInstance.post(
+  const responseDislikeComment = await axiosInstance.put(
     urlToDisikeComment,
     {},
     {
       headers: {
         authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
 
   return responseDislikeComment;
@@ -484,7 +484,7 @@ export async function dislikeComment(
 export async function createReplyToComment(
   postId: string | undefined,
   commentId: string | undefined,
-  replyContent: string | undefined
+  replyContent: string | undefined,
 ) {
   const user = store.getState().auth.user;
 
@@ -497,7 +497,7 @@ export async function createReplyToComment(
       headers: {
         authorization: "Bearer " + user.userData?.accessToken,
       },
-    }
+    },
   );
 
   return responsePostReply;
@@ -517,19 +517,19 @@ export async function getRepliesFromComment(dataToGetRepliesFromComment: {
 export async function likeReply(
   postId: string | undefined,
   commentId: string | undefined,
-  replyId: string | undefined
+  replyId: string | undefined,
 ) {
   const urlToLikeReply = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/replies/${replyId}/likes`;
   const user = store.getState().auth.user;
 
-  const responseLikeReply = await axiosInstance.post(
+  const responseLikeReply = await axiosInstance.put(
     urlToLikeReply,
     {},
     {
       headers: {
         Authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
 
   return responseLikeReply;
@@ -538,19 +538,19 @@ export async function likeReply(
 export async function dislikeReply(
   postId: string | undefined,
   commentId: string | undefined,
-  replyId: string | undefined
+  replyId: string | undefined,
 ) {
   const urlToDislikeReply = `${BACKEND_URL}/api/posts/${postId}/comments/${commentId}/replies/${replyId}/dislikes`;
   const user = store.getState().auth.user;
 
-  const responseDislikeReply = await axiosInstance.post(
+  const responseDislikeReply = await axiosInstance.put(
     urlToDislikeReply,
     {},
     {
       headers: {
         Authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
 
   return responseDislikeReply;
@@ -558,7 +558,7 @@ export async function dislikeReply(
 
 //////////IMAGES RELATED:
 export async function uploadImageProfilePicture(
-  formDataToUploadProfilePicture: FormData
+  formDataToUploadProfilePicture: FormData,
 ) {
   const user = store.getState().auth.user;
   const urlToUploadProfilePicture = `${BACKEND_URL}/api/images/profilePictures`;
@@ -572,7 +572,7 @@ export async function uploadImageProfilePicture(
       headers: {
         authorization: `Bearer ${user.userData?.accessToken}`,
       },
-    }
+    },
   );
 
   return responseProfilePictureUpload;
