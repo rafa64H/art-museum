@@ -175,10 +175,10 @@ export async function getFollowersFromUser(
     true,
   )) as UserDocument;
 
-  if (validatedUserId === validatedUserIdMiddleware)
+  if (validatedUserId !== validatedUserIdMiddleware)
     throw new CustomError(
       401,
-      "Not the same authenticated user as the user in param",
+      `Not the same authenticated user as the user in param ${validatedUserId}... ${validatedUserIdMiddleware}`,
     );
 
   const objectUser = await foundUser.toObject();
@@ -232,7 +232,7 @@ export async function getFollowingFromUser(
     true,
   )) as UserDocument;
 
-  if (validatedUserId === validatedUserIdMiddleware)
+  if (validatedUserId !== validatedUserIdMiddleware)
     throw new CustomError(
       401,
       "Not the same authenticated user as the user in param",

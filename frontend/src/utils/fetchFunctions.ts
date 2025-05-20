@@ -289,19 +289,34 @@ export async function verifyEmail(
   return responseVerifyEmail;
 }
 
-export async function getFollowersAndFollowings() {
+export async function getFollowersFromUser() {
   const user = store.getState().auth.user;
-  const urlToGetFollowersAndFollowings = `${BACKEND_URL}/api/users/followers/${user.userData?._id}`;
+  const urlToGetFollowersFromUser = `${BACKEND_URL}/api/users/${user.userData?._id}/followers/`;
 
-  const responseGetFollowersAndFollowings = await axiosInstance.get(
-    urlToGetFollowersAndFollowings,
+  const responseGetFollowersFromUser = await axiosInstance.get(
+    urlToGetFollowersFromUser,
     {
       headers: {
         authorization: `Bearer ${user.userData?.accessToken}`,
       },
     },
   );
-  return responseGetFollowersAndFollowings;
+  return responseGetFollowersFromUser;
+}
+
+export async function getFollowingsFromUser() {
+  const user = store.getState().auth.user;
+  const urlToGetFollowingsFromUser = `${BACKEND_URL}/api/users/${user.userData?._id}/following/`;
+
+  const responseGetFollowingsFromUser = await axiosInstance.get(
+    urlToGetFollowingsFromUser,
+    {
+      headers: {
+        authorization: `Bearer ${user.userData?.accessToken}`,
+      },
+    },
+  );
+  return responseGetFollowingsFromUser;
 }
 
 export async function forgotPasswordFetch(dataToForgotPasswordFetch: {

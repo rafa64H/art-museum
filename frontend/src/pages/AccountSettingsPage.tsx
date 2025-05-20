@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../services/redux-toolkit/store";
 import { UserDataResponse } from "../types/userDataResponse";
-import { getFollowersAndFollowings } from "../utils/fetchFunctions";
+import {
+  getFollowersFromUser,
+  getFollowingsFromUser,
+} from "../utils/fetchFunctions";
 import { isAxiosError } from "axios";
 
 function AccountSettingsPage() {
@@ -21,16 +24,18 @@ function AccountSettingsPage() {
     const getFollowers = async () => {
       try {
         if (user.userData?._id) {
-          const responseGetFollowersFollowing =
-            await getFollowersAndFollowings();
-          console.log(responseGetFollowersFollowing);
+          const responseGetFollowersFromUser = await getFollowersFromUser();
 
-          const responseGetFollowersFollowingData =
-            await responseGetFollowersFollowing.data;
-          console.log(responseGetFollowersFollowingData);
+          const responseGetFollowersFromUserData =
+            await responseGetFollowersFromUser.data;
 
-          setFollowersObjects(responseGetFollowersFollowingData.followers);
-          setFollowingObjects(responseGetFollowersFollowingData.following);
+          const responseGetFollowingFromUser = await getFollowingsFromUser();
+
+          const responseGetFollowingFromUserData =
+            await responseGetFollowingFromUser.data;
+
+          setFollowersObjects(responseGetFollowersFromUserData.followers);
+          setFollowingObjects(responseGetFollowingFromUserData.following);
         }
       } catch (error) {
         if (isAxiosError(error)) {
