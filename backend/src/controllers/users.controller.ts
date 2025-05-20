@@ -11,7 +11,7 @@ import checkOrChangeIfUsernameHasAt from "../utils/checkOrChangeIfUsernameHasAt"
 
 export async function getAllUsersHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const users = await UserModel.find();
   const usersWithoutPassword = users.map((user) => {
@@ -29,7 +29,7 @@ export async function getUserHandler(req: Request, res: Response) {
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const foundUser = (await databaseValidateUserIdObjectId(
     userIdObjectId,
-    true
+    true,
   )) as UserDocument;
 
   res.status(200).json({
@@ -40,7 +40,7 @@ export async function getUserHandler(req: Request, res: Response) {
 
 export async function editUserHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const { password, newEmail, newName, newUsername } = req.body as {
@@ -73,12 +73,12 @@ export async function editUserHandler(
 
   const foundUser = (await databaseValidateUserIdObjectId(
     userIdObjectId,
-    true
+    true,
   )) as UserDocument;
 
   const validDialogPassword = await bcrypt.compare(
     validatedPassword,
-    foundUser.password
+    foundUser.password,
   );
   if (!validDialogPassword) {
     throw new CustomError(401, "Wrong password");
@@ -96,7 +96,7 @@ export async function editUserHandler(
 
   const editedUser = (await databaseValidateUserIdObjectId(
     userIdObjectId,
-    true
+    true,
   )) as UserDocument;
 
   res.status(200).json({
@@ -108,7 +108,7 @@ export async function editUserHandler(
 
 export async function changePasswordHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const { password, newPassword, confirmNewPassword } = req.body as {
@@ -137,12 +137,12 @@ export async function changePasswordHandler(
 
   const foundUser = (await databaseValidateUserIdObjectId(
     userIdObjectId,
-    true
+    true,
   )) as UserDocument;
 
   const validVerifyPassword = await bcrypt.compare(
     validatedPassword,
-    foundUser.password
+    foundUser.password,
   );
 
   if (!validVerifyPassword) throw new CustomError(401, "Wrong password");
@@ -155,7 +155,7 @@ export async function changePasswordHandler(
 
 export async function getFollowersFromUser(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userIdMiddleware = req.userId as unknown;
   const userId = req.params.userId;
@@ -168,33 +168,41 @@ export async function getFollowersFromUser(
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const userIdMiddlewareObjectId = ObjectId.createFromHexString(
-    validatedUserIdMiddleware
+    validatedUserIdMiddleware,
   );
   const foundUser = (await databaseValidateUserIdObjectId(
     userIdObjectId,
-    true
+    true,
   )) as UserDocument;
 
   if (validatedUserId === validatedUserIdMiddleware)
     throw new CustomError(
       401,
-      "Not the same authenticated user as the user in param"
+      "Not the same authenticated user as the user in param",
     );
 
-  const objectUser = foundUser.toObject();
+  const objectUser = await foundUser.toObject();
 
   let followers: {}[] = [];
 
   for (let index = 0; index < objectUser.followers.length; index++) {
     const idFromFollowersObjectId = ObjectId.createFromHexString(
-      objectUser.followers[index]
+      objectUser.followers[index],
     );
 
-    const userFromFollowers = await UserModel.findOne(idFromFollowersObjectId);
+    const userFromFollowers = (await UserModel.findOne(
+      idFromFollowersObjectId,
+    )) as UserDocument | undefined | null;
 
     if (!userFromFollowers) return null;
 
-    const userFromFollowersObject = userFromFollowers.toObject();
+    const userFromFollowersObject = {
+      _id: userFromFollowers._id,
+      name: userFromFollowers.name,
+      username: userFromFollowers.username,
+      email: userFromFollowers.email,
+      profilePictureURL: userFromFollowers.profilePictureURL,
+    };
 
     followers.push({ ...userFromFollowersObject, password: undefined });
   }
@@ -204,7 +212,7 @@ export async function getFollowersFromUser(
 
 export async function getFollowingFromUser(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userIdMiddleware = req.userId as unknown;
   const userId = req.params.userId;
@@ -217,17 +225,17 @@ export async function getFollowingFromUser(
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const userIdMiddlewareObjectId = ObjectId.createFromHexString(
-    validatedUserIdMiddleware
+    validatedUserIdMiddleware,
   );
   const foundUser = (await databaseValidateUserIdObjectId(
     userIdObjectId,
-    true
+    true,
   )) as UserDocument;
 
   if (validatedUserId === validatedUserIdMiddleware)
     throw new CustomError(
       401,
-      "Not the same authenticated user as the user in param"
+      "Not the same authenticated user as the user in param",
     );
 
   const objectUser = foundUser.toObject();
@@ -236,14 +244,22 @@ export async function getFollowingFromUser(
 
   for (let index = 0; index < objectUser.following.length; index++) {
     const idFromFollowingObjectId = ObjectId.createFromHexString(
-      objectUser.following[index]
+      objectUser.following[index],
     );
 
-    const userFromFollowing = await UserModel.findOne(idFromFollowingObjectId);
+    const userFromFollowing = (await UserModel.findOne(
+      idFromFollowingObjectId,
+    )) as UserDocument | undefined | null;
 
     if (!userFromFollowing) return null;
 
-    const userFromFollowingObject = userFromFollowing.toObject();
+    const userFromFollowingObject = {
+      _id: userFromFollowing._id,
+      name: userFromFollowing.name,
+      username: userFromFollowing.username,
+      email: userFromFollowing.email,
+      profilePictureURL: userFromFollowing.profilePictureURL,
+    };
 
     following.push({ ...userFromFollowingObject, password: undefined });
   }
@@ -252,7 +268,7 @@ export async function getFollowingFromUser(
 }
 export async function addOrRemoveFollowerHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.params.userId;
   const userIdTheOtherUser = req.userId as unknown;
@@ -264,20 +280,20 @@ export async function addOrRemoveFollowerHandler(
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const userIdObjectIdRequest = ObjectId.createFromHexString(
-    validatedUserIdTheOtherUser
+    validatedUserIdTheOtherUser,
   );
 
   const userDocument = (await databaseValidateUserIdObjectId(
     userIdObjectId,
-    true
+    true,
   )) as UserDocument;
   const otherUserDocument = (await databaseValidateUserIdObjectId(
     userIdObjectIdRequest,
-    true
+    true,
   )) as UserDocument;
 
   const userAlreadyIsBeingFollowedByOtherUser = userDocument.followers.includes(
-    validatedUserIdTheOtherUser
+    validatedUserIdTheOtherUser,
   );
 
   if (userAlreadyIsBeingFollowedByOtherUser) {
@@ -308,7 +324,7 @@ export async function addOrRemoveFollowerHandler(
 
 export async function addOrRemoveFollowingHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.params.userId;
   const userIdTheOtherUser = req.userId as unknown;
@@ -320,20 +336,20 @@ export async function addOrRemoveFollowingHandler(
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const userIdObjectIdRequest = ObjectId.createFromHexString(
-    validatedUserIdTheOtherUser
+    validatedUserIdTheOtherUser,
   );
 
   const userDocument = (await databaseValidateUserIdObjectId(
     userIdObjectId,
-    true
+    true,
   )) as UserDocument;
   const otherUserDocument = (await databaseValidateUserIdObjectId(
     userIdObjectIdRequest,
-    true
+    true,
   )) as UserDocument;
 
   const userAlreadyFollowingOtherUser = userDocument.followers.includes(
-    validatedUserIdTheOtherUser
+    validatedUserIdTheOtherUser,
   );
 
   if (userAlreadyFollowingOtherUser) {
