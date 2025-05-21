@@ -266,114 +266,241 @@ export async function getFollowingFromUser(
 
   res.status(200).json({ success: true, following });
 }
-export async function addOrRemoveFollowerHandler(
-  req: AuthMiddlewareRequest,
-  res: Response,
-) {
-  const userId = req.params.userId;
-  const userIdTheOtherUser = req.userId as unknown;
+
+export async function addFollower(req: AuthMiddlewareRequest, res: Response) {
+  const userId = req.params.userId as unknown;
+  const userIdFollower = req.body.userIdFollower as unknown;
+  const userIdFromMiddleware = req.userId as unknown;
   validateUsersRoutesRequest({ userId });
-  validateUsersRoutesRequest({ userId: userIdTheOtherUser });
+  validateUsersRoutesRequest({ userId: userIdFromMiddleware });
+  validateUsersRoutesRequest({ userId: userIdFollower });
 
   const validatedUserId = userId as string;
-  const validatedUserIdTheOtherUser = userIdTheOtherUser as string;
+  const validatedUserIdFromMiddleWare = userIdFromMiddleware as string;
+  const validatedUserIdFollower = userIdFollower as string;
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const userIdObjectIdRequest = ObjectId.createFromHexString(
-    validatedUserIdTheOtherUser,
+    validatedUserIdFromMiddleWare,
+  );
+  const userIdObjectIdFollower = ObjectId.createFromHexString(
+    validatedUserIdFollower,
   );
 
   const userDocument = (await databaseValidateUserIdObjectId(
     userIdObjectId,
     true,
   )) as UserDocument;
-  const otherUserDocument = (await databaseValidateUserIdObjectId(
+  const userDocumentFromMiddleware = (await databaseValidateUserIdObjectId(
     userIdObjectIdRequest,
+    true,
+  )) as UserDocument;
+
+  const userFollowerDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
     true,
   )) as UserDocument;
 
   const userAlreadyIsBeingFollowedByOtherUser = userDocument.followers.includes(
-    validatedUserIdTheOtherUser,
+    validatedUserIdFollower,
   );
 
   if (userAlreadyIsBeingFollowedByOtherUser) {
-    await userDocument.updateOne({
-      $pull: { followers: validatedUserIdTheOtherUser },
-    });
-    await otherUserDocument.updateOne({
-      $pull: { following: validatedUserId },
-    });
     return res.status(200).json({
       success: true,
-      message: `${userDocument.username} do not have follower ${otherUserDocument.username}`,
+      message: `User ${userFollowerDocument.name} is already a follower of ${userDocument}`,
     });
   }
 
   await userDocument.updateOne({
-    $push: { followers: validatedUserIdTheOtherUser },
+    $push: { followers: validatedUserIdFollower },
   });
-  await otherUserDocument.updateOne({
+  await userFollowerDocument.updateOne({
     $push: { following: validatedUserId },
   });
 
-  res.status(200).json({
+  res.status(201).json({
     success: true,
-    message: `${userDocument.username} is being followed by ${otherUserDocument.username}`,
+    message: `${userDocument.username} is now being followed by ${userDocumentFromMiddleware.username}`,
   });
 }
 
-export async function addOrRemoveFollowingHandler(
+export async function removeFollower(
   req: AuthMiddlewareRequest,
   res: Response,
 ) {
-  const userId = req.params.userId;
-  const userIdTheOtherUser = req.userId as unknown;
+  const userId = req.params.userId as unknown;
+  const userIdFollower = req.params.userIdFollower as unknown;
+  const userIdFromMiddleware = req.userId as unknown;
   validateUsersRoutesRequest({ userId });
-  validateUsersRoutesRequest({ userId: userIdTheOtherUser });
+  validateUsersRoutesRequest({ userId: userIdFromMiddleware });
+  validateUsersRoutesRequest({ userId: userIdFollower });
 
   const validatedUserId = userId as string;
-  const validatedUserIdTheOtherUser = userIdTheOtherUser as string;
+  const validatedUserIdFromMiddleWare = userIdFromMiddleware as string;
+  const validatedUserIdFollower = userIdFollower as string;
 
   const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
   const userIdObjectIdRequest = ObjectId.createFromHexString(
-    validatedUserIdTheOtherUser,
+    validatedUserIdFromMiddleWare,
+  );
+  const userIdObjectIdFollower = ObjectId.createFromHexString(
+    validatedUserIdFollower,
   );
 
   const userDocument = (await databaseValidateUserIdObjectId(
     userIdObjectId,
     true,
   )) as UserDocument;
-  const otherUserDocument = (await databaseValidateUserIdObjectId(
+  const userDocumentFromMiddleware = (await databaseValidateUserIdObjectId(
     userIdObjectIdRequest,
     true,
   )) as UserDocument;
 
-  const userAlreadyFollowingOtherUser = userDocument.followers.includes(
-    validatedUserIdTheOtherUser,
+  const userFollowerDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true,
+  )) as UserDocument;
+
+  const userAlreadyIsBeingFollowedByOtherUser = userDocument.followers.includes(
+    validatedUserIdFollower,
   );
 
-  if (userAlreadyFollowingOtherUser) {
+  if (userAlreadyIsBeingFollowedByOtherUser) {
     await userDocument.updateOne({
-      $pull: { following: validatedUserIdTheOtherUser },
+      $pull: { followers: validatedUserIdFollower },
     });
-    await otherUserDocument.updateOne({
-      $pull: { followers: validatedUserId },
+    await userFollowerDocument.updateOne({
+      $pull: { following: validatedUserId },
     });
+
     return res.status(200).json({
       success: true,
-      message: `${userDocument.username} is not following ${otherUserDocument.username}`,
+      message: `User ${userFollowerDocument.name} unfollowed ${userDocument}`,
+    });
+  }
+
+  res.status(404).json({
+    success: true,
+    message: `User ${userDocument.username} is not being followed by ${userFollowerDocument.username}`,
+  });
+}
+
+export async function addFollowing(req: AuthMiddlewareRequest, res: Response) {
+  const userId = req.params.userId as unknown;
+  const userIdFollowing = req.body.userIdFollowing as unknown;
+  const userIdFromMiddleware = req.userId as unknown;
+  validateUsersRoutesRequest({ userId });
+  validateUsersRoutesRequest({ userId: userIdFromMiddleware });
+  validateUsersRoutesRequest({ userId: userIdFollowing });
+
+  const validatedUserId = userId as string;
+  const validatedUserIdFromMiddleWare = userIdFromMiddleware as string;
+  const validatedUserIdFollowing = userIdFollowing as string;
+
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const userIdObjectIdRequest = ObjectId.createFromHexString(
+    validatedUserIdFromMiddleWare,
+  );
+  const userIdObjectIdFollowing = ObjectId.createFromHexString(
+    validatedUserIdFollowing,
+  );
+
+  const userDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true,
+  )) as UserDocument;
+  const userDocumentFromMiddleware = (await databaseValidateUserIdObjectId(
+    userIdObjectIdRequest,
+    true,
+  )) as UserDocument;
+
+  const userFollowingDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectIdFollowing,
+    true,
+  )) as UserDocument;
+
+  const userAlreadyIsBeingFollowedByOtherUser = userDocument.following.includes(
+    validatedUserIdFollowing,
+  );
+
+  if (userAlreadyIsBeingFollowedByOtherUser) {
+    return res.status(200).json({
+      success: true,
+      message: `User ${userFollowingDocument.name} is already a follower of ${userDocument}`,
     });
   }
 
   await userDocument.updateOne({
-    $push: { following: validatedUserIdTheOtherUser },
+    $push: { following: validatedUserIdFollowing },
   });
-  await otherUserDocument.updateOne({
-    $push: { followers: validatedUserId },
+  await userFollowingDocument.updateOne({
+    $push: { following: validatedUserId },
   });
 
-  res.status(200).json({
+  res.status(201).json({
     success: true,
-    message: `${userDocument.username} is following ${otherUserDocument.username}`,
+    message: `${userDocument.username} is now being followed by ${userDocumentFromMiddleware.username}`,
+  });
+}
+
+export async function removeFollowing(
+  req: AuthMiddlewareRequest,
+  res: Response,
+) {
+  const userId = req.params.userId as unknown;
+  const userIdFollowing = req.params.userIdFollowing as unknown;
+  const userIdFromMiddleware = req.userId as unknown;
+  validateUsersRoutesRequest({ userId });
+  validateUsersRoutesRequest({ userId: userIdFromMiddleware });
+  validateUsersRoutesRequest({ userId: userIdFollowing });
+
+  const validatedUserId = userId as string;
+  const validatedUserIdFromMiddleWare = userIdFromMiddleware as string;
+  const validatedUserIdFollowing = userIdFollowing as string;
+
+  const userIdObjectId = ObjectId.createFromHexString(validatedUserId);
+  const userIdObjectIdRequest = ObjectId.createFromHexString(
+    validatedUserIdFromMiddleWare,
+  );
+  const userIdObjectIdFollowing = ObjectId.createFromHexString(
+    validatedUserIdFollowing,
+  );
+
+  const userDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectId,
+    true,
+  )) as UserDocument;
+  const userDocumentFromMiddleware = (await databaseValidateUserIdObjectId(
+    userIdObjectIdRequest,
+    true,
+  )) as UserDocument;
+
+  const userFollowingDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectIdFollowing,
+    true,
+  )) as UserDocument;
+
+  const userAlreadyIsBeingFollowedByOtherUser = userDocument.following.includes(
+    validatedUserIdFollowing,
+  );
+
+  if (userAlreadyIsBeingFollowedByOtherUser) {
+    await userDocument.updateOne({
+      $pull: { following: validatedUserIdFollowing },
+    });
+    await userFollowingDocument.updateOne({
+      $pull: { following: validatedUserId },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `User ${userFollowingDocument.name} unfollowed ${userDocument}`,
+    });
+  }
+
+  res.status(404).json({
+    success: true,
+    message: `User ${userDocument.username} is not being followed by ${userFollowingDocument.username}`,
   });
 }

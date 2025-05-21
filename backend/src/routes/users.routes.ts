@@ -1,14 +1,16 @@
 import express, { RequestHandler, Router } from "express";
 import verifyJWT from "../middleware/verifyJWT";
 import {
-  addOrRemoveFollowerHandler,
-  addOrRemoveFollowingHandler,
+  addFollower,
+  addFollowing,
   changePasswordHandler,
   editUserHandler,
   getAllUsersHandler,
   getFollowersFromUser,
   getFollowingFromUser,
   getUserHandler,
+  removeFollower,
+  removeFollowing,
 } from "../controllers/users.controller";
 import multer from "multer";
 const formDataHandler = multer({
@@ -27,7 +29,7 @@ usersRoutes.get(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await getFollowersFromUser(req, res);
-  }
+  },
 );
 
 usersRoutes.get(
@@ -35,7 +37,7 @@ usersRoutes.get(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await getFollowingFromUser(req, res);
-  }
+  },
 );
 
 usersRoutes.put(
@@ -44,7 +46,7 @@ usersRoutes.put(
   formDataHandler.single("file"),
   async (req, res) => {
     await editUserHandler(req, res);
-  }
+  },
 );
 
 usersRoutes.put(
@@ -53,22 +55,36 @@ usersRoutes.put(
   formDataHandler.single("file"),
   async (req, res) => {
     await changePasswordHandler(req, res);
-  }
+  },
 );
 
-usersRoutes.put(
+usersRoutes.post(
   "/:userId/followers/",
   verifyJWT as RequestHandler,
   async (req, res) => {
-    await addOrRemoveFollowerHandler(req, res);
-  }
+    await addFollower(req, res);
+  },
 );
-usersRoutes.put(
+usersRoutes.delete(
+  "/:userId/followers/:userIdFollower",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await removeFollower(req, res);
+  },
+);
+usersRoutes.post(
   "/:userId/following/",
   verifyJWT as RequestHandler,
   async (req, res) => {
-    await addOrRemoveFollowingHandler(req, res);
-  }
+    await addFollowing(req, res);
+  },
+);
+usersRoutes.delete(
+  "/:userId/followers/userIdFollowing/:userIdFollowing",
+  verifyJWT as RequestHandler,
+  async (req, res) => {
+    await removeFollowing(req, res);
+  },
 );
 
 export default usersRoutes;
