@@ -319,7 +319,7 @@ export async function addFollower(req: AuthMiddlewareRequest, res: Response) {
     $push: { following: validatedUserId },
   });
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     message: `${userDocument.username} is now being followed by ${userDocumentFromMiddleware.username}`,
   });
@@ -438,7 +438,7 @@ export async function addFollowing(req: AuthMiddlewareRequest, res: Response) {
     $push: { following: validatedUserId },
   });
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     message: `${userDocument.username} is now being followed by ${userDocumentFromMiddleware.username}`,
   });
