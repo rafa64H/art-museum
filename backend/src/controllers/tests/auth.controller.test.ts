@@ -2,8 +2,15 @@ import mongoose from "mongoose";
 import request from "supertest";
 import { app } from "../../app";
 
-describe("Login", () => {
+describe("Sign up and login", () => {
+  let email = "";
+  let name = "";
+  let username = "";
+  let password = "";
+  let confirmPassword = "";
+  let emailOrUsername = "";
   test.skip("POST /auth/signup", async () => {
+    const scenario = "";
     const responseSignUp = await request(app).post("/auth/signup").send({
       email: "rafaelpache64@outlook.com",
       name: "Rafael Pacheco",

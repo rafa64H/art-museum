@@ -14,7 +14,7 @@ import databaseValidateReplyIdObjectId from "../utils/validation/database/posts-
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const { title, content, tags } = req.body as {
@@ -58,7 +58,7 @@ export async function createPostHandler(
 
 export async function editPostHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const postId = req.params.postId;
@@ -91,7 +91,7 @@ export async function editPostHandler(
   await databaseValidateUserIdObjectId(userIdObjectId, false);
   const postDocument = (await databaseValidatePostIdObjectId(
     postIdObjectId,
-    true
+    true,
   )) as PostDocument;
 
   const titleCheck =
@@ -126,7 +126,7 @@ export async function getSinglePostHandler(req: Request, res: Response) {
   const postIdObjectId = ObjectId.createFromHexString(validatedPostId);
   const foundPost = (await databaseValidatePostIdObjectId(
     postIdObjectId,
-    true
+    true,
   )) as PostDocument;
 
   const postObjectToReturn = {
@@ -138,7 +138,7 @@ export async function getSinglePostHandler(req: Request, res: Response) {
 
 export async function likePostHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const postId = req.params.postId;
@@ -155,7 +155,7 @@ export async function likePostHandler(
 
   const postDocument = (await databaseValidatePostIdObjectId(
     postIdObjectId,
-    true
+    true,
   )) as PostDocument;
 
   const findIfUserDislikedPost =
@@ -169,7 +169,7 @@ export async function likePostHandler(
     await postDocument.updateOne({ $pull: { likes: validatedUserId } });
     const editedPostDocument = (await databaseValidatePostIdObjectId(
       postIdObjectId,
-      true
+      true,
     )) as PostDocument;
 
     return res.status(200).json({
@@ -184,7 +184,7 @@ export async function likePostHandler(
 
   const editedPostDocument = (await databaseValidatePostIdObjectId(
     postIdObjectId,
-    true
+    true,
   )) as PostDocument;
 
   res.status(200).json({
@@ -197,7 +197,7 @@ export async function likePostHandler(
 
 export async function dislikePostHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const postId = req.params.postId;
@@ -214,7 +214,7 @@ export async function dislikePostHandler(
 
   const postDocument = (await databaseValidatePostIdObjectId(
     postIdObjectId,
-    true
+    true,
   )) as PostDocument;
 
   const findIfUserLikedPost = postDocument.likes.includes(validatedUserId);
@@ -229,7 +229,7 @@ export async function dislikePostHandler(
 
     const editedPostDocument = (await databaseValidatePostIdObjectId(
       postIdObjectId,
-      true
+      true,
     )) as PostDocument;
 
     return res.status(200).json({
@@ -245,7 +245,7 @@ export async function dislikePostHandler(
 
   const editedPostDocument = (await databaseValidatePostIdObjectId(
     postIdObjectId,
-    true
+    true,
   )) as PostDocument;
 
   res.status(200).json({
@@ -265,7 +265,7 @@ export async function getAllCommentsHandler(req: Request, res: Response) {
 
   const foundPost = (await databaseValidatePostIdObjectId(
     postIdObjectId,
-    true
+    true,
   )) as PostDocument;
 
   const comments = (await CommentModel.find({
@@ -281,7 +281,7 @@ export async function getAllCommentsHandler(req: Request, res: Response) {
 
 export async function createCommentHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
 
@@ -324,7 +324,7 @@ export async function createCommentHandler(
 
 export async function editCommentHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const { postId, commentId } = req.params;
@@ -349,7 +349,7 @@ export async function editCommentHandler(
 
   const commentDocument = (await databaseValidateCommentIdObjectId(
     commentIdObjectId,
-    true
+    true,
   )) as CommentDocument;
 
   await commentDocument.updateOne({ $set: { content: validatedContent } });
@@ -363,7 +363,7 @@ export async function editCommentHandler(
 
 export async function getAllRepliesFromCommentHandler(
   req: Request,
-  res: Response
+  res: Response,
 ) {
   const { postId, commentId } = req.params;
 
@@ -388,7 +388,7 @@ export async function getAllRepliesFromCommentHandler(
 
 export async function createReplyHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const { postId, commentId } = req.params;
@@ -435,7 +435,7 @@ export async function createReplyHandler(
 
 export async function editReplyHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
   const { postId, commentId, replyId } = req.params;
@@ -465,7 +465,7 @@ export async function editReplyHandler(
   const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
   const foundReply = (await databaseValidateReplyIdObjectId(
     replyIdObjectId,
-    true
+    true,
   )) as ReplyDocument;
 
   if (foundReply.authorId.toString() !== userId)
@@ -482,7 +482,7 @@ export async function editReplyHandler(
 
 export async function likeCommentHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
 
@@ -509,7 +509,7 @@ export async function likeCommentHandler(
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
   const foundComment = (await databaseValidateCommentIdObjectId(
     commentIdObjectId,
-    true
+    true,
   )) as CommentDocument;
 
   const findIfUserDislikedComment =
@@ -524,7 +524,7 @@ export async function likeCommentHandler(
     await foundComment.updateOne({ $pull: { likes: validatedUserId } });
     const editedComment = (await databaseValidateCommentIdObjectId(
       commentIdObjectId,
-      true
+      true,
     )) as CommentDocument;
 
     return res.status(200).json({
@@ -539,7 +539,7 @@ export async function likeCommentHandler(
 
   const editedComment = (await databaseValidateCommentIdObjectId(
     commentIdObjectId,
-    true
+    true,
   )) as CommentDocument;
 
   res.status(201).json({
@@ -552,7 +552,7 @@ export async function likeCommentHandler(
 
 export async function dislikeCommentHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
 
@@ -579,7 +579,7 @@ export async function dislikeCommentHandler(
   const commentIdObjectId = ObjectId.createFromHexString(validatedCommentId);
   const foundComment = (await databaseValidateCommentIdObjectId(
     commentIdObjectId,
-    true
+    true,
   )) as CommentDocument;
 
   const findIfUserLikedComment = foundComment.likes.includes(validatedUserId);
@@ -594,7 +594,7 @@ export async function dislikeCommentHandler(
     await foundComment.updateOne({ $pull: { dislikes: validatedUserId } });
     const editedComment = (await databaseValidateCommentIdObjectId(
       commentIdObjectId,
-      true
+      true,
     )) as CommentDocument;
 
     return res.status(200).json({
@@ -609,7 +609,7 @@ export async function dislikeCommentHandler(
 
   const editedComment = (await databaseValidateCommentIdObjectId(
     commentIdObjectId,
-    true
+    true,
   )) as CommentDocument;
 
   res.status(201).json({
@@ -622,7 +622,7 @@ export async function dislikeCommentHandler(
 
 export async function likeReplyHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
 
@@ -645,7 +645,7 @@ export async function likeReplyHandler(
   const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
   const foundReply = (await databaseValidateReplyIdObjectId(
     replyIdObjectId,
-    true
+    true,
   )) as ReplyDocument;
 
   const findIfUserDislikedReply = foundReply.dislikes.includes(validatedUserId);
@@ -660,7 +660,7 @@ export async function likeReplyHandler(
 
     const editedReply = (await databaseValidateReplyIdObjectId(
       replyIdObjectId,
-      true
+      true,
     )) as ReplyDocument;
 
     return res.status(200).json({
@@ -675,7 +675,7 @@ export async function likeReplyHandler(
 
   const editedReply = (await databaseValidateReplyIdObjectId(
     replyIdObjectId,
-    true
+    true,
   )) as ReplyDocument;
 
   res.status(201).json({
@@ -688,7 +688,7 @@ export async function likeReplyHandler(
 
 export async function dislikeReplyHandler(
   req: AuthMiddlewareRequest,
-  res: Response
+  res: Response,
 ) {
   const userId = req.userId;
 
@@ -711,7 +711,7 @@ export async function dislikeReplyHandler(
   const replyIdObjectId = ObjectId.createFromHexString(validatedReplyId);
   const foundReply = (await databaseValidateReplyIdObjectId(
     replyIdObjectId,
-    true
+    true,
   )) as ReplyDocument;
 
   const findIfUserLikedReply = foundReply.likes.includes(validatedUserId);
@@ -726,7 +726,7 @@ export async function dislikeReplyHandler(
 
     const editedReply = (await databaseValidateReplyIdObjectId(
       replyIdObjectId,
-      true
+      true,
     )) as ReplyDocument;
 
     return res.status(200).json({
@@ -741,7 +741,7 @@ export async function dislikeReplyHandler(
 
   const editedReply = (await databaseValidateReplyIdObjectId(
     replyIdObjectId,
-    true
+    true,
   )) as ReplyDocument;
 
   res.status(201).json({
