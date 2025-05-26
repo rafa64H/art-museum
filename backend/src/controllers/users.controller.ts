@@ -297,7 +297,7 @@ export async function addFollower(req: AuthMiddlewareRequest, res: Response) {
   )) as UserDocument;
 
   const userFollowerDocument = (await databaseValidateUserIdObjectId(
-    userIdObjectId,
+    userIdObjectIdFollower,
     true,
   )) as UserDocument;
 
@@ -309,6 +309,7 @@ export async function addFollower(req: AuthMiddlewareRequest, res: Response) {
     return res.status(200).json({
       success: true,
       message: `User ${userFollowerDocument.name} is already a follower of ${userDocument}`,
+      following: userFollowerDocument.following,
     });
   }
 
@@ -319,9 +320,15 @@ export async function addFollower(req: AuthMiddlewareRequest, res: Response) {
     $push: { following: validatedUserId },
   });
 
+  const editedUserFollowerDocument = (await databaseValidateUserIdObjectId(
+    userIdObjectIdFollower,
+    true,
+  )) as UserDocument;
+
   res.status(200).json({
     success: true,
     message: `${userDocument.username} is now being followed by ${userDocumentFromMiddleware.username}`,
+    following: editedUserFollowerDocument.following,
   });
 }
 
@@ -358,7 +365,7 @@ export async function removeFollower(
   )) as UserDocument;
 
   const userFollowerDocument = (await databaseValidateUserIdObjectId(
-    userIdObjectId,
+    userIdObjectIdFollower,
     true,
   )) as UserDocument;
 
@@ -374,15 +381,22 @@ export async function removeFollower(
       $pull: { following: validatedUserId },
     });
 
+    const editedUserFollowerDocument = (await databaseValidateUserIdObjectId(
+      userIdObjectIdFollower,
+      true,
+    )) as UserDocument;
+
     return res.status(200).json({
       success: true,
       message: `User ${userFollowerDocument.name} unfollowed ${userDocument}`,
+      following: editedUserFollowerDocument.following,
     });
   }
 
   res.status(404).json({
     success: true,
     message: `User ${userDocument.username} is not being followed by ${userFollowerDocument.username}`,
+    following: userFollowerDocument.following,
   });
 }
 

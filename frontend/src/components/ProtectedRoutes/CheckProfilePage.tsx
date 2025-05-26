@@ -23,8 +23,6 @@ function CheckProfilePage() {
         const responseGetUserData = await responseGetUser.data;
         const userData = {
           ...responseGetUserData.user,
-          id: responseGetUserData.user._id,
-          _id: undefined,
         };
 
         setUserProfile(userData);

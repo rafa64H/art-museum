@@ -223,7 +223,7 @@ export async function changePassword(
 
 export async function addFollow(userProfileId: string | undefined) {
   const user = store.getState().auth.user;
-  const urlToAddFollow = `${BACKEND_URL}/api/users/followers/${userProfileId}`;
+  const urlToAddFollow = `${BACKEND_URL}/api/users/${userProfileId}/followers/`;
 
   const responseAddFollow = await axiosInstance.post(
     urlToAddFollow,
@@ -241,7 +241,7 @@ export async function addFollow(userProfileId: string | undefined) {
 
 export async function deleteFollow(userProfileId: string | undefined) {
   const user = store.getState().auth.user;
-  const urlToDeleteFollow = `${BACKEND_URL}/api/users/followers/${userProfileId}/${user.userData?._id}`;
+  const urlToDeleteFollow = `${BACKEND_URL}/api/users/${userProfileId}/followers/${user.userData?._id}`;
 
   const responseDeleteFollow = await axiosInstance.delete(urlToDeleteFollow, {
     headers: {

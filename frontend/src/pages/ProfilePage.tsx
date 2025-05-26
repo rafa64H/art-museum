@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { startTransition, useActionState, useState } from "react";
 import Header from "../components/Header";
 import { RootState } from "../services/redux-toolkit/store";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,6 +22,34 @@ function ProfilePage({
 }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
   const [followOrUnfollowLoading, setFollowOrUnfollowLoading] = useState(false);
+  const [followOrUnfollowReturnData, followOrUnfollowAction, isPendingFollow] =
+    useActionState(async () => {
+      try {
+        console.log(userProfile);
+        if (!user.userData || !userProfile) {
+          navigate("/sign-up");
+          return;
+        }
+        const isUserFollowing = user.userData?.following.some(
+          (id) => id === userProfile._id,
+        );
+
+        if (isUserFollowing) {
+          const responseDeleteFollow = await deleteFollow(userProfile?._id);
+          const responseDeleteFollowData = await responseDeleteFollow.data;
+
+          dispatch(setUserFollowing(responseDeleteFollowData.following));
+          return null;
+        }
+
+        const responseAddFollow = await addFollow(userProfile?._id);
+        const responseAddFollowData = await responseAddFollow.data;
+        dispatch(setUserFollowing(responseAddFollowData.following));
+      } catch (error: unknown) {
+        console.log(error);
+        return error;
+      }
+    }, null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -66,49 +94,13 @@ function ProfilePage({
             <ButtonComponent
               typeButton="button"
               textBtn={
-                user.userData?.following.find((id) => id === userProfile?.id) &&
-                user.userData
+                user.userData?.following.some((id) => id === userProfile?._id)
                   ? "Unfollow"
                   : "Follow"
               }
-              loadingDisabled={followOrUnfollowLoading}
+              loadingDisabled={isPendingFollow}
               onClickFunction={async () => {
-                setFollowOrUnfollowLoading(true);
-                try {
-                  if (!user.userData || !userProfile) {
-                    navigate("/sign-up");
-                    return;
-                  }
-                  const isUserFollowing = user.userData?.following.some(
-                    (id) => id === userProfile.id
-                  );
-
-                  if (isUserFollowing) {
-                    const responseDeleteFollow = await deleteFollow(
-                      userProfile?.id
-                    );
-                    const responseDeleteFollowData =
-                      await responseDeleteFollow.data;
-
-                    dispatch(
-                      setUserFollowing(
-                        responseDeleteFollowData.userRequestFollowing
-                      )
-                    );
-                    setFollowOrUnfollowLoading(false);
-                    return;
-                  }
-
-                  const responseAddFollow = await addFollow(userProfile?.id);
-                  const responseAddFollowData = await responseAddFollow.data;
-                  dispatch(
-                    setUserFollowing(responseAddFollowData.userRequestFollowing)
-                  );
-                  setFollowOrUnfollowLoading(false);
-                } catch (error) {
-                  setFollowOrUnfollowLoading(false);
-                  console.log(error);
-                }
+                startTransition(followOrUnfollowAction);
               }}
             ></ButtonComponent>
           </>
