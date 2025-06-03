@@ -5,7 +5,7 @@
   "scripts": {
     "start": "npx tsc && node dist/app.js",
     "dev": "ts-node src/app.ts",
-    "test-auth-routes": "jest src/controllers/tests/auth.controllers.test.ts"
+    "test-posts-routes": "jest src/controllers/tests/posts.controller.test.ts"
   },
   "keywords": [],
   "author": "",

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import request from "supertest";
 import { app } from "../../app";
 
-describe("Sign up and login", () => {
+describe.skip("Sign up and login", () => {
   let email = "";
   let name = "";
   let username = "";

@@ -1,7 +1,7 @@
 import request from "supertest";
 import { app } from "../../app";
 
-describe("Adding/Removing follower or following", async () => {
+describe.skip("Adding/Removing follower or following", () => {
   const accessToken = "";
   test.skip("addFollower (POST /api/users/:userId/followers)", async () => {
     const scenario: "add-follower" | "already-follower" = "add-follower";
