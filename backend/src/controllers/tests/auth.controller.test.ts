@@ -19,7 +19,7 @@ describe.skip("Sign up and login", () => {
     });
   });
 
-  test("POST /auth/login", async () => {
+  test.skip("POST /auth/login", async () => {
     const responseLogin = await request(app).post("/auth/login").send({
       emailOrUsername: "rafaelpache64@outlook.com",
       password: "aenoaelol543a4$",

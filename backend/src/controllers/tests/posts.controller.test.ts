@@ -6,7 +6,10 @@ describe("Search feature for posts", () => {
   test("Search posts (GET /api/posts/search?queries", async () => {
     const scenario = "default";
     const response = await request(app)
-      .get("/api/posts/search?")
+      .get("/api/posts/search")
       .set("Authorization", `Bearer ${accessToken}`);
+    if (scenario === "default") {
+      expect(response.status).toBe(200);
+    }
   });
 });

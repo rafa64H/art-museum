@@ -751,3 +751,9 @@ export async function dislikeReplyHandler(
     message: "Reply disliked",
   });
 }
+
+export async function searchPostsHandler(req: Request, res: Response) {
+  res.status(200).json({
+    success: true,
+  });
+}
