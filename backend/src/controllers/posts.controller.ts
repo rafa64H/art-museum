@@ -753,7 +753,25 @@ export async function dislikeReplyHandler(
 }
 
 export async function searchPostsHandler(req: Request, res: Response) {
+  const query = req.query.q;
+  const searchPipeline = [
+    {
+      $search: {
+        index: "art-museum-posts",
+        text: {
+          query: query,
+          path: ["title", "tags"],
+          fuzzy: {},
+          matchCriteria: "any",
+        },
+      },
+    },
+  ];
+
+  const results = await PostModel.aggregate(searchPipeline);
+
   res.status(200).json({
     success: true,
+    results,
   });
 }
