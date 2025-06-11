@@ -753,13 +753,16 @@ export async function dislikeReplyHandler(
 }
 
 export async function searchPostsHandler(req: Request, res: Response) {
-  const query = req.query.q;
+  const query = req.query.q as string;
+
+  const queryWithWhiteSpaces = query.replace(/\+/g, " ");
+
   const searchPipeline = [
     {
       $search: {
         index: "art-museum-posts",
         text: {
-          query: query,
+          query: queryWithWhiteSpaces,
           path: ["title", "tags"],
           fuzzy: {},
           matchCriteria: "any",
