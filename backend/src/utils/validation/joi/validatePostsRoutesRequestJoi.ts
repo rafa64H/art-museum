@@ -28,6 +28,9 @@ const replyIdSchema = Joi.object({
 const contentCommentOrReplySchema = Joi.object({
   content: Joi.string().min(1).max(2000).required(),
 });
+const queryParamSchema = Joi.object({
+  queryParam: Joi.string().min(1).required(),
+});
 
 type ValidatePostRequestType = {
   userId?: unknown;
@@ -39,6 +42,7 @@ type ValidatePostRequestType = {
   commentId?: string;
   replyId?: string;
   contentCommentOrReply?: unknown;
+  queryParam?: unknown;
   passedUserId?: boolean;
   passedPostTitle?: boolean;
   passedContent?: boolean;
@@ -48,6 +52,7 @@ type ValidatePostRequestType = {
   passedCommentId?: boolean;
   passedReplyId?: boolean;
   passedContentCommentOrReply?: boolean;
+  passedQueryParam?: boolean;
 };
 export function validatePostsRoutesRequest({
   userId,
@@ -59,6 +64,7 @@ export function validatePostsRoutesRequest({
   commentId,
   replyId,
   contentCommentOrReply,
+  queryParam,
   passedUserId,
   passedPostTitle,
   passedContent,
@@ -68,6 +74,7 @@ export function validatePostsRoutesRequest({
   passedCommentId,
   passedReplyId,
   passedContentCommentOrReply,
+  passedQueryParam,
 }: ValidatePostRequestType) {
   if (passedUserId) {
     const { error } = userIdSchema.validate({ userId });
@@ -106,6 +113,12 @@ export function validatePostsRoutesRequest({
   if (passedContentCommentOrReply) {
     const { error } = contentCommentOrReplySchema.validate({
       content: contentCommentOrReply,
+    });
+    if (error) throw new CustomError(400, error.details[0].message);
+  }
+  if (passedQueryParam) {
+    const { error } = queryParamSchema.validate({
+      queryParam: queryParam,
     });
     if (error) throw new CustomError(400, error.details[0].message);
   }

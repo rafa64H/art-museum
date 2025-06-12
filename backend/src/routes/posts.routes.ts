@@ -17,10 +17,14 @@ import {
   dislikeReplyHandler,
   editPostHandler,
   searchPostsHandler,
+  searchPostsByTagsHandler,
 } from "../controllers/posts.controller";
 
 const postsRoutes = express.Router();
 
+postsRoutes.get("/search-by-tags/", async (req, res) => {
+  await searchPostsByTagsHandler(req, res);
+});
 postsRoutes.get("/search/", async (req, res) => {
   await searchPostsHandler(req, res);
 });

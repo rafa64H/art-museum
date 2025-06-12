@@ -11,6 +11,7 @@ import databaseValidateUserIdObjectId from "../utils/validation/database/databas
 import databaseValidatePostIdObjectId from "../utils/validation/database/posts-routes/databaseValidatePostIdObjectId";
 import databaseValidateCommentIdObjectId from "../utils/validation/database/posts-routes/databaseValidateCommentIdObjectId";
 import databaseValidateReplyIdObjectId from "../utils/validation/database/posts-routes/databaseValidateReplyIdObjectId";
+import { Query } from "mongoose";
 
 export async function createPostHandler(
   req: AuthMiddlewareRequest,
@@ -753,9 +754,11 @@ export async function dislikeReplyHandler(
 }
 
 export async function searchPostsHandler(req: Request, res: Response) {
-  const query = req.query.q as string;
+  const query = req.query.q as unknown;
+  validatePostsRoutesRequest({ queryParam: query, passedQueryParam: true });
 
-  const queryWithWhiteSpaces = query.replace(/\+/g, " ");
+  const validatedQuery = query as string;
+  const queryWithWhiteSpaces = validatedQuery.replace(/\+/g, " ");
 
   const searchPipeline = [
     {
@@ -766,6 +769,49 @@ export async function searchPostsHandler(req: Request, res: Response) {
           path: ["title", "tags"],
           fuzzy: {},
           matchCriteria: "any",
+        },
+      },
+    },
+  ];
+
+  const results = await PostModel.aggregate(searchPipeline);
+
+  res.status(200).json({
+    success: true,
+    results,
+  });
+}
+
+export async function searchPostsByTagsHandler(req: Request, res: Response) {
+  const queryTags = req.query.qTags as unknown;
+  const findAllOrAnyParam = req.query.findAllOrAny as unknown;
+  validatePostsRoutesRequest({
+    queryParam: queryTags,
+    passedQueryParam: true,
+  });
+  validatePostsRoutesRequest({
+    queryParam: findAllOrAnyParam,
+    passedQueryParam: true,
+  });
+
+  const validatedQueryTags = queryTags as string;
+  const validatedFindAllOrAnyParam = findAllOrAnyParam as string;
+  const queryTagsWithWhiteSpaces = validatedQueryTags.replace(/\+/g, " ");
+  const matchCriteriaVariable =
+    findAllOrAnyParam === "all"
+      ? "all"
+      : findAllOrAnyParam === "any"
+        ? "any"
+        : "all";
+
+  const searchPipeline = [
+    {
+      $search: {
+        index: "art-museum-posts",
+        text: {
+          query: queryTagsWithWhiteSpaces,
+          path: "tags",
+          matchCriteria: `${matchCriteriaVariable}`,
         },
       },
     },
