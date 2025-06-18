@@ -22,14 +22,11 @@ import {
 
 const postsRoutes = express.Router();
 
-postsRoutes.get("/search-by-tags/", async (req, res) => {
+postsRoutes.get("/search/by-tags", async (req, res) => {
   await searchPostsByTagsHandler(req, res);
 });
-postsRoutes.get("/search/", async (req, res) => {
+postsRoutes.get("/search/by-text", async (req, res) => {
   await searchPostsHandler(req, res);
-});
-postsRoutes.get("/:postId", async (req, res) => {
-  await getSinglePostHandler(req, res);
 });
 postsRoutes.post("/", verifyJWT as RequestHandler, async (req, res) => {
   await createPostHandler(req, res);
@@ -44,7 +41,7 @@ postsRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await likePostHandler(req, res);
-  },
+  }
 );
 
 postsRoutes.put(
@@ -52,7 +49,7 @@ postsRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await dislikePostHandler(req, res);
-  },
+  }
 );
 
 postsRoutes.get("/:postId/comments", async (req, res) => {
@@ -64,7 +61,7 @@ postsRoutes.post(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await createCommentHandler(req, res);
-  },
+  }
 );
 
 postsRoutes.put(
@@ -72,7 +69,7 @@ postsRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await editCommentHandler(req, res);
-  },
+  }
 );
 
 postsRoutes.put(
@@ -80,14 +77,14 @@ postsRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await likeCommentHandler(req, res);
-  },
+  }
 );
 postsRoutes.put(
   "/:postId/comments/:commentId/dislikes",
   verifyJWT as RequestHandler,
   async (req, res) => {
     await dislikeCommentHandler(req, res);
-  },
+  }
 );
 postsRoutes.get("/:postId/comments/:commentId/replies", async (req, res) => {
   await getAllRepliesFromCommentHandler(req, res);
@@ -98,7 +95,7 @@ postsRoutes.post(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await createReplyHandler(req, res);
-  },
+  }
 );
 
 postsRoutes.put(
@@ -106,7 +103,7 @@ postsRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await editReplyHandler(req, res);
-  },
+  }
 );
 
 postsRoutes.put(
@@ -114,14 +111,14 @@ postsRoutes.put(
   verifyJWT as RequestHandler,
   async (req, res) => {
     await likeReplyHandler(req, res);
-  },
+  }
 );
 postsRoutes.put(
   "/:postId/comments/:commentId/replies/:replyId/dislikes",
   verifyJWT as RequestHandler,
   async (req, res) => {
     await dislikeReplyHandler(req, res);
-  },
+  }
 );
 
 export default postsRoutes;
